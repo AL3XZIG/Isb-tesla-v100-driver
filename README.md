@@ -1,161 +1,211 @@
-# ISB Tesla V100 Driver
+# ISB Driver Fixer
 
 **ISB — Intelligent Systems Bureau**
 
-Open-source research and engineering project for NVIDIA Tesla V100 / GV100 systems.
+Open-source compatibility, diagnostics, workaround and extension layer for NVIDIA GPU driver stacks, with **Tesla V100 / GV100** as the first target.
 
-> The project does not attempt to turn GV100 into an RTX GPU. It focuses on exposing, orchestrating, measuring, and extending what the hardware can actually do, with software compensation only where technically feasible.
+> ISB does not start by replacing the NVIDIA kernel driver. It sits above or beside an installed driver, detects broken paths, applies evidence-backed compatibility workarounds, and adds user-space features where the underlying driver exposes the required API.
 
-## Status
+## Why this direction
 
-**Architecture / Experimental Protocol phase.**
+A complete replacement GPU kernel + user-mode driver stack is a multi-year project. It is not the MVP.
 
-The repository starts with architecture, interfaces, diagnostics, reproducibility, and experimental methodology before higher-level feature implementation.
-
-## Goals
-
-- Detect and characterize Tesla V100 hardware and runtime environment.
-- Provide a Capability Abstraction Layer (CAL).
-- Separate OS primitives (HAL) from technology-specific providers.
-- Manage and verify supported driver/runtime stacks without redistributing proprietary NVIDIA binaries.
-- Provide CUDA, graphics, neural, diagnostics, and benchmark infrastructure.
-- Research workload-aware execution across CUDA Cores and Tensor Cores.
-- Investigate neural super-resolution/reconstruction and external accelerator workflows.
-- Keep software ray tracing and frame generation explicitly experimental/research-only.
-- Reuse or integrate mature open-source components where they provide a better-tested implementation than a new ISB-specific replacement.
-
-## Non-goals
-
-- No RT Core emulation claim.
-- No dedicated Optical Flow Accelerator claim.
-- No proprietary NVIDIA DLSS implementation.
-- No replacement NVIDIA kernel/display driver in MVP.
-- No redistribution of proprietary NVIDIA binaries without appropriate rights.
-- No universal game compatibility guarantee.
-- No guarantee of real-time frame generation.
-- No blind copying of third-party source code without license and provenance review.
-
-## Upstream integration
-
-ISB uses a **reuse-first, provenance-first** strategy: mature open-source code can be bundled when its license, dependencies, and hardware scope make that appropriate; otherwise it remains an external component or isolated reference.
-
-Current upstream inputs:
-
-- **Mesa 3D** — layered graphics/API architecture reference. Individual source files require SPDX-level audit before import.
-- **NVIDIA Open GPU Kernel Modules** — OS-agnostic versus platform-specific driver architecture reference. The current upstream target is Turing and later, so it is not treated as a V100 backend.
-- **OptiScaler** — external GPL-3.0-or-later upscaling/frame-generation component. ISB can eventually detect, configure, validate, and launch it without making it part of ISB core.
-- **fakenvapi** — MIT-licensed NVAPI/low-latency compatibility reference. An isolated `low_latency.h` snapshot is retained under `third_party/reference/` for future Windows compatibility work and is not built.
-- **DLSS-Enabler** — MIT-licensed application interception and external-component orchestration reference. Proprietary NVIDIA binaries are not bundled.
-
-Machine-readable provenance: [`third_party/UPSTREAM_COMPONENTS.json`](third_party/UPSTREAM_COMPONENTS.json).
-
-Legal/provenance policy: [`legal/THIRD_PARTY_UPSTREAM.md`](legal/THIRD_PARTY_UPSTREAM.md).
-
-## Graphics compatibility foundation
-
-The first implementation boundary is provider-neutral rather than vendor-specific:
+The practical target is a **Driver Fixer** that can make an existing NVIDIA stack more usable on hardware such as V100:
 
 ```text
 Game / Application
         |
         v
-ISB Compatibility Layer
-        |
-        +-- future DX11/DX12/Vulkan interception
-        +-- external component selection/validation
-        |
-        v
-UpscalerBackend / GraphicsBackend
-        |
-        v
-ISB Runtime / CAL / Provider
+   ISB Fixer
+   /   |    \
+  /    |     \
+Detect Diagnose Workaround / Extension
+              |
+              v
+       NVIDIA Driver Stack
+              |
+              v
+          V100 / GV100
 ```
 
-ISB now provides an initial `UpscalerBackend` abstraction and an external-component model. These allow future integrations with OptiScaler, FSR, XeSS, DLSS-compatible application paths, and an eventual ISB neural backend without coupling CAL to one graphics technology.
+ISB can therefore work with different NVIDIA driver bases when they expose different useful functionality. For example, a validated Google Compute Engine / vGPU-class driver can be treated as a **base stack** when it exposes an API path useful to V100; ISB does not claim that ISB itself implements that underlying API.
+
+## MVP
+
+The first concrete milestone is:
+
+**one real V100 driver problem → deterministic diagnosis → one reproducible fix/workaround → regression test.**
+
+The MVP does **not** require a custom WDDM or Linux kernel driver.
+
+### Initial feature classes
+
+- Driver/GPU/API/environment detection.
+- Driver capability fingerprinting and provenance.
+- Known-bug and hardware-quirk database.
+- Rule-based workaround engine.
+- Application compatibility profiles.
+- Runtime configuration and feature selection.
+- Optional user-space interception/shims for supported APIs.
+- Driver health and fault diagnostics.
+- Regression testing across driver versions.
+- Custom features layered on top of an existing driver where technically possible.
+- Control Center and CLI for inspection, applying fixes, rollback and verification.
+
+## Driver-base model
+
+ISB treats the installed NVIDIA stack as a **base driver**, not as something to blindly replace.
+
+```text
+                 ISB
+        +----------+----------+
+        |          |          |
+     Detect     Fix/Work   Extensions
+        |          |          |
+        +----------+----------+
+                   |
+              Base Driver
+          +--------+--------+
+          |        |        |
+       NVIDIA   Google   other validated
+       stack     stack       stack
+                   |
+                  GPU
+```
+
+A base stack may expose functionality that another package does not. ISB records this as an observed software capability, with provenance and verification status.
+
+**Important:** if DirectCompute is exposed by a particular NVIDIA/Google driver package, ISB can detect, preserve, configure and build features around that path. ISB does not manufacture DirectCompute merely by installing a user-space layer.
 
 ## Architecture
 
-Control Center / CLI / Remote API → ISB API → ISB Core → CAL / Diagnostics / Profiles → Providers → HAL → OS / Driver / Runtime Stack → CUDA / Vulkan / OpenGL / Integrations → Neural / Compute / Graphics → Tesla V100 / GV100.
-
-For application-level graphics compatibility, an additional isolated layer may sit above the runtime:
-
-Application / Game → ISB Compatibility Layer → external upscaling/interception component → ISB Runtime / graphics backend → render/display GPU.
+```text
+Application / Game / Tool
+            |
+     Compatibility Layer
+            |
+      ISB Fix Engine
+   +--------+---------+
+   |        |         |
+ Detect  Diagnose  Workarounds
+   |        |         |
+   +--------+---------+
+            |
+   Runtime Interception
+   / Configuration / Profiles
+            |
+       Base Driver
+            |
+       OS Driver Model
+            |
+        GPU / GV100
+```
 
 Detailed architecture: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 ## Repository structure
 
 ```text
-core/                  Core orchestration and GPU state
-cal/                   Capability Abstraction Layer
-hal/                   Low-level OS primitives
-providers/             Technology/runtime-specific providers
-capabilities/          Capability schemas and definitions
-drivers/               Driver stack detection and management
-integrations/          External graphics/runtime integrations
-graphics/              Graphics runtime and compatibility infrastructure
-compute/               CUDA/compute infrastructure
-neural/                Neural runtime and data acquisition
-research/              Research-only components
-benchmarks/            Reproducible benchmark workloads
-diagnostics/           Diagnostics and IDR reports
-performance/           Performance measurement infrastructure
-models/                Model registry and metadata
-installer/             Installation and verification workflow
-control-center/        Optional GUI control plane
-cli/                   Command-line interface
-profiles/              Hardware/workload profiles
-manifests/             Reproducibility and stack manifests
-tests/                 Unit/integration/system tests
-tools/                 Development and research tooling
-third_party/           Audited upstream licenses and isolated references
-docs/                   Project documentation
-legal/                 Licensing and proprietary-component policy
-.github/               CI and repository automation
+core/                  normalized state and orchestration
+cal/                   capability abstraction
+hal/                   low-level platform primitives
+providers/             NVIDIA/API/platform providers
+fixer/                 detection, diagnosis, rules, workarounds, shims
+compatibility/         API-specific compatibility logic
+database/              drivers, GPUs, applications and known issues
+diagnostics/           IDR, crash, fault and evidence collection
+drivers/               base-driver detection, staging and rollback
+integrations/          DXVK, VKD3D, OptiScaler and other external components
+graphics/              graphics compatibility infrastructure
+compute/               CUDA/DirectCompute/compute compatibility
+neural/                SR/reconstruction/denoising research
+benchmarks/            reproducible measurements
+profiles/              hardware/application/driver profiles
+manifests/             reproducibility manifests
+installer/              install/configure/verify/rollback workflow
+control-center/        optional GUI
+cli/                   command-line interface
+tests/                 unit/compatibility/regression/hardware tests
+research/              experimental alternative-driver work
+third_party/           audited external references
+docs/                  architecture and protocols
+legal/                 licensing and proprietary-component policy
+.github/               CI
 ```
 
-## Workload-Aware Resource Utilization
+## What ISB can fix
 
-The project investigates whether a GV100-aware execution policy can dynamically select, decompose, transform, and schedule workload stages according to available execution resources and runtime constraints.
+The stable design target is **software-visible driver behavior**, for example:
 
-> Do not directly emulate hardware that GV100 does not have. Redistribute computational work across the resources GV100 actually provides.
+- known API/extension incompatibilities;
+- bad driver-version/application combinations;
+- incorrect feature selection;
+- broken or unstable runtime paths with a validated alternative path;
+- application-specific compatibility problems;
+- configuration and deployment mistakes;
+- reproducible user-mode/API failures that can be isolated and worked around.
 
-The hypothesis is tested experimentally against strong existing baselines rather than assumed from hardware specifications.
+A fix is accepted only when its trigger, action, provenance and verification are recorded.
 
-## Experimental status model
+## What ISB cannot magically fix
 
-- **Stable** — supported engineering functionality with reproducible validation.
-- **Experimental** — functional research/engineering work whose behavior or compatibility is still being evaluated.
-- **Research** — exploratory work with no production guarantee.
-- **Verify Before Freeze** — claim or interface requiring source and/or hardware validation before becoming normative.
+- Missing physical hardware blocks.
+- RT Cores on V100.
+- A dedicated Optical Flow Accelerator on V100.
+- Proprietary functionality that the installed stack does not expose and cannot legally/technically be substituted for.
+- Arbitrary kernel-driver faults from user space when no supported recovery path exists.
 
-## Experimental protocol
+A future independent KMD/UMD remains a **research track**, not an MVP dependency.
 
-The workload-aware execution research uses controlled baselines, oracle definitions, measurement modes, leakage prevention, statistical analysis, non-stationarity tests, and reproducibility requirements.
+## V100 scope
 
-Protocol documents live under `docs/experimental/`.
+Primary target: **Tesla V100 SXM2 16 GB**.
 
-## Hardware scope
+V100 PCIe is tracked separately. 16 GB and 32 GB are separately qualified targets.
 
-The primary development target is **Tesla V100 SXM2**. V100 PCIe is a separate hardware variant and must never be silently mixed with SXM2 measurements or assumptions.
+Relevant hardware facts:
 
-Hardware facts and performance figures are classified separately; peak specifications are not treated as achieved application performance.
+- GV100 / Volta / SM70.
+- First-generation Tensor Cores.
+- No RT Cores.
+- No dedicated Optical Flow Accelerator.
+- ECC HBM2.
+- No MIG.
+- SXM2/PCIe differences must be detected rather than assumed.
+
+## Experimental features
+
+ISB may add higher-level features such as:
+
+- neural super-resolution/reconstruction;
+- denoising;
+- workload-aware resource utilization;
+- external upscaler orchestration;
+- application compatibility profiles;
+- frame-generation research;
+- additional compute/graphics compatibility layers.
+
+These are user-space features unless explicitly documented otherwise.
 
 ## Development principles
 
-1. Evidence before claims.
-2. Measurements before optimization claims.
-3. Explicit separation of stable, experimental, and research code.
-4. No benchmark result is valid without provenance.
-5. Baselines must be workload-specific and fair.
-6. Profiling overhead must not be hidden inside production latency measurements.
-7. Hardware variants and runtime configurations must be recorded.
-8. Proprietary components remain externally supplied unless redistribution rights are established.
-9. Mature upstream components should be integrated through explicit, auditable boundaries instead of duplicated blindly.
-10. Every imported third-party source file must have provenance and license metadata.
+1. Fix first, replace later.
+2. Evidence before claims.
+3. Never confuse a base driver's capability with an ISB capability.
+4. Every workaround needs a reproducible trigger and verification path.
+5. Preserve working driver functionality instead of replacing it unnecessarily.
+6. Hardware facts, driver capabilities and ISB-added features are separate layers.
+7. Proprietary driver binaries are supplied by the user/vendor package; ISB does not redistribute them without appropriate rights.
+8. External projects are integrated through explicit, auditable boundaries.
+9. Experimental features never silently become stable dependencies.
+10. V100 hardware limitations are not hidden by software naming.
+
+## Status
+
+**Driver Fixer reframe — architecture and foundation phase.**
+
+The existing CAL v1 and Verification Tools remain valid foundations. The next implementation work is the Fix Engine, driver-base fingerprinting, issue database, first workaround, and regression harness.
 
 ## License
 
-The project license and third-party component policy are maintained under [`legal/`](legal/).
-
-Proprietary NVIDIA software is not bundled by default.
+Project licensing and third-party provenance are maintained under [`legal/`](legal/).
