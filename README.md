@@ -22,6 +22,7 @@ The repository starts with architecture, interfaces, diagnostics, reproducibilit
 - Research workload-aware execution across CUDA Cores and Tensor Cores.
 - Investigate neural super-resolution/reconstruction and external accelerator workflows.
 - Keep software ray tracing and frame generation explicitly experimental/research-only.
+- Reuse or integrate mature open-source components where they provide a better-tested implementation than a new ISB-specific replacement.
 
 ## Non-goals
 
@@ -32,10 +33,30 @@ The repository starts with architecture, interfaces, diagnostics, reproducibilit
 - No redistribution of proprietary NVIDIA binaries without appropriate rights.
 - No universal game compatibility guarantee.
 - No guarantee of real-time frame generation.
+- No blind copying of third-party source code without license and provenance review.
+
+## Upstream integration strategy
+
+ISB does not need to reinvent every layer of the graphics stack. The project will use established open-source components through explicit boundaries where technically and legally appropriate.
+
+Current references and integration targets:
+
+- **Mesa 3D** — reference for layered graphics architecture and possible future graphics integration. Mesa is a multi-license project; individual source files must be checked before reuse.
+- **NVIDIA Open GPU Kernel Modules** — reference for separating OS-agnostic GPU code from OS/kernel interface code. The current upstream open kernel modules target Turing and later GPUs, so they are **not** treated as a V100 driver backend.
+- **OptiScaler** — external GPL-3.0 application-level upscaling/frame-generation compatibility component. ISB may detect, configure, validate, and integrate with an installed OptiScaler component without copying it into ISB core.
+- **DLSS-Enabler** — MIT-licensed reference for application-level interception/compatibility and external-component management. Future source reuse requires file-level license/provenance review.
+
+Detailed analysis and integration boundaries: [`docs/UPSTREAM_INTEGRATION.md`](docs/UPSTREAM_INTEGRATION.md).
+
+Third-party attribution policy: [`legal/THIRD_PARTY_UPSTREAM.md`](legal/THIRD_PARTY_UPSTREAM.md).
 
 ## Architecture
 
 Control Center / CLI / Remote API → ISB API → ISB Core → CAL / Diagnostics / Profiles → Providers → HAL → OS / Driver / Runtime Stack → CUDA / Vulkan / OpenGL / Integrations → Neural / Compute / Graphics → Tesla V100 / GV100.
+
+For application-level graphics compatibility, an additional isolated layer may sit above the runtime:
+
+Application / Game → ISB Compatibility Layer → external upscaling/interception component → ISB Runtime / graphics backend → render/display GPU.
 
 Detailed architecture: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
@@ -106,9 +127,11 @@ Hardware facts and performance figures are classified separately; peak specifica
 6. Profiling overhead must not be hidden inside production latency measurements.
 7. Hardware variants and runtime configurations must be recorded.
 8. Proprietary components remain externally supplied unless redistribution rights are established.
+9. Mature upstream components should be integrated through explicit, auditable boundaries instead of duplicated blindly.
+10. Every imported third-party source file must have provenance and license metadata.
 
 ## License
 
-The project license and third-party component policy will be finalized in [`legal/`](legal/).
+The project license and third-party component policy are maintained under [`legal/`](legal/).
 
 Proprietary NVIDIA software is not bundled by default.
