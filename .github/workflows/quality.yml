@@ -1,0 +1,30 @@
+name: quality
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  architecture:
+    name: Architecture boundary checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Check dependency boundaries
+        run: python3 tools/check_architecture.py
+
+  cal:
+    name: CAL build and tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -S cal -B build/cal -DBUILD_TESTING=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo
+      - name: Build
+        run: cmake --build build/cal --parallel
+      - name: Test
+        run: ctest --test-dir build/cal --output-on-failure
