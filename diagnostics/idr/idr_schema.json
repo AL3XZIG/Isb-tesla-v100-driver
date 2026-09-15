@@ -1,0 +1,205 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/AL3XZIG/Isb-tesla-v100-driver/blob/cal-v1/diagnostics/idr/idr_schema.json",
+  "title": "ISB Hardware Snapshot / IDR v1",
+  "description": "Schema for measured or explicitly unknown hardware/runtime observations. Values are not hardware assumptions.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "timestamp", "host", "os", "driver", "cuda", "gpus"],
+  "properties": {
+    "schema_version": {"type": "string", "const": "1.0"},
+    "timestamp": {"type": "string", "format": "date-time"},
+    "probe_status": {"$ref": "#/$defs/status"},
+    "host": {"$ref": "#/$defs/host"},
+    "os": {"$ref": "#/$defs/os"},
+    "driver": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version"],
+      "properties": {"version": {"$ref": "#/$defs/observation"}}
+    },
+    "cuda": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["driver_version", "runtime_version"],
+      "properties": {
+        "driver_version": {"$ref": "#/$defs/observation"},
+        "runtime_version": {"$ref": "#/$defs/observation"}
+      }
+    },
+    "gpus": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/gpu"}
+    }
+  },
+  "$defs": {
+    "state": {
+      "type": "string",
+      "enum": ["unknown", "available", "unavailable"]
+    },
+    "status": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state"],
+      "properties": {
+        "state": {"$ref": "#/$defs/state"},
+        "source": {"type": "string"},
+        "error": {"type": "string"}
+      }
+    },
+    "observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "value"],
+      "properties": {
+        "state": {"$ref": "#/$defs/state"},
+        "value": {},
+        "unit": {"type": "string"}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"state": {"const": "available"}}, "required": ["state"]},
+          "then": {"not": {"properties": {"value": {"type": "null"}}}}
+        },
+        {
+          "if": {"properties": {"state": {"enum": ["unknown", "unavailable"]}}, "required": ["state"]},
+          "then": {"properties": {"value": {"type": "null"}}}
+        }
+      ]
+    },
+    "host": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["hostname", "platform", "kernel", "machine"],
+      "properties": {
+        "hostname": {"$ref": "#/$defs/observation"},
+        "platform": {"$ref": "#/$defs/observation"},
+        "kernel": {"$ref": "#/$defs/observation"},
+        "machine": {"$ref": "#/$defs/observation"}
+      }
+    },
+    "os": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "release"],
+      "properties": {
+        "name": {"$ref": "#/$defs/observation"},
+        "release": {"$ref": "#/$defs/observation"}
+      }
+    },
+    "gpu": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["identity", "pci", "memory", "ecc", "clocks", "power", "temperature", "utilization", "persistence_mode", "compute_mode", "nvlink"],
+      "properties": {
+        "identity": {"$ref": "#/$defs/identity"},
+        "pci": {"$ref": "#/$defs/pci"},
+        "memory": {"$ref": "#/$defs/memory"},
+        "ecc": {"$ref": "#/$defs/ecc"},
+        "clocks": {"$ref": "#/$defs/clocks"},
+        "power": {"$ref": "#/$defs/power"},
+        "temperature": {"$ref": "#/$defs/temperature"},
+        "utilization": {"$ref": "#/$defs/utilization"},
+        "persistence_mode": {"$ref": "#/$defs/observation"},
+        "compute_mode": {"$ref": "#/$defs/observation"},
+        "nvlink": {"$ref": "#/$defs/nvlink"},
+        "probe_error": {"type": "string"}
+      }
+    },
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["index", "name", "uuid", "serial", "brand", "architecture"],
+      "properties": {
+        "index": {"type": "integer", "minimum": 0},
+        "name": {"$ref": "#/$defs/observation"},
+        "uuid": {"$ref": "#/$defs/observation"},
+        "serial": {"$ref": "#/$defs/observation"},
+        "brand": {"$ref": "#/$defs/observation"},
+        "architecture": {"$ref": "#/$defs/observation"}
+      }
+    },
+    "pci": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["bus_id", "domain", "bus", "device", "function", "device_id", "subsystem_id"],
+      "properties": {
+        "bus_id": {"$ref": "#/$defs/observation"},
+        "domain": {"$ref": "#/$defs/observation"},
+        "bus": {"$ref": "#/$defs/observation"},
+        "device": {"$ref": "#/$defs/observation"},
+        "function": {"$ref": "#/$defs/observation"},
+        "device_id": {"$ref": "#/$defs/observation"},
+        "subsystem_id": {"$ref": "#/$defs/observation"}
+      }
+    },
+    "memory": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total", "used", "free"],
+      "properties": {
+        "total": {"$ref": "#/$defs/observation"},
+        "used": {"$ref": "#/$defs/observation"},
+        "free": {"$ref": "#/$defs/observation"}
+      }
+    },
+    "ecc": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "errors"],
+      "properties": {
+        "mode": {"$ref": "#/$defs/observation"},
+        "errors": {"type": "object", "additionalProperties": {"$ref": "#/$defs/observation"}}
+      }
+    },
+    "clocks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["graphics", "sm", "memory"],
+      "properties": {
+        "graphics": {"$ref": "#/$defs/observation"},
+        "sm": {"$ref": "#/$defs/observation"},
+        "memory": {"$ref": "#/$defs/observation"}
+      }
+    },
+    "power": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["usage", "limit"],
+      "properties": {
+        "usage": {"$ref": "#/$defs/observation"},
+        "limit": {"$ref": "#/$defs/observation"}
+      }
+    },
+    "temperature": {"$ref": "#/$defs/observation"},
+    "utilization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gpu", "memory"],
+      "properties": {
+        "gpu": {"$ref": "#/$defs/observation"},
+        "memory": {"$ref": "#/$defs/observation"}
+      }
+    },
+    "nvlink": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "links"],
+      "properties": {
+        "state": {"$ref": "#/$defs/state"},
+        "links": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["index", "state"],
+            "properties": {
+              "index": {"type": "integer", "minimum": 0},
+              "state": {"$ref": "#/$defs/state"}
+            }
+          }
+        }
+      }
+    }
+  }
+}
