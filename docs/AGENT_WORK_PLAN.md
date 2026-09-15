@@ -76,7 +76,7 @@ Only after the lower layers are real should the project spend significant effort
 
 ## Branch / PR policy
 
-Prefer one branch and one PR per row. Dependent tasks may use stacked branches, but each PR must contain one coherent layer. GitHub explicitly recommends small, focused PRs and supports stacked PRs for dependent layers. citeturn0search0turn0search3
+Prefer one branch and one PR per row. Dependent tasks may use stacked branches, but each PR must contain one coherent layer. Large changes should be split rather than combined into one mega-PR.
 
 Suggested branch names:
 
