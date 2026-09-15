@@ -8,9 +8,11 @@ Open-source research and engineering project for NVIDIA Tesla V100 / GV100 syste
 
 ## Status
 
-**Architecture / Experimental Protocol phase.**
+**Architecture / Experimental Protocol / Foundation implementation phase.**
 
-The repository starts with architecture, interfaces, diagnostics, reproducibility, and experimental methodology before higher-level feature implementation.
+The repository currently contains implemented user-space foundations such as CAL, diagnostics/verification tooling, and the HAL layer, while OSAL and production kernel-driver layers remain in development. Architecture documents are specifications unless an implementation is explicitly marked as implemented.
+
+See [`docs/IMPLEMENTATION_STATUS.md`](docs/IMPLEMENTATION_STATUS.md) for the authoritative implementation/validation matrix.
 
 ## Goals
 
@@ -29,7 +31,7 @@ The repository starts with architecture, interfaces, diagnostics, reproducibilit
 - No RT Core emulation claim.
 - No dedicated Optical Flow Accelerator claim.
 - No proprietary NVIDIA DLSS implementation.
-- No replacement NVIDIA kernel/display driver in MVP.
+- No claim that a production replacement NVIDIA kernel/display driver already exists.
 - No redistribution of proprietary NVIDIA binaries without appropriate rights.
 - No universal game compatibility guarantee.
 - No guarantee of real-time frame generation.
@@ -41,9 +43,9 @@ ISB uses a **reuse-first, provenance-first** strategy: mature open-source code c
 
 Current upstream inputs:
 
-- **Mesa 3D** — layered graphics/API architecture reference. Individual source files require SPDX-level audit before import.
-- **NVIDIA Open GPU Kernel Modules** — OS-agnostic versus platform-specific driver architecture reference. The current upstream target is Turing and later, so it is not treated as a V100 backend.
-- **OptiScaler** — external GPL-3.0-or-later upscaling/frame-generation component. ISB can eventually detect, configure, validate, and launch it without making it part of ISB core.
+- **Mesa 3D** — layered graphics/API architecture reference. The reference revision is pinned; individual source files still require SPDX-level audit before import.
+- **NVIDIA Open GPU Kernel Modules** — OS-agnostic versus platform-specific driver architecture reference. The reference revision is pinned; the current upstream target is not treated as a V100 backend.
+- **OptiScaler** — external GPL-3.0-or-later upscaling/frame-generation component. The reference revision is pinned. ISB can eventually detect, configure, validate, and launch it without making it part of ISB core.
 - **fakenvapi** — MIT-licensed NVAPI/low-latency compatibility reference. An isolated `low_latency.h` snapshot is retained under `third_party/reference/` for future Windows compatibility work and is not built.
 - **DLSS-Enabler** — MIT-licensed application interception and external-component orchestration reference. Proprietary NVIDIA binaries are not bundled.
 
@@ -103,7 +105,7 @@ performance/           Performance measurement infrastructure
 models/                Model registry and metadata
 installer/             Installation and verification workflow
 control-center/        Optional GUI control plane
-cli/                   Command-line interface
+cli/                    Command-line interface
 profiles/              Hardware/workload profiles
 manifests/             Reproducibility and stack manifests
 tests/                 Unit/integration/system tests
@@ -153,6 +155,8 @@ Hardware facts and performance figures are classified separately; peak specifica
 8. Proprietary components remain externally supplied unless redistribution rights are established.
 9. Mature upstream components should be integrated through explicit, auditable boundaries instead of duplicated blindly.
 10. Every imported third-party source file must have provenance and license metadata.
+11. A green unit-test suite is not hardware validation.
+12. Architecture boundaries must be checked automatically where practical.
 
 ## License
 
