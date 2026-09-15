@@ -1,0 +1,30 @@
+# Example/template only. Do not treat values as verified facts.
+# Populate from an actual installation and probe results.
+profile_id: google-compute-v100
+status: experimental
+base_driver:
+  vendor: NVIDIA
+  distribution: google_compute_engine
+  package_version: "<observed-version>"
+gpu:
+  model: Tesla V100
+  variant: V100_SXM2
+platform:
+  os: windows
+  build: "<observed-build>"
+api_capabilities:
+  directcompute:
+    state: unknown
+    provenance: runtime_probe
+  cuda:
+    state: unknown
+    provenance: runtime_probe
+  vulkan:
+    state: unknown
+    provenance: runtime_probe
+  opengl:
+    state: unknown
+    provenance: runtime_probe
+
+# The profile records what the base driver exposes.
+# It does not grant capabilities to the hardware.
