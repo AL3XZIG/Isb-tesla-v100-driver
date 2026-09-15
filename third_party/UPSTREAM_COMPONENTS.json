@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "components": [
+    {
+      "name": "DLSS-Enabler",
+      "upstream": "https://github.com/artur-graniszewski/DLSS-Enabler",
+      "revision": "c67224e4ecb8020497b05de26b550e44d815eb59",
+      "license": "MIT",
+      "integration": "reference",
+      "status": "audit-complete-reference-only",
+      "files": [],
+      "notes": "The repository demonstrates application-level interception and external upscaler orchestration. No upstream executable or proprietary NVIDIA binary is bundled by ISB."
+    },
+    {
+      "name": "OptiScaler",
+      "upstream": "https://github.com/OptiScaler/OptiScaler",
+      "revision": "master",
+      "license": "GPL-3.0-or-later",
+      "integration": "external",
+      "status": "external-component",
+      "files": [],
+      "notes": "ISB may detect/configure/validate an installed OptiScaler. OptiScaler source is not linked into ISB core by this component manifest."
+    },
+    {
+      "name": "fakenvapi",
+      "upstream": "https://github.com/optiscaler/fakenvapi",
+      "revision": "c39271ab990fab3b80ebac93a593b963cdac0f0d",
+      "license": "MIT",
+      "integration": "reference",
+      "status": "isolated-reference-snapshot",
+      "files": [
+        {
+          "upstream_path": "src/low_latency.h",
+          "isb_path": "third_party/reference/fakenvapi/low_latency.h",
+          "modifications": ["added SPDX/provenance header only"]
+        }
+      ],
+      "notes": "The snapshot is not part of the ISB build. It is retained to guide the future Windows/application low-latency compatibility implementation."
+    },
+    {
+      "name": "Mesa",
+      "upstream": "https://gitlab.freedesktop.org/mesa/mesa",
+      "revision": "not-pinned",
+      "license": "multi-license",
+      "integration": "reference",
+      "status": "file-level-audit-required",
+      "files": [],
+      "notes": "Mesa architecture informs layered graphics boundaries. Individual files must be audited by SPDX identifier before source import."
+    },
+    {
+      "name": "NVIDIA Open GPU Kernel Modules",
+      "upstream": "https://github.com/NVIDIA/open-gpu-kernel-modules",
+      "revision": "not-pinned",
+      "license": "mixed",
+      "integration": "reference",
+      "status": "reference-only",
+      "files": [],
+      "notes": "Used for OS-agnostic versus platform-specific architecture. Current upstream target hardware does not provide a V100/GV100 backend."
+    }
+  ]
+}

@@ -35,20 +35,43 @@ The repository starts with architecture, interfaces, diagnostics, reproducibilit
 - No guarantee of real-time frame generation.
 - No blind copying of third-party source code without license and provenance review.
 
-## Upstream integration strategy
+## Upstream integration
 
-ISB does not need to reinvent every layer of the graphics stack. The project will use established open-source components through explicit boundaries where technically and legally appropriate.
+ISB uses a **reuse-first, provenance-first** strategy: mature open-source code can be bundled when its license, dependencies, and hardware scope make that appropriate; otherwise it remains an external component or isolated reference.
 
-Current references and integration targets:
+Current upstream inputs:
 
-- **Mesa 3D** — reference for layered graphics architecture and possible future graphics integration. Mesa is a multi-license project; individual source files must be checked before reuse.
-- **NVIDIA Open GPU Kernel Modules** — reference for separating OS-agnostic GPU code from OS/kernel interface code. The current upstream open kernel modules target Turing and later GPUs, so they are **not** treated as a V100 driver backend.
-- **OptiScaler** — external GPL-3.0 application-level upscaling/frame-generation compatibility component. ISB may detect, configure, validate, and integrate with an installed OptiScaler component without copying it into ISB core.
-- **DLSS-Enabler** — MIT-licensed reference for application-level interception/compatibility and external-component management. Future source reuse requires file-level license/provenance review.
+- **Mesa 3D** — layered graphics/API architecture reference. Individual source files require SPDX-level audit before import.
+- **NVIDIA Open GPU Kernel Modules** — OS-agnostic versus platform-specific driver architecture reference. The current upstream target is Turing and later, so it is not treated as a V100 backend.
+- **OptiScaler** — external GPL-3.0-or-later upscaling/frame-generation component. ISB can eventually detect, configure, validate, and launch it without making it part of ISB core.
+- **fakenvapi** — MIT-licensed NVAPI/low-latency compatibility reference. An isolated `low_latency.h` snapshot is retained under `third_party/reference/` for future Windows compatibility work and is not built.
+- **DLSS-Enabler** — MIT-licensed application interception and external-component orchestration reference. Proprietary NVIDIA binaries are not bundled.
 
-Detailed analysis and integration boundaries: [`docs/UPSTREAM_INTEGRATION.md`](docs/UPSTREAM_INTEGRATION.md).
+Machine-readable provenance: [`third_party/UPSTREAM_COMPONENTS.json`](third_party/UPSTREAM_COMPONENTS.json).
 
-Third-party attribution policy: [`legal/THIRD_PARTY_UPSTREAM.md`](legal/THIRD_PARTY_UPSTREAM.md).
+Legal/provenance policy: [`legal/THIRD_PARTY_UPSTREAM.md`](legal/THIRD_PARTY_UPSTREAM.md).
+
+## Graphics compatibility foundation
+
+The first implementation boundary is provider-neutral rather than vendor-specific:
+
+```text
+Game / Application
+        |
+        v
+ISB Compatibility Layer
+        |
+        +-- future DX11/DX12/Vulkan interception
+        +-- external component selection/validation
+        |
+        v
+UpscalerBackend / GraphicsBackend
+        |
+        v
+ISB Runtime / CAL / Provider
+```
+
+ISB now provides an initial `UpscalerBackend` abstraction and an external-component model. These allow future integrations with OptiScaler, FSR, XeSS, DLSS-compatible application paths, and an eventual ISB neural backend without coupling CAL to one graphics technology.
 
 ## Architecture
 
@@ -70,7 +93,7 @@ providers/             Technology/runtime-specific providers
 capabilities/          Capability schemas and definitions
 drivers/               Driver stack detection and management
 integrations/          External graphics/runtime integrations
-graphics/              Graphics runtime infrastructure
+graphics/              Graphics runtime and compatibility infrastructure
 compute/               CUDA/compute infrastructure
 neural/                Neural runtime and data acquisition
 research/              Research-only components
@@ -85,6 +108,7 @@ profiles/              Hardware/workload profiles
 manifests/             Reproducibility and stack manifests
 tests/                 Unit/integration/system tests
 tools/                 Development and research tooling
+third_party/           Audited upstream licenses and isolated references
 docs/                   Project documentation
 legal/                 Licensing and proprietary-component policy
 .github/               CI and repository automation
