@@ -1,0 +1,1 @@
+PR #5 preparation note: HAL v0.1 final patch. Restore/verify device.hpp and apply final HAL v0.1 changes before opening the pull request.
