@@ -14,6 +14,12 @@ The planned dependency direction is:
 
 Technology runtimes and integrations consume the core abstractions rather than bypassing them with platform-specific logic.
 
+An optional application-level graphics compatibility path is deliberately separate from the hardware/runtime stack:
+
+**Application / Game → Compatibility Layer → External Graphics Component → ISB Runtime / Graphics Backend → Render/Display GPU**
+
+The compatibility layer must not be mistaken for the kernel driver, HAL, CAL, or GPU provider.
+
 ### Core
 
 `isb-core` owns orchestration and normalized GPU state:
@@ -105,8 +111,43 @@ Planned integration points include:
 - DXVK
 - VKD3D-Proton
 - OptiScaler or equivalent neutral interception mechanisms
+- future application compatibility/interception layer inspired by established projects such as DLSS-Enabler
 
 The exact supported versions and extensions remain subject to validation.
+
+### 4.1 External graphics compatibility boundary
+
+The compatibility layer is a user-space integration surface for applications that expose graphics/upscaling interfaces suitable for interception.
+
+Its responsibilities may include:
+
+- identifying compatible applications;
+- loading or selecting an external upscaling component;
+- validating component version and architecture;
+- passing configuration to the external component;
+- collecting compatibility diagnostics;
+- preserving a clean boundary between application interception and GPU capability/runtime management.
+
+It must not claim that a V100 has DLSS hardware, RT Cores, or dedicated optical-flow hardware.
+
+An external component such as OptiScaler remains independently licensed and versioned. ISB may integrate with it without copying it into the core repository.
+
+### 4.2 Upscaler backend abstraction
+
+Future ISB graphics code should use a provider-neutral concept such as:
+
+```text
+Compatibility Layer
+        |
+        v
+Upscaler Backend Interface
+        |
+        +-- External OptiScaler
+        +-- future FSR/XeSS backend
+        +-- future ISB neural backend
+```
+
+This interface is intentionally separate from CAL. CAL answers what the hardware/runtime exposes; an upscaler backend answers how a selected graphics reconstruction implementation is invoked.
 
 ## 5. Neural stack
 
@@ -257,6 +298,8 @@ Installation actions should be explicit, auditable, reversible, and privilege-aw
 
 Remote control APIs must authenticate before exposing privileged operations.
 
+Third-party components are explicitly isolated and versioned. GPL components such as OptiScaler must not be silently copied into otherwise independently licensed ISB core code. Source reuse from multi-license projects such as Mesa requires file-level license review.
+
 ## 14. Future extensions
 
 Potential future components include:
@@ -267,7 +310,9 @@ Potential future components include:
 - richer remote control;
 - additional graphics providers;
 - advanced research rendering;
-- frame-generation research.
+- frame-generation research;
+- application-level graphics compatibility;
+- external upscaler orchestration.
 
 These remain outside the initial stable surface until independently validated.
 
@@ -283,3 +328,4 @@ These remain outside the initial stable surface until independently validated.
 8. Existing external projects are integrated through explicit boundaries.
 9. Proprietary components are externally supplied unless redistribution rights are established.
 10. When evidence contradicts an architectural assumption, the assumption is revised rather than the measurement being ignored.
+11. Third-party source reuse requires explicit provenance and license tracking.
