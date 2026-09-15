@@ -63,6 +63,12 @@ struct GpuIdentity {
     std::string model_name;
 };
 
+/// Compute capabilities plus runtime/toolchain observations.
+///
+/// The CUDA fields are transitional CAL v1 observations: they describe the
+/// availability/version reported by a Provider and do not perform CUDA probing.
+/// They are intentionally kept here for v1 compatibility and may be generalized
+/// into provider-neutral runtime capability descriptors in a later CAL revision.
 struct ComputeCapabilities {
     CapabilityState cuda_state = CapabilityState::Unknown;
     std::optional<Version> cuda_version;
@@ -72,6 +78,11 @@ struct ComputeCapabilities {
     TensorPrecisionSet tensor_precisions;
 };
 
+/// Graphics capabilities plus runtime/toolchain observations.
+///
+/// The Vulkan/OpenGL fields are transitional CAL v1 observations: they describe
+/// facts supplied by Providers and do not imply any Vulkan/OpenGL API dependency
+/// or probing inside CAL. They may be generalized in a later CAL revision.
 struct GraphicsCapabilities {
     CapabilityState vulkan_state = CapabilityState::Unknown;
     std::optional<Version> vulkan_api_version;
@@ -79,6 +90,13 @@ struct GraphicsCapabilities {
     CapabilityState graphics_acceleration_state = CapabilityState::Unknown;
 };
 
+/// Hardware-level feature facts.
+///
+/// hardware.tensor_cores is the physical hardware capability. In contrast,
+/// compute.tensor_cores describes Tensor Core availability in the compute
+/// execution context reported by a Provider. Providers must keep the two
+/// semantically consistent when both are populated; hardware.tensor_cores is
+/// the authoritative field for physical presence.
 struct HardwareFeatures {
     Capability rt_cores;
     Capability optical_flow_accelerator;
