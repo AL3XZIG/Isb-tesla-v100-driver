@@ -8,6 +8,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_library(isb-cal
     src/capabilities.cpp
+    src/validation.cpp
 )
 
 target_include_directories(isb-cal
