@@ -1,0 +1,48 @@
+# Build
+build/
+out/
+cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+compile_commands.json
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+
+# CUDA / profiling artifacts
+*.nsys-rep
+*.ncu-rep
+*.qdrep
+*.sqlite
+
+# Runtime data
+logs/
+*.log
+tmp/
+
+# Models and large assets
+models/weights/
+*.safetensors
+*.onnx
+*.engine
+*.plan
+
+# Secrets
+.env
+*.pem
+*.key
+credentials.json
+
+# OS files
+.DS_Store
+Thumbs.db
