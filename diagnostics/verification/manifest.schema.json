@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/AL3XZIG/Isb-tesla-v100-driver/blob/main/diagnostics/verification/manifest.schema.json",
+  "title": "ISB Verification Manifest v1",
+  "description": "Reproducibility metadata for an ISB verification or benchmark run. The manifest records conditions and provenance; it does not manufacture results.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["manifest_version", "run", "hardware", "software", "benchmark"],
+  "properties": {
+    "manifest_version": {"type": "string", "const": "1.0"},
+    "run": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "timestamp", "purpose"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "timestamp": {"type": "string", "format": "date-time"},
+        "purpose": {"type": "string", "minLength": 1},
+        "notes": {"type": "string"}
+      }
+    },
+    "hardware": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gpu_count", "gpus"],
+      "properties": {
+        "gpu_count": {"type": "integer", "minimum": 0},
+        "fingerprint": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "gpus": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["index"],
+            "properties": {
+              "index": {"type": "integer", "minimum": 0},
+              "identity": {"type": "object", "additionalProperties": true},
+              "variant": {"type": ["string", "null"]},
+              "memory_bytes": {"type": ["integer", "null"], "minimum": 0},
+              "state": {"type": "string", "enum": ["unknown", "available", "unavailable"]}
+            }
+          }
+        }
+      }
+    },
+    "software": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["os", "driver", "cuda", "compiler", "libraries"],
+      "properties": {
+        "os": {"type": "string"},
+        "kernel": {"type": ["string", "null"]},
+        "driver": {"type": "string"},
+        "cuda": {"type": "string"},
+        "compiler": {"type": "string"},
+        "libraries": {"type": "object", "additionalProperties": {"type": "string"}}
+      }
+    },
+    "benchmark": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version", "parameters", "measurement"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "version": {"type": "string", "minLength": 1},
+        "parameters": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "warmups": {"type": "integer", "minimum": 0},
+            "iterations": {"type": "integer", "minimum": 1},
+            "sizes": {"type": "array", "items": {"type": "integer", "minimum": 1}}
+          }
+        },
+        "measurement": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["timer", "unit"],
+          "properties": {
+            "timer": {"type": "string"},
+            "unit": {"type": "string"},
+            "formula": {"type": "string"},
+            "results": {"type": "array", "items": {"type": "object", "additionalProperties": true}}
+          }
+        },
+        "gpu_state": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "clocks_changed": {"type": "boolean"},
+            "power_limit_changed": {"type": "boolean"},
+            "ecc_changed": {"type": "boolean"},
+            "persistence_changed": {"type": "boolean"},
+            "notes": {"type": "string"}
+          }
+        }
+      }
+    },
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "status": {"type": "string", "enum": ["not_run", "pass", "fail", "inconclusive"]},
+        "summary": {"type": "string"},
+        "artifacts": {"type": "array", "items": {"type": "string"}}
+      }
+    }
+  }
+}
