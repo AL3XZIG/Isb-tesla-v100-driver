@@ -41,20 +41,20 @@ std::string testStatusToString(TestStatus status);
 
 struct VerificationConfig {};
 
-struct BackendExecutionResult {
-    BackendBehaviorMode behavior{BackendBehaviorMode::Success};
-    bool success{false};
-    std::string error_message;
-    std::map<std::string, double> metrics;
-    Snapshot captured_snapshot{};
-};
-
 struct Snapshot {
     std::map<std::string, std::string> environment_data;
     std::map<std::string, std::string> gpu_data;
     std::map<std::string, std::string> api_data;
     std::map<std::string, CapabilityState> capability_states;
     std::map<std::string, std::string> metadata;
+};
+
+struct BackendExecutionResult {
+    BackendBehaviorMode behavior{BackendBehaviorMode::Success};
+    bool success{false};
+    std::string error_message;
+    std::map<std::string, double> metrics;
+    Snapshot captured_snapshot{};
 };
 
 struct SnapshotDiff {
