@@ -1,5 +1,6 @@
 #include "isb/verification/json.hpp"
 
+#include <cstddef>
 #include <iomanip>
 #include <map>
 #include <sstream>
@@ -58,12 +59,12 @@ std::string serializeMapDeterministically(
     return ss.str();
 }
 
-std::string quote(const std::string& value) {
+std::string quoteString(const std::string& value) {
     return "\"" + escapeJsonString(value) + "\"";
 }
 
-std::string quote(CapabilityState state) {
-    return quote(capabilityStateToString(state));
+std::string quoteCapability(CapabilityState state) {
+    return quoteString(capabilityStateToString(state));
 }
 
 std::string serializeSnapshot(const Snapshot& snapshot, std::size_t indent_level) {
@@ -71,15 +72,30 @@ std::string serializeSnapshot(const Snapshot& snapshot, std::size_t indent_level
     std::ostringstream ss;
     ss << "{\n";
     ss << indent << "\"api_data\": "
-       << serializeMapDeterministically(snapshot.api_data, quote, indent_level + 1) << ",\n";
+       << serializeMapDeterministically(
+            snapshot.api_data,
+            [](const std::string& value) { return quoteString(value); },
+            indent_level + 1) << ",\n";
     ss << indent << "\"capability_states\": "
-       << serializeMapDeterministically(snapshot.capability_states, quote, indent_level + 1) << ",\n";
+       << serializeMapDeterministically(
+            snapshot.capability_states,
+            [](CapabilityState state) { return quoteCapability(state); },
+            indent_level + 1) << ",\n";
     ss << indent << "\"environment_data\": "
-       << serializeMapDeterministically(snapshot.environment_data, quote, indent_level + 1) << ",\n";
+       << serializeMapDeterministically(
+            snapshot.environment_data,
+            [](const std::string& value) { return quoteString(value); },
+            indent_level + 1) << ",\n";
     ss << indent << "\"gpu_data\": "
-       << serializeMapDeterministically(snapshot.gpu_data, quote, indent_level + 1) << ",\n";
+       << serializeMapDeterministically(
+            snapshot.gpu_data,
+            [](const std::string& value) { return quoteString(value); },
+            indent_level + 1) << ",\n";
     ss << indent << "\"metadata\": "
-       << serializeMapDeterministically(snapshot.metadata, quote, indent_level + 1) << '\n';
+       << serializeMapDeterministically(
+            snapshot.metadata,
+            [](const std::string& value) { return quoteString(value); },
+            indent_level + 1) << '\n';
     ss << std::string((indent_level - 1) * 2, ' ') << '}';
     return ss.str();
 }
@@ -91,7 +107,6 @@ std::string serializeSnapshotToDeterministicJson(const Snapshot& snapshot) {
 }
 
 std::string serializeSnapshotDiffToDeterministicJson(const SnapshotDiff& diff) {
-    const std::string indent = "  ";
     std::ostringstream ss;
     ss << "{\n  \"differences\": {\n";
 
