@@ -11,7 +11,7 @@ Expose OS/API/vendor-specific facts through narrow provider interfaces.
 - Return raw observations plus provenance; do not decide final GpuCapabilities.
 
 ## Reference
-GPU-T demonstrates a useful modular probe/factory pattern on Linux; use it as architectural reference, not as an automatic code dependency. citeturn0search0
+GPU-T's modular probe/factory architecture is a useful Linux diagnostic reference. Study its probe separation and vendor-specific factory pattern, but do not copy code automatically; perform provenance/license review before any reuse.
 
 ## Acceptance
 - Providers are testable with fake command/API results.
