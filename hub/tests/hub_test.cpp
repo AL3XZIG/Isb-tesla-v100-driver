@@ -1,0 +1,4 @@
+#include "isb/hub/hub.hpp"
+#include <cassert>
+#include <filesystem>
+int main(){isb::hub::MockProvider mock;isb::hub::Hub h(mock);auto t=h.telemetry();assert(t.synthetic && t.temperature_c==42);assert(h.capabilities().hardware.rt_cores.state==isb::cal::CapabilityState::Unavailable);auto plan=h.optimize_plan();assert(plan.operations.empty()&&!plan.unknown.empty());auto no=h.apply(plan,false);assert(!no.mutated&&!no.verification.verified);auto applied=h.apply(plan,true);assert(!applied.mutated);assert(h.benchmark().synthetic&&h.benchmark().correctness_verified);auto report=h.report("hub-test-report");assert(std::filesystem::exists(report.directory+"/manifest.json"));std::filesystem::remove_all(report.directory);isb::hub::UnavailableProvider unavailable;isb::hub::Hub u(unavailable);assert(u.environment().mode==isb::hub::ProviderMode::Unavailable);assert(!u.verify().verified);return 0;}

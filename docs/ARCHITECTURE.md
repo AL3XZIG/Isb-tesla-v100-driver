@@ -421,3 +421,7 @@ Research: independent driver
 ```
 
 Research code must never become an accidental runtime dependency of the Hub.
+
+## Current implementation boundary
+
+The build currently contains CAL plus a small `hub/` orchestration library and `cli/` frontend. `MockProvider` supplies explicitly synthetic V100 fixture evidence; `UnavailableProvider` preserves unknown states when optional NVML/CUDA/Vulkan/OS providers are absent. The CLI delegates to `Hub`; it owns no hardware business logic. Mutation is deliberately unavailable until a provider can apply and read back a setting.
