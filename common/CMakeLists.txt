@@ -6,4 +6,8 @@ if(BUILD_TESTING)
     add_executable(isb-common-tests tests/version_test.cpp)
     target_link_libraries(isb-common-tests PRIVATE isb-common)
     add_test(NAME isb-common-tests COMMAND isb-common-tests)
+
+    add_executable(isb-common-observed-tests tests/observed_test.cpp)
+    target_link_libraries(isb-common-observed-tests PRIVATE isb-common)
+    add_test(NAME isb-common-observed-tests COMMAND isb-common-observed-tests)
 endif()
