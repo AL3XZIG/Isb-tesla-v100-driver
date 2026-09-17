@@ -9,6 +9,11 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 option(BUILD_TESTING "Build tests" ON)
 
 add_subdirectory(cal)
-add_subdirectory(diagnostics/verification)
+add_subdirectory(control-center)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/diagnostics/verification/CMakeLists.txt")
+    add_subdirectory(diagnostics/verification)
+else()
+    message(STATUS "diagnostics/verification has no CMake target; skipping")
+endif()
 
 enable_testing()
