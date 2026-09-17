@@ -1,439 +1,423 @@
-# ISB Driver Fixer Architecture
+# ISB V100 Hub Architecture
 
 ## 1. Purpose
 
-ISB is a **driver compatibility, diagnostics, workaround and extension layer**. The first hardware target is NVIDIA Tesla V100 / GV100.
+ISB is a **V100-focused user-space control, compatibility, optimization and diagnostics hub** built above an installed NVIDIA driver stack.
 
-The MVP intentionally does **not** require an independent NVIDIA kernel-mode driver. An installed NVIDIA-compatible base stack remains responsible for the native OS driver model, device initialization, command submission and hardware access. ISB adds a controlled user-space layer around that stack.
+The MVP does not require an independent NVIDIA kernel-mode or user-mode driver. The installed base stack remains responsible for native OS driver integration, device initialization, command submission and hardware access. ISB adds a controlled user-space control plane, compatibility layer, diagnostics, optimization workflows and external integrations.
 
-The long-term independent KMD/UMD effort remains under `research/alternative-driver/` and is not a prerequisite for the Fixer.
+The independent KMD/UMD effort remains isolated under `research/alternative-driver/` and is never a prerequisite for the Hub.
 
-## 2. Core model
+## 2. Product model
+
+The product is one lightweight control plane with two frontends:
 
 ```text
- Application / Game / Professional Software
-                    |
-                    v
-          ISB Compatibility Layer
-                    |
-                    v
-             ISB Fix Engine
-        +-----------+-----------+
-        |           |           |
-     Detect      Diagnose    Policy/Rules
-        |           |           |
-        +-----------+-----------+
-                    |
-          Workaround / Shim /
-          Configuration / Profile
-                    |
-                    v
-             Base Driver Stack
-                    |
-          Windows WDDM / Linux
-          native driver model
-                    |
-                    v
-              V100 / GV100
+                 User
+                  |
+        +---------+---------+
+        |                   |
+   Control Center          CLI
+        |                   |
+        +---------+---------+
+                  |
+             ISB Hub API
+                  |
+      +-----------+-----------+
+      |           |           |
+   Diagnose    Optimize     Manage
+      |           |           |
+   FixEngine  Performance  Games/OptiScaler
+      |           |           |
+      +-----------+-----------+
+                  |
+           Provider Layer
+     NVML / CUDA / Vulkan / DXGI
+                  |
+          Base Driver Stack
+                  |
+             V100 / GV100
 ```
 
-The key invariant is that ISB should intervene only where there is a reason to do so. Normal paths should continue through the base driver unchanged.
+The GUI must not contain a second implementation of the business logic. The CLI and GUI consume the same hub contracts and produce the same structured audit/provenance records.
 
-## 3. Three capability layers
+## 3. Core invariants
 
-ISB must never conflate these three things:
+1. ISB is not the NVIDIA base driver.
+2. Hardware capability, base-driver capability and ISB-added capability are separate.
+3. Unknown is not available.
+4. Normal application paths remain untouched unless a rule/profile requires intervention.
+5. Mutating operations are explicit, logged and reversible where technically possible.
+6. Every claimed improvement requires measurement and provenance.
+7. External components remain replaceable and license-audited.
+8. The GUI never duplicates hub logic.
+9. V100-specific behavior is preferred over an unnecessarily generic GPU abstraction.
+10. The alternative-driver research track remains isolated.
 
-### 3.1 Hardware capability
+## 4. Capability layers
 
-What the physical GPU contains or supports.
+### 4.1 Hardware capability
 
-Example for V100:
+What the physical GPU contains.
 
-- GV100 / Volta / SM70;
+For V100/GV100:
+
+- Volta / SM70;
 - first-generation Tensor Cores;
-- HBM2 with ECC support;
+- ECC HBM2;
 - no RT Cores;
 - no dedicated Optical Flow Accelerator;
 - no MIG;
 - no display outputs on the V100 itself.
 
-### 3.2 Base-driver capability
+SXM2/PCIe and 16/32 GB variants must be detected explicitly.
 
-What the currently installed driver/runtime actually exposes on the selected OS and API.
+### 4.2 Base-driver capability
+
+What the installed driver/runtime exposes on the current OS and API.
 
 Examples:
 
-- CUDA availability/version;
+- CUDA and runtime version;
+- NVML management controls;
 - Vulkan extensions;
-- OpenGL support;
-- Direct3D/DXGI support;
-- DirectCompute availability;
-- management interfaces;
+- OpenGL;
+- Direct3D/DXGI;
+- DirectCompute;
 - driver-specific feature paths.
 
-A capability exposed by a Google Compute Engine / vGPU-class package, for example, is a **base-driver capability** until ISB independently implements an equivalent feature.
+A capability exposed by a particular NVIDIA/Google package is recorded as a **base-driver capability** with provenance. ISB does not claim ownership of that implementation.
 
-### 3.3 ISB-added capability
+### 4.3 ISB capability
 
-Functionality implemented by ISB above the base stack.
+Functionality added by the Hub:
 
-Examples:
+- optimization planning;
+- performance profiles;
+- compatibility profiles;
+- game discovery;
+- OptiScaler orchestration;
+- FixEngine workarounds;
+- diagnostics and reports;
+- verification/regression workflows;
+- user-space neural/graphics experiments;
+- telemetry and benchmark presentation.
 
-- automatic workaround selection;
-- application profiles;
-- API configuration;
-- compatibility shims;
-- external upscaler orchestration;
-- diagnostics and regression verification;
-- user-space neural reconstruction;
-- custom monitoring/control features.
+## 5. Hub control plane
 
-This separation is fundamental to the project's credibility.
+`hub/` is the orchestration boundary for user-facing operations. It should remain thin: it coordinates modules and providers but does not become a second implementation of CAL, FixEngine or provider logic.
 
-## 4. Driver-base abstraction
-
-The installed driver is represented as a `BaseDriverProfile` containing at least:
-
-- vendor;
-- package/version;
-- OS/platform;
-- GPU model and exact variant;
-- driver branch/type where known;
-- exposed APIs;
-- exposed extensions/features;
-- provenance;
-- verification state.
-
-ISB does not assume that two packages with the same NVIDIA GPU support the same software interfaces.
-
-A base-driver profile can therefore say, for example:
-
-```yaml
-gpu:
-  architecture: Volta
-  model: Tesla V100
-  variant: V100_SXM2
-base_driver:
-  vendor: NVIDIA
-  family: google_compute_engine
-  version: "<observed-version>"
-  capabilities:
-    directcompute:
-      state: available
-      provenance: runtime_probe
-```
-
-The actual version and capability state must come from a probe or a verified manifest; placeholders must never be presented as facts.
-
-## 5. Fix Engine
-
-The Fix Engine evaluates the current environment against deterministic rules.
-
-```text
-Environment + Evidence
-          |
-          v
-       Rule Match
-          |
-   +------+------+
-   |             |
- no match      match
-   |             |
- normal       workaround
- path         plan
-```
-
-A rule contains:
-
-- stable identifier;
-- affected GPU/variant;
-- OS;
-- API/runtime;
-- driver range or feature fingerprint;
-- trigger/condition;
-- evidence reference;
-- workaround action;
-- verification procedure;
-- rollback action;
-- maturity (`stable`, `experimental`, `research`).
-
-Rules must be deterministic and explainable. The engine must report **why** a workaround was selected.
-
-## 6. Workaround actions
-
-Initial action types should be user-space and reversible:
-
-- set/unset runtime environment variables;
-- select a validated API/feature path;
-- enable/disable a problematic extension path where the application permits it;
-- select a compatibility profile;
-- configure DXVK/VKD3D/OptiScaler or another external component;
-- replace a known-broken user-space component when the replacement is independently supplied and compatible;
-- enable an ISB interception shim for a documented API boundary;
-- collect diagnostics and stop rather than applying an unsafe fix.
-
-No rule may claim to repair kernel/hardware behavior unless the selected mechanism actually provides such control.
-
-## 7. Runtime interception
-
-The preferred interception model is narrow rather than global:
-
-```text
-Application
-    |
-    v
-ISB Shim
-  /     \
-normal   affected operation
-  |           |
-  v           v
-NVIDIA     workaround
-  |           |
-  +-----+-----+
-        |
-        v
-       GPU
-```
-
-Interception should be API-specific and opt-in during development. Every shim requires tests proving that normal calls are preserved and that the workaround does not alter unrelated behavior.
-
-Possible boundaries include:
-
-- Vulkan loader/layer interfaces;
-- Direct3D/DXGI user-space compatibility paths;
-- CUDA runtime-facing configuration or wrappers;
-- OpenGL user-space integration where technically and legally appropriate;
-- external upscaler/interception frameworks.
-
-ISB should prefer documented loader/plugin/layer mechanisms over binary patching.
-
-## 8. DirectCompute and feature extension strategy
-
-DirectCompute is an important example of the new project's purpose.
-
-If a particular base NVIDIA driver exposes DirectCompute on V100, ISB should:
-
-1. detect that capability;
-2. record the exact driver/API provenance;
-3. preserve the working path;
-4. provide diagnostics and compatibility policy around it;
-5. build custom ISB features on top of the exposed compute path where APIs permit it;
-6. regression-test the combination.
-
-ISB must **not** state that it implemented DirectCompute merely because it selected a driver that already exposes it.
-
-This same model applies to Vulkan extensions, CUDA features and other driver-specific functionality.
-
-## 9. Driver compatibility database
-
-The database is the project's central knowledge layer:
-
-```text
-database/
-├── drivers/
-├── gpus/
-├── applications/
-└── issues/
-```
-
-An issue record should contain:
-
-```yaml
-id: ISB-DRV-0001
-status: confirmed
-gpu:
-  model: Tesla V100
-  variant: V100_SXM2
-platform:
-  os: windows
-api: vulkan
-base_driver:
-  version: "<verified-version>"
-symptom: "<reproducible symptom>"
-trigger:
-  type: "<observed condition>"
-workaround:
-  action: "<reversible action>"
-evidence:
-  - "<IDR/benchmark/test reference>"
-verification:
-  status: pass
-```
-
-No issue should enter the confirmed database without reproducible evidence.
-
-## 10. Regression matrix
-
-The Fixer must be tested against combinations, not isolated driver versions:
-
-```text
-GPU variant × OS × base driver × API × application × ISB rule set
-```
-
-For every known issue the harness should be able to report:
-
-- affected combination;
-- baseline result;
-- workaround result;
-- regression status;
-- evidence/manifest;
-- rollback result.
-
-A workaround that fixes one version but breaks another must be represented as a version-specific rule, not generalized.
-
-## 11. Diagnostics
-
-The existing CAL and Verification Tools remain foundations.
-
-IDR should be extended to capture:
-
-- exact GPU and SXM2/PCIe variant;
-- OS and kernel/build;
-- base-driver package/version;
-- API/runtime versions;
-- exposed capabilities;
-- ISB version/configuration;
-- active workaround IDs;
-- environment/configuration;
-- relevant errors and timestamps;
-- reproduction metadata.
-
-Diagnostics should make a driver bug report reproducible by another machine or test runner where possible.
-
-## 12. Driver Manager
-
-The Driver Manager no longer assumes that ISB must install an independent driver.
-
-Its primary responsibilities are:
-
-1. detect installed base drivers;
-2. fingerprint their capabilities;
-3. verify compatibility;
-4. create configuration/rollback state;
-5. select a validated base stack when multiple stacks are supported;
-6. apply ISB configuration/workarounds;
-7. verify the resulting runtime;
-8. roll back ISB changes on failure.
-
-Proprietary NVIDIA/Google driver packages are external inputs. ISB must not redistribute them without appropriate rights.
-
-## 13. Control Center / CLI
-
-The control plane should expose the same operations through stable contracts:
+The Hub exposes stable operations such as:
 
 ```text
 scan
-  -> driver/base-stack detection
-  -> capability fingerprint
-  -> diagnostics
-
-fix
-  -> rule evaluation
-  -> proposed changes
-  -> explicit apply
-  -> verification
-
+inspect
+status
+optimize
+profile
+apply
 rollback
-  -> restore ISB-managed state
-
 verify
-  -> API/feature probes
-  -> regression checks
-
+benchmark
 report
-  -> IDR / driver bug report
 ```
 
-A GUI is optional. The CLI remains usable without it.
-
-## 14. Custom feature layer
-
-ISB is not limited to bug fixes. Once the base driver exposes a usable API, ISB can add higher-level features without replacing the kernel driver.
-
-Candidate feature groups:
-
-- workload-aware CUDA/Tensor scheduling;
-- neural super-resolution/reconstruction;
-- denoising;
-- external upscaler orchestration;
-- compatibility profiles;
-- frame-pacing and telemetry tools;
-- application-specific feature policy;
-- remote/headless management;
-- research rendering paths.
-
-Each feature must declare its dependency on a base-driver/API capability.
-
-Example:
+A typical optimization transaction is:
 
 ```text
-ISB Neural SR
-     |
- requires: CUDA + Tensor Cores
-     |
- base driver exposes CUDA
-     |
- V100 Tensor Cores execute supported kernels
+SCAN
+  -> DETECT
+  -> CAPABILITY CHECK
+  -> DIAGNOSE
+  -> BUILD PLAN
+  -> DRY-RUN
+  -> USER APPROVAL
+  -> APPLY
+  -> VERIFY
+  -> LOG / REPORT
 ```
 
-## 15. Full alternative driver track
+Failure during or after APPLY must produce a rollback path whenever the affected operation is reversible.
 
-A complete independent driver remains technically interesting but is explicitly isolated:
+## 6. Performance subsystem
+
+`performance/` owns V100 telemetry and management operations.
+
+Read-only data should include, where exposed:
+
+- utilization;
+- temperature;
+- power draw and limit;
+- SM/memory clocks;
+- PCIe traffic/link state;
+- ECC state/errors;
+- process list;
+- throttling reasons;
+- NVLink state/topology where present.
+
+Write operations may include, only when the base management API supports them and permissions allow:
+
+- persistence mode;
+- application clocks;
+- power limit;
+- compute mode;
+- supported workload/power profiles.
+
+Every mutable setting has a lifecycle:
 
 ```text
-Mainline
-  ISB Driver Fixer
-       |
-       +-- compatibility
-       +-- workarounds
-       +-- extensions
-       +-- diagnostics
-
-Research
-  Independent Driver
-       |
-       +-- HAL
-       +-- GPUVM
-       +-- command submission
-       +-- KMD/UMD
-       +-- graphics/compute runtime
+requested -> applied -> verified
 ```
 
-Research code must not become an accidental dependency of the Fixer.
+The result must also identify whether it is temporary, persistent, reset-dependent or restart-dependent.
 
-## 16. Security and safety
+## 7. Game subsystem
 
-The Fixer can manipulate driver/runtime configuration and may require administrator/root privileges. Therefore:
+`games/` owns discovery and compatibility state.
 
-- changes must be explicit and auditable;
-- rules must declare privilege requirements;
-- configuration must be backed up before mutation;
-- rollback must be available;
-- unverified rules must not auto-apply in stable mode;
-- external binaries remain separately sourced and verified;
-- binary patching of proprietary drivers is not a default mechanism.
+Discovery should support, where detectable:
 
-## 17. Hardware and OS scope
+- Steam;
+- Epic;
+- GOG;
+- standalone installations.
 
-Initial qualification target:
+A game record can contain:
 
-- Windows 10/11 x64;
-- Linux x86-64;
-- Tesla V100 16 GB, with SXM2 and PCIe tracked separately.
+- title/id;
+- installation path;
+- executable;
+- graphics API;
+- upscaler/runtime signals;
+- anti-cheat state;
+- compatibility state;
+- selected profile;
+- managed files and backups.
 
-Windows is particularly important for gaming/professional compatibility. Linux is important for development, compute and server validation.
+Compatibility states are explicitly tri-state or richer. Unknown must never become an implicit install permission.
 
-Legacy Windows/BSD targets remain separate qualification work and are not implied by the initial MVP.
+Bulk operations use:
 
-## 18. Architectural invariants
+```text
+SCAN -> DETECT -> COMPATIBILITY -> DRY-RUN -> APPROVAL
+     -> INSTALL -> VERIFY -> LOG -> ROLLBACK
+```
 
-1. Fix first; replacement driver is not an MVP dependency.
-2. Base-driver capability and ISB-added capability are separate.
-3. Hardware capability and software exposure are separate.
-4. Normal application paths should remain untouched unless a rule requires intervention.
-5. Every workaround is evidence-backed, explainable and reversible.
-6. Every supported combination is qualified by concrete GPU × OS × driver × API state.
-7. Proprietary driver packages remain external inputs unless redistribution rights are established.
-8. Documented API/layer mechanisms are preferred over binary patching.
-9. Experimental features cannot silently become stable dependencies.
-10. A future independent KMD/UMD remains isolated research work.
+Online/anti-cheat applications require conservative handling; unknown anti-cheat state defaults to dry-run/manual approval.
+
+## 8. OptiScaler integration
+
+OptiScaler is an external managed component under `integrations/`.
+
+ISB may:
+
+- detect installed versions;
+- select a compatible version;
+- configure per-game profiles;
+- install/update/rollback supported integration files;
+- back up and hash files;
+- verify installation;
+- maintain provenance/license metadata.
+
+ISB must not silently download arbitrary binaries or reimplement/copy OptiScaler source into unrelated ISB modules. Distribution must comply with the external project's license and source obligations.
+
+## 9. FixEngine integration
+
+The existing FixEngine remains the single rule/plan engine.
+
+The Hub should consume it rather than introduce a second compatibility-rule system:
+
+```text
+Environment + ErrorEvent + Capabilities
+                 |
+             FixEngine
+                 |
+          Proposed Fix Plan
+                 |
+           Hub transaction
+        /         |          \
+    dry-run      apply      rollback
+        |         |            |
+        +---------+------------+
+                  |
+               verify
+```
+
+Rules must remain deterministic and explainable. The Hub owns user-facing orchestration; FixEngine owns rule matching and action planning.
+
+## 10. Diagnostics and evidence
+
+`diagnostics/` and `verification/` are evidence infrastructure.
+
+A report should distinguish:
+
+- observed facts;
+- detected capabilities;
+- applied changes;
+- verification results;
+- benchmark measurements;
+- hypotheses or experimental features.
+
+A deterministic report bundle should use a versioned manifest and may contain:
+
+```text
+manifest.json
+gpu.json
+driver.json
+capabilities.json
+games.json
+optiscaler.json
+performance.json
+errors.json
+logs/
+```
+
+Synthetic fixtures are explicitly marked synthetic and cannot be presented as hardware evidence.
+
+## 11. Benchmarks
+
+`benchmarks/` measures effects of profiles, workarounds and integrations.
+
+Initial classes:
+
+- graphics FPS/frame-time and 1% low;
+- CUDA compute;
+- Tensor Core throughput;
+- HBM bandwidth;
+- PCIe/interconnect;
+- application-level before/after tests.
+
+Correctness must be checked before performance claims. Results identify exact hardware, driver, workload, configuration and revision.
+
+## 12. Graphics and neural features
+
+`graphics/` contains API/graphics compatibility infrastructure.
+
+`neural/` contains V100-specific neural reconstruction, denoising and related experiments.
+
+External upscalers such as OptiScaler are orchestrated through `integrations/`, not reimplemented inside `neural/`.
+
+V100 has no RT Cores or dedicated Optical Flow Accelerator. Software reconstruction/frame-generation paths must therefore be labeled according to their actual implementation rather than described as native V100 hardware features.
+
+## 13. Profiles
+
+`profiles/` stores declarative configuration for:
+
+- V100 hardware variants;
+- base drivers;
+- workload modes;
+- games/applications;
+- graphics/OptiScaler settings;
+- performance preferences.
+
+Profiles describe desired state. Providers and the Hub determine whether that state can actually be applied and verified.
+
+## 14. Provider layer
+
+`providers/` owns platform/runtime-specific access.
+
+Likely providers include:
+
+- NVML;
+- CUDA;
+- Vulkan;
+- DXGI/D3D;
+- Windows platform APIs;
+- Linux platform APIs.
+
+Providers report unavailable/unknown states instead of manufacturing capabilities.
+
+## 15. Repository structure
+
+```text
+core/                  shared low-level state and contracts
+cal/                   capability abstraction
+capabilities/           V100/GV100 declarative capability data
+providers/              runtime/platform probes and management APIs
+fix/                    single FixEngine implementation
+hub/                    user-facing orchestration/control plane
+games/                  discovery and game compatibility
+performance/            telemetry, tuning and throttling analysis
+integrations/           OptiScaler, DXVK/VKD3D and external components
+benchmarks/             reproducible measurements
+diagnostics/            fingerprints, IDR and evidence
+verification/           regression and post-change verification
+reports/                deterministic report bundles
+profiles/               declarative hardware/driver/app/workload profiles
+control-center/         lightweight GUI frontend
+cli/                    headless frontend
+installer/              installation/configuration/rollback
+compute/                CUDA/DirectCompute compatibility and compute features
+graphics/               graphics compatibility infrastructure
+neural/                 V100 neural feature experiments
+database/               known drivers, applications and issues
+manifests/              reproducibility manifests
+drivers/                base-driver metadata/lifecycle
+research/               isolated alternative-driver research
+third_party/            audited external references
+legal/                  licensing and provenance
+tests/                  automated tests
+docs/                   architecture, tasks and protocols
+```
+
+Existing modules should be migrated toward this ownership model incrementally. Do not perform a large mechanical move merely to make the tree look different; preserve working foundations and move code when its new ownership is implemented and tested.
+
+## 16. Control Center
+
+The GUI is a thin presentation layer with tabs/views corresponding to the Hub contracts:
+
+- **Home** — identity, health, driver and issues;
+- **Performance** — telemetry and supported tuning;
+- **Games** — discovery and per-game compatibility;
+- **Tools** — OptiScaler, benchmarks, diagnostics and reports;
+- **Optimize V100** — explicit analysis/plan/apply/verify workflow.
+
+The GUI must remain lightweight. A C++ backend and lightweight GUI toolkit are preferred over an Electron-style runtime. No separate always-on service is required for core functionality.
+
+## 17. Driver Manager
+
+`drivers/` manages metadata and lifecycle around external base stacks, not an independent ISB driver.
+
+Responsibilities:
+
+1. detect installed base drivers;
+2. fingerprint capabilities;
+3. record provenance;
+4. expose compatible base-stack information;
+5. coordinate configuration/rollback state;
+6. verify the resulting runtime.
+
+Proprietary NVIDIA/Google packages remain external inputs unless redistribution rights are established.
+
+## 18. Security and safety
+
+- Mutations are explicit and auditable.
+- Administrator/root requirements are declared.
+- Backups precede file/config mutations.
+- Rollback is first-class.
+- Unverified rules do not auto-apply in stable mode.
+- External binaries are separately sourced and verified.
+- Binary patching of proprietary drivers is not a default mechanism.
+- Game integration must account for anti-cheat and online safety.
+
+## 19. Full alternative-driver track
+
+The independent driver remains separate:
+
+```text
+Mainline: ISB V100 Hub
+  control plane
+  compatibility
+  optimization
+  integrations
+  diagnostics
+  verification
+
+Research: independent driver
+  KMD / UMD
+  GPUVM
+  command submission
+  graphics / compute runtime
+```
+
+Research code must never become an accidental runtime dependency of the Hub.
