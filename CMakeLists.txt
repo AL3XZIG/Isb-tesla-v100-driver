@@ -1,48 +1,36 @@
 cmake_minimum_required(VERSION 3.16)
+
 project(isb LANGUAGES CXX)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+
 option(BUILD_TESTING "Build tests" ON)
 include(CTest)
-add_subdirectory(cal)
-add_subdirectory(hub)
-add_subdirectory(cli)
 
 enable_testing()
 
-add_subdirectory(common)
-add_subdirectory(cal)
-add_subdirectory(providers/nvml)
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/diagnostics/verification/CMakeLists.txt")
-    add_subdirectory(diagnostics/verification)
-else()
-    message(STATUS "Verification module is not present; skipping it")
-endif()
 function(isb_add_component directory)
     if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${directory}/CMakeLists.txt")
         add_subdirectory("${directory}")
     endif()
 endfunction()
-add_subdirectory(cal)
-add_subdirectory(experiments/graphics)
-add_subdirectory(diagnostics/verification)
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/diagnostics/verification/CMakeLists.txt")
-    add_subdirectory(diagnostics/verification)
-endif()
 
-add_subdirectory(experiments/benchmarks)
-add_subdirectory(control-center)
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/diagnostics/verification/CMakeLists.txt")
-    add_subdirectory(diagnostics/verification)
-else()
-    message(STATUS "diagnostics/verification has no CMake target; skipping")
-endif()
-
-# Components are brought in as they gain independently buildable CMake targets.
+# Core and stable user-facing components.
 isb_add_component(common)
 isb_add_component(cal)
+isb_add_component(hub)
+isb_add_component(cli)
 isb_add_component(providers/nvml)
+isb_add_component(control-center)
+
+# Experimental components are optional at the directory level: they are only
+# added when their own CMakeLists.txt is present.
 isb_add_component(experiments/graphics)
 isb_add_component(experiments/compute)
+isb_add_component(experiments/benchmarks)
+
+# Verification is optional because some repository revisions do not contain a
+# buildable verification CMake target yet.
 isb_add_component(diagnostics/verification)
