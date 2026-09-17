@@ -38,12 +38,19 @@ void test_capability_states() {
 
     capability.state = CapabilityState::Unavailable;
     assert(capability.state == CapabilityState::Unavailable);
+
+    capability.state = CapabilityState::PermissionDenied;
+    assert(capability.state == CapabilityState::PermissionDenied);
+    capability.state = CapabilityState::Error;
+    assert(capability.state == CapabilityState::Error);
 }
 
 void test_enum_string_fallbacks() {
     assert(std::string(to_string(CapabilityState::Unknown)) == "unknown");
     assert(std::string(to_string(CapabilityState::Available)) == "available");
     assert(std::string(to_string(CapabilityState::Unavailable)) == "unavailable");
+    assert(std::string(to_string(CapabilityState::PermissionDenied)) == "permission_denied");
+    assert(std::string(to_string(CapabilityState::Error)) == "error");
 
     assert(std::string(to_string(GpuVariant::Unknown)) == "unknown");
     assert(std::string(to_string(GpuVariant::V100_SXM2)) == "V100 SXM2");

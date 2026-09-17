@@ -49,6 +49,8 @@ struct RawGpuObservation {
     Observed<std::uint32_t> pcie_generation;
     Observed<std::uint32_t> pcie_link_width;
 
+    Observed<PciAddress> pci_address;
+    Observed<PciDeviceId> pci_device_id;
     Observed<std::vector<NvLinkLinkObservation>> nvlink_links;
 };
 

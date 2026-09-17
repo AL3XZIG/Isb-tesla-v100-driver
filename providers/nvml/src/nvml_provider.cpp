@@ -9,6 +9,8 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <string>
+#include <utility>
 
 namespace isb::providers::nvml {
 namespace {
@@ -184,6 +186,13 @@ private:
                 Observed<std::vector<NvLinkLinkObservation>>::reported(std::move(links));
         }
 
+            if (nvmlDeviceGetNvLinkState(device, link, &state) == NVML_SUCCESS) {
+                links.push_back({link, Observed<bool>::reported(state == NVML_FEATURE_ENABLED)});
+            } else {
+                links.push_back({link, Observed<bool>::unknown()});
+            }
+        }
+        observation.nvlink_links = Observed<std::vector<NvLinkLinkObservation>>::reported(std::move(links));
         return observation;
     }
 };
