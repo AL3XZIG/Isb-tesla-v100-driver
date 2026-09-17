@@ -7,8 +7,18 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 option(BUILD_TESTING "Build tests" ON)
+include(CTest)
 
-add_subdirectory(cal)
-add_subdirectory(diagnostics/verification)
+function(isb_add_component directory)
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${directory}/CMakeLists.txt")
+        add_subdirectory("${directory}")
+    endif()
+endfunction()
 
-enable_testing()
+# Components are brought in as they gain independently buildable CMake targets.
+isb_add_component(common)
+isb_add_component(cal)
+isb_add_component(providers/nvml)
+isb_add_component(experiments/graphics)
+isb_add_component(experiments/compute)
+isb_add_component(diagnostics/verification)
