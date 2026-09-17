@@ -9,19 +9,9 @@
 #include <string>
 #include <utility>
 #include <vector>
-#include <string>
-#include <utility>
 
 namespace isb::providers::nvml {
 namespace {
-
-template <typename T>
-Observed<T> query(T (*fn)(nvmlDevice_t, T*), nvmlDevice_t device) {
-    T value{};
-    return fn(device, &value) == NVML_SUCCESS
-        ? Observed<T>::reported(value)
-        : Observed<T>::unknown();
-}
 
 class NvmlProvider final : public Provider {
 public:
@@ -186,13 +176,6 @@ private:
                 Observed<std::vector<NvLinkLinkObservation>>::reported(std::move(links));
         }
 
-            if (nvmlDeviceGetNvLinkState(device, link, &state) == NVML_SUCCESS) {
-                links.push_back({link, Observed<bool>::reported(state == NVML_FEATURE_ENABLED)});
-            } else {
-                links.push_back({link, Observed<bool>::unknown()});
-            }
-        }
-        observation.nvlink_links = Observed<std::vector<NvLinkLinkObservation>>::reported(std::move(links));
         return observation;
     }
 };
