@@ -18,4 +18,8 @@ if(BUILD_TESTING)
     add_executable(isb-nvml-types-tests tests/types_test.cpp)
     target_link_libraries(isb-nvml-types-tests PRIVATE isb-nvml)
     add_test(NAME isb-nvml-types-tests COMMAND isb-nvml-types-tests)
+
+    add_executable(isb-nvml-live-observation-contract-tests tests/live_observation_contract_test.cpp)
+    target_link_libraries(isb-nvml-live-observation-contract-tests PRIVATE isb-nvml)
+    add_test(NAME isb-nvml-live-observation-contract-tests COMMAND isb-nvml-live-observation-contract-tests)
 endif()

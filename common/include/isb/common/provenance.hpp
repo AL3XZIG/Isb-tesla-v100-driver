@@ -6,6 +6,7 @@ enum class SourceKind {
     Unknown,
     Nvml,
     Vulkan,
+    Cuda,
 };
 
 enum class Confidence {
