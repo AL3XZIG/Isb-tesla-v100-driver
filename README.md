@@ -348,3 +348,7 @@ CAL v1, capability definitions, driver fingerprinting, FixEngine and verificatio
 ## License
 
 Project licensing and third-party provenance are maintained under [`legal/`](legal/).
+
+## Current backend build
+
+The currently buildable backend is a headless Hub with a deterministic mock provider and safe unavailable-provider path. It offers inspection, capabilities, telemetry, profiles/plans, diagnostics, verification, benchmark fixture, and report generation; it does not apply hardware mutations. See [First backend build](docs/FIRST_BUILD.md).

@@ -12,6 +12,8 @@ enum class CapabilityState {
     Unknown,
     Available,
     Unavailable,
+    PermissionDenied,
+    Error,
 };
 
 /// Hardware form factor / configuration. Variants are never implicitly equivalent.

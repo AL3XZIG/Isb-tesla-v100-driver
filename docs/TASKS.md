@@ -8,8 +8,8 @@ All user-facing workflows go through one thin `hub/` control plane. The CLI and 
 
 ## P0 — Foundation and integration
 
-- [ ] Reconcile existing CAL, capability, FixEngine, verification and fingerprinting implementations into one buildable control-plane model.
-- [ ] Define stable Hub contracts for `scan`, `inspect`, `status`, `optimize`, `profile`, `apply`, `rollback`, `verify`, `benchmark` and `report`.
+- [x] Establish a buildable CAL + Hub control-plane baseline (FixEngine/verification integration remains pending).
+- [x] Define initial Hub contracts for inspect/status/capabilities/telemetry/plans/verify/benchmark/report; provider-backed apply remains intentionally unavailable.
 - [ ] Define common `Environment`, `GpuIdentity`, `CapabilitySnapshot`, `ErrorEvent`, `Operation` and `VerificationResult` contracts without duplicating existing models.
 - [ ] Keep capability state tri-state: `AVAILABLE`, `UNAVAILABLE`, `UNKNOWN`.
 - [ ] Make mutations explicit, logged, reversible where possible, and represented as `requested -> applied -> verified`.
