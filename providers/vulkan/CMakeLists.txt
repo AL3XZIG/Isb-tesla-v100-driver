@@ -1,0 +1,22 @@
+add_library(isb-vulkan src/vulkan_provider.cpp)
+target_include_directories(isb-vulkan PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_link_libraries(isb-vulkan PUBLIC isb-common)
+target_compile_features(isb-vulkan PUBLIC cxx_std_17)
+
+find_path(VULKAN_INCLUDE_DIR vulkan/vulkan.h)
+find_library(VULKAN_LIBRARY NAMES vulkan vulkan-1)
+
+if(VULKAN_INCLUDE_DIR AND VULKAN_LIBRARY)
+    target_include_directories(isb-vulkan PRIVATE ${VULKAN_INCLUDE_DIR})
+    target_link_libraries(isb-vulkan PRIVATE ${VULKAN_LIBRARY})
+    target_compile_definitions(isb-vulkan PRIVATE ISB_HAS_VULKAN=1)
+    message(STATUS "Vulkan provider enabled")
+else()
+    message(STATUS "Vulkan provider disabled: Vulkan headers/library not found")
+endif()
+
+if(BUILD_TESTING)
+    add_executable(isb-vulkan-tests tests/provider_contract_test.cpp)
+    target_link_libraries(isb-vulkan-tests PRIVATE isb-vulkan)
+    add_test(NAME isb-vulkan-tests COMMAND isb-vulkan-tests)
+endif()
