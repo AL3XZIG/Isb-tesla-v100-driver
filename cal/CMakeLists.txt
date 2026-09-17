@@ -18,6 +18,7 @@ target_include_directories(isb-cal
 )
 
 target_compile_features(isb-cal PUBLIC cxx_std_17)
+target_link_libraries(isb-cal PUBLIC isb-common)
 
 if(ISB_CAL_ENABLE_WARNINGS)
     if(MSVC)
