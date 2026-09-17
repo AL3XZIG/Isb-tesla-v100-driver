@@ -14,6 +14,13 @@ function(isb_add_component directory)
         add_subdirectory("${directory}")
     endif()
 endfunction()
+add_subdirectory(cal)
+add_subdirectory(control-center)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/diagnostics/verification/CMakeLists.txt")
+    add_subdirectory(diagnostics/verification)
+else()
+    message(STATUS "diagnostics/verification has no CMake target; skipping")
+endif()
 
 # Components are brought in as they gain independently buildable CMake targets.
 isb_add_component(common)
