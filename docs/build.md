@@ -44,3 +44,20 @@ or a physical NVIDIA GPU.
 The CI workflow intentionally runs the same configure/build/test sequence on
 an ordinary Ubuntu runner. Hardware-dependent tests must be added as separate
 integration/hardware jobs rather than making the baseline CI GPU-dependent.
+
+## Optional Control Center
+
+The native **ISB V100 Control Center** is a Qt 6 Widgets target. It is optional: a
+normal C++17 build still configures and tests the hardware-independent control
+plane when Qt is absent. Install Qt 6 Widgets and configure with
+`-DISB_BUILD_CONTROL_CENTER=ON` to create the `isb-v100-control-center` target.
+
+```sh
+cmake -S . -B build -DBUILD_TESTING=ON -DISB_BUILD_CONTROL_CENTER=ON
+cmake --build build --target isb-v100-control-center
+./build/control-center/isb-v100-control-center
+```
+
+Without a provider-backed Hub implementation the application deliberately runs
+in **MOCK / SIMULATION** mode. Its unavailable telemetry uses `—`, and controls
+with unknown capability remain disabled; it does not issue NVIDIA API calls.
