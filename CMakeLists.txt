@@ -9,6 +9,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 option(BUILD_TESTING "Build tests" ON)
 
 add_subdirectory(cal)
+add_subdirectory(experiments/graphics)
 add_subdirectory(diagnostics/verification)
 
 enable_testing()
