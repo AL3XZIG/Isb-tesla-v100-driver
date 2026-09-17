@@ -1,16 +1,21 @@
 # ISB V100 Hub — Implementation Tasks
 
-This roadmap defines the implementation order for the V100-focused user-space control center. It supersedes the old assumption that the mainline project must become a complete NVIDIA driver.
+This roadmap defines the implementation order for the **V100-focused user-space control center**. It supersedes the old assumption that the mainline project must become a complete NVIDIA driver.
+
+## Architecture rule
+
+All user-facing workflows go through one thin `hub/` control plane. The CLI and `control-center/` GUI are frontends. Existing CAL, capability models, providers, FixEngine, diagnostics and verification remain shared foundations rather than being duplicated.
 
 ## P0 — Foundation and integration
 
-- [ ] Reconcile the existing CAL, capability, FixEngine, verification and fingerprinting implementations into one buildable control-plane model.
-- [ ] Define stable `Hub` / control-plane contracts shared by CLI and GUI.
-- [ ] Define common `Environment`, `GpuIdentity`, `CapabilitySnapshot`, `ErrorEvent`, `Operation`, `VerificationResult` and report contracts without duplicating existing models.
+- [ ] Reconcile existing CAL, capability, FixEngine, verification and fingerprinting implementations into one buildable control-plane model.
+- [ ] Define stable Hub contracts for `scan`, `inspect`, `status`, `optimize`, `profile`, `apply`, `rollback`, `verify`, `benchmark` and `report`.
+- [ ] Define common `Environment`, `GpuIdentity`, `CapabilitySnapshot`, `ErrorEvent`, `Operation` and `VerificationResult` contracts without duplicating existing models.
 - [ ] Keep capability state tri-state: `AVAILABLE`, `UNAVAILABLE`, `UNKNOWN`.
-- [ ] Make all mutations explicit, logged, reversible where possible, and represented as `requested -> applied -> verified`.
+- [ ] Make mutations explicit, logged, reversible where possible, and represented as `requested -> applied -> verified`.
 - [ ] Define versioned deterministic report-bundle schema.
 - [ ] Keep synthetic fixtures explicitly marked `synthetic: true`.
+- [ ] Keep GUI and CLI on the same Hub contracts.
 
 ## P0 — V100 capability and provider layer
 
@@ -22,15 +27,16 @@ This roadmap defines the implementation order for the V100-focused user-space co
 - [ ] Record driver/package/version/API provenance for every observed capability.
 - [ ] Add capability-aware feature gating for Tensor Cores, ECC, RT Cores, Optical Flow, MIG, NVLink and display/output assumptions.
 
-## P1 — Home / V100 status
+## P1 — Hub / Home / V100 status
 
-- [ ] Implement a headless `status` operation first.
+- [ ] Implement headless `status` operation first.
 - [ ] Expose GPU identity, driver, CUDA/NVML/API state, temperature, utilization, power, clocks and ECC where available.
 - [ ] Show active ISB profile and known problems.
-- [ ] Generate a one-click-equivalent deterministic report from the CLI.
+- [ ] Generate a deterministic report from the CLI.
 - [ ] Add `Optimize V100` plan generation without mutation.
+- [ ] Add transaction state and rollback metadata.
 
-## P1 — Performance control
+## P1 — Performance
 
 - [ ] Implement read-only telemetry first.
 - [ ] Detect supported management controls before exposing them.
@@ -38,16 +44,17 @@ This roadmap defines the implementation order for the V100-focused user-space co
 - [ ] Add application clocks where supported.
 - [ ] Add power-limit controls where supported and permitted.
 - [ ] Add compute-mode controls where supported.
-- [ ] Detect auto-boost / application-clock semantics rather than assuming a fixed clock model.
+- [ ] Detect auto-boost/application-clock semantics rather than assuming a fixed clock model.
 - [ ] Implement profiles: Balanced, Gaming, Compute, AI/Tensor, Maximum Performance, Low Power, Custom.
 - [ ] Store whether each setting is current, persistent, temporary or requires reset/restart.
 - [ ] Verify every applied setting through the underlying provider/API.
+- [ ] Add Thermal Guard: temperature history, throttling, clock drops and ECC anomalies.
 
-## P1 — Diagnostics / Driver Doctor
+## P1 — Driver Doctor / FixEngine
 
 - [ ] Integrate existing fingerprinting and IDR evidence.
 - [ ] Integrate the existing FixEngine; do not create a second rule engine.
-- [ ] Add diagnosis -> candidate fixes -> dry-run -> explicit apply -> verify -> rollback flow.
+- [ ] Add diagnosis → candidate fixes → dry-run → explicit apply → verify → rollback flow.
 - [ ] Add stable reason/error codes.
 - [ ] Preserve distinction between `False` and `Unknown` during diagnostics.
 - [ ] Add driver/API/application compatibility records with maturity states.
@@ -81,7 +88,7 @@ This roadmap defines the implementation order for the V100-focused user-space co
 ## P1 — Graphics enhancement layer
 
 - [ ] Define backend-independent graphics enhancement interfaces.
-- [ ] Implement a safe spatial upscaling path (FSR1-style / equivalent) where technically appropriate.
+- [ ] Implement safe spatial scaling where technically appropriate.
 - [ ] Implement Lanczos scaling.
 - [ ] Implement CAS-style sharpening.
 - [ ] Add resolution scaling, DRS and image-quality controls where an application exposes a safe configuration path.
@@ -90,25 +97,16 @@ This roadmap defines the implementation order for the V100-focused user-space co
 - [ ] Prefer documented loader/layer/plugin mechanisms over binary patching.
 - [ ] Do not claim native DLSS, RT hardware or Optical Flow support on V100.
 
-## P2 — Tensor Core / AI lab
+## P2 — Tensor Core / AI Lab
 
 - [ ] Add FP16 and INT8 benchmark/correctness probes where supported.
 - [ ] Add Tensor Core throughput benchmark.
 - [ ] Add HBM bandwidth benchmark.
 - [ ] Add CUDA compute benchmark.
 - [ ] Evaluate optional user-space neural super-resolution/reconstruction using CUDA/Tensor Cores.
-- [ ] Evaluate small ONNX/TensorRT-style models as optional external/runtime integrations.
+- [ ] Evaluate optional external inference runtimes only after capability/license review.
 - [ ] Benchmark latency and image quality; do not equate AI upscaling with DLSS.
 - [ ] Investigate frame interpolation as a separate experimental feature with explicit latency/quality warnings.
-
-## P2 — Thermal Guard
-
-- [ ] Add temperature history.
-- [ ] Detect thermal and power throttling.
-- [ ] Detect sustained clock drops.
-- [ ] Track ECC anomalies.
-- [ ] Correlate utilization, power, temperature and clocks.
-- [ ] Add user-configurable warning thresholds without silently changing hardware limits.
 
 ## P2 — Interconnect
 
@@ -119,7 +117,7 @@ This roadmap defines the implementation order for the V100-focused user-space co
 - [ ] Add measured PCIe/NVLink bandwidth tests.
 - [ ] Keep topology/state/capability/measured performance as separate fields.
 
-## P2 — Benchmark suite
+## P2 — Benchmark Suite
 
 - [ ] Create reproducible graphics benchmark.
 - [ ] Create CUDA compute benchmark.
@@ -147,10 +145,10 @@ This roadmap defines the implementation order for the V100-focused user-space co
 
 ## P2 — Lightweight Control Center
 
-- [ ] Build GUI only on top of stable hub contracts.
+- [ ] Build GUI only on top of stable Hub contracts.
 - [ ] Keep GUI and CLI free of duplicated business logic.
-- [ ] Preferred target: lightweight C++ GUI using Qt or ImGui/SDL; avoid Electron-scale runtime.
-- [ ] Tabs: Home, Performance, Games, Tools, Diagnostics.
+- [ ] Preferred target: lightweight native C++ GUI using Qt or ImGui/SDL; avoid Electron-scale runtime.
+- [ ] Views: Home, Performance, Games, Tools, Optimize V100.
 - [ ] Provide prominent `Optimize V100` action.
 - [ ] Display unsupported/unknown features instead of hiding them.
 - [ ] Make risky operations visibly explicit and reversible.
@@ -162,7 +160,7 @@ This roadmap defines the implementation order for the V100-focused user-space co
 - [ ] Software ray tracing / ray marching experiments.
 - [ ] SSR / SSAO / SSGI / voxel-lighting experiments.
 - [ ] Research driver/API compatibility extensions.
-- [ ] Keep all experimental features isolated from stable hub dependencies.
+- [ ] Keep all experimental features isolated from stable Hub dependencies.
 
 ## P3 — Alternative driver research
 
@@ -172,7 +170,7 @@ This roadmap defines the implementation order for the V100-focused user-space co
 
 ## Quality gates
 
-A feature is not considered stable until it has:
+A feature is not stable until it has:
 
 1. capability detection;
 2. deterministic behavior;
@@ -185,4 +183,4 @@ A feature is not considered stable until it has:
 
 ## Recommended implementation order
 
-`P0 foundation → capability/providers → Home/status → Performance → Driver Doctor → Games → OptiScaler → Graphics → Reports/Benchmarks → GUI → experimental features`
+`P0 Hub/contracts → capability/providers → Home/status → Performance → Driver Doctor → Games → OptiScaler → Graphics → Reports/Benchmarks → GUI → experimental features`
