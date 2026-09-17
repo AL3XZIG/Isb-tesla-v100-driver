@@ -255,7 +255,7 @@ hub/                   V100 control-plane orchestration
 cal/                   capability abstraction; no runtime probing
 capabilities/          V100/GV100 capability definitions
 providers/             NVML, CUDA, Vulkan, DXGI and platform providers
-fix/                   deterministic FixEngine and reversible actions
+fixer/                 existing deterministic FixEngine and reversible actions
 compatibility/         application/API compatibility policy and selection
 games/                 game discovery, compatibility and per-game profiles
 performance/           telemetry, tuning and V100 performance controls
@@ -341,7 +341,7 @@ ISB may provide software alternatives, compatibility paths or user-space compute
 
 **V100 Hub architecture — implementation phase.**
 
-CAL v1, capability definitions, driver fingerprinting, FixEngine and verification are foundations. The next implementation sequence is:
+CAL v1, capability definitions, driver fingerprinting, FixEngine and verification are foundations. The implementation sequence is:
 
 **control plane → providers/capabilities → Home/status → Performance → Driver Doctor → Games → OptiScaler → Graphics → Reports/Benchmarks → GUI → experimental features.**
 
