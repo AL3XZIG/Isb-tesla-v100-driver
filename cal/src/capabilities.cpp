@@ -62,7 +62,7 @@ void write_compute_capability(std::ostringstream& out,
 }
 
 void write_state(std::ostringstream& out, CapabilityState state) {
-    write_string(out, to_string(state));
+    out << '"' << common::to_string(state) << '"';
 }
 
 void write_capability(std::ostringstream& out, const Capability& capability) {
@@ -97,14 +97,7 @@ void write_tensor_precisions(std::ostringstream& out, const TensorPrecisionSet& 
 } // namespace
 
 const char* to_string(CapabilityState state) noexcept {
-    switch (state) {
-    case CapabilityState::Unknown: return "unknown";
-    case CapabilityState::Available: return "available";
-    case CapabilityState::Unavailable: return "unavailable";
-    case CapabilityState::PermissionDenied: return "permission_denied";
-    case CapabilityState::Error: return "error";
-    }
-    return "unknown";
+    return common::to_string(state);
 }
 
 const char* to_string(GpuVariant variant) noexcept {
