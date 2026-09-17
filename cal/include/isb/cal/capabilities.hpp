@@ -1,5 +1,7 @@
 #pragma once
 
+#include "isb/common/capability_state.hpp"
+
 #include <cstdint>
 #include <optional>
 #include <string>
@@ -7,14 +9,9 @@
 
 namespace isb::cal {
 
-/// Three-state capability result. Unknown is deliberately distinct from Unavailable.
-enum class CapabilityState {
-    Unknown,
-    Available,
-    Unavailable,
-    PermissionDenied,
-    Error,
-};
+/// CAL compatibility alias for the provider-neutral capability state contract.
+/// Unknown is deliberately distinct from Unavailable.
+using CapabilityState = common::CapabilityState;
 
 /// Hardware form factor / configuration. Variants are never implicitly equivalent.
 enum class GpuVariant {
@@ -121,6 +118,7 @@ struct GpuCapabilities {
     HardwareFeatures hardware;
 };
 
+/// Compatibility wrapper retained for the CAL public API.
 const char* to_string(CapabilityState state) noexcept;
 const char* to_string(GpuVariant variant) noexcept;
 const char* to_string(TensorPrecision precision) noexcept;
