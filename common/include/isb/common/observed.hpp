@@ -16,6 +16,8 @@ struct Observed {
     static Observed unknown() noexcept { return {}; }
 
     static Observed reported(T reported_value) {
+        static_assert(Source != SourceKind::Unknown,
+                      "reported() requires a concrete observation source");
         return {std::move(reported_value), Source, Confidence::Reported};
     }
 };
