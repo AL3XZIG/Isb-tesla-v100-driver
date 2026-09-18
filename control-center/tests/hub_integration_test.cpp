@@ -12,9 +12,14 @@ int main() {
     assert(env.mode == ProviderMode::Mock);
     assert(env.provenance.synthetic);
 
+    const auto snapshot = hub.capability_snapshot();
+    assert(snapshot.capabilities.identity.gpu_variant == cal::GpuVariant::V100_SXM2);
+    assert(snapshot.capabilities.hardware.tensor_cores.state == cal::CapabilityState::Available);
+    assert(snapshot.provenance.provider == env.provenance.provider);
+    assert(snapshot.provenance.synthetic);
+
     const auto capabilities = hub.capabilities();
-    assert(capabilities.identity.gpu_variant == cal::GpuVariant::V100_SXM2);
-    assert(capabilities.hardware.tensor_cores.state == cal::CapabilityState::Available);
+    assert(capabilities.identity.gpu_variant == snapshot.capabilities.identity.gpu_variant);
 
     const auto telemetry = hub.telemetry();
     assert(telemetry.synthetic);
