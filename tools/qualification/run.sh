@@ -88,8 +88,10 @@ cat > "${REPORT_DIR}/summary.json" <<EOF
 {"schema_version":"1","run_id":"${STAMP}","qualification_mode":"${RUN_MODE}","results":{"pass":${PASS},"fail":${FAIL},"unknown":${UNKNOWN}},"artifacts":["environment.json","capabilities.json","telemetry.json","diagnose.json","verification.json","benchmark.json","results.tsv"]}
 EOF
 
+synthetic=false
+if [[ "${RUN_MODE}" == "mock" ]]; then synthetic=true; fi
 cat > "${REPORT_DIR}/manifest.json" <<EOF
-{"schema_version":"1","report_type":"qualification","run_id":"${STAMP}","qualification_mode":"${RUN_MODE}","synthetic":${RUN_MODE=="mock" && echo true || echo false},"source":"isb qualification runner","summary":"summary.json"}
+{"schema_version":"1","report_type":"qualification","run_id":"${STAMP}","qualification_mode":"${RUN_MODE}","synthetic":${synthetic},"source":"isb qualification runner","summary":"summary.json"}
 EOF
 
 echo "[ISB] Qualification report: ${REPORT_DIR}"
