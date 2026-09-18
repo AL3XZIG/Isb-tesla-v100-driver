@@ -24,9 +24,57 @@ struct ErrorEvent { std::string code; std::string message; Provenance provenance
 struct BenchmarkResult { std::string name; std::string version; bool synthetic = false; bool correctness_verified = false; std::string result; Provenance provenance; };
 struct ReportBundle { std::string directory; std::string manifest; };
 
-class Provider { public: virtual ~Provider() = default; virtual Environment environment() const = 0; virtual cal::GpuCapabilities capabilities() const = 0; virtual TelemetrySnapshot telemetry() const = 0; virtual std::vector<Control> controls() const = 0; };
-class MockProvider final : public Provider { public: Environment environment() const override; cal::GpuCapabilities capabilities() const override; TelemetrySnapshot telemetry() const override; std::vector<Control> controls() const override; };
-class UnavailableProvider final : public Provider { public: Environment environment() const override; cal::GpuCapabilities capabilities() const override; TelemetrySnapshot telemetry() const override; std::vector<Control> controls() const override; };
-class Hub { public: explicit Hub(const Provider& provider); Environment environment() const; CapabilitySnapshot capability_snapshot() const; cal::GpuCapabilities capabilities() const; TelemetrySnapshot telemetry() const; std::vector<Control> controls() const; std::vector<std::string> profiles() const; OperationPlan profile_plan(const std::string& profile) const; OperationPlan optimize_plan() const; std::vector<ErrorEvent> diagnose() const; VerificationResult verify() const; BenchmarkResult benchmark() const; ApplyResult apply(const OperationPlan& plan, bool approved) const; ReportBundle report(const std::string& directory) const; private: const Provider& provider_; };
-std::string json(const Environment&); std::string json(const TelemetrySnapshot&); std::string json(const OperationPlan&); std::string json(const BenchmarkResult&); std::string json(const VerificationResult&); const char* to_string(ProviderMode); const char* to_string(ControlState);
+class Provider {
+public:
+    virtual ~Provider() = default;
+    virtual Environment environment() const = 0;
+    virtual cal::GpuCapabilities capabilities() const = 0;
+    virtual TelemetrySnapshot telemetry() const = 0;
+    virtual std::vector<Control> controls() const = 0;
+};
+class MockProvider final : public Provider {
+public:
+    Environment environment() const override;
+    cal::GpuCapabilities capabilities() const override;
+    TelemetrySnapshot telemetry() const override;
+    std::vector<Control> controls() const override;
+};
+class UnavailableProvider final : public Provider {
+public:
+    Environment environment() const override;
+    cal::GpuCapabilities capabilities() const override;
+    TelemetrySnapshot telemetry() const override;
+    std::vector<Control> controls() const override;
+};
+class Hub {
+public:
+    explicit Hub(const Provider& provider);
+    Environment environment() const;
+    CapabilitySnapshot capability_snapshot() const;
+    cal::GpuCapabilities capabilities() const;
+    TelemetrySnapshot telemetry() const;
+    std::vector<Control> controls() const;
+    std::vector<std::string> profiles() const;
+    OperationPlan profile_plan(const std::string& profile) const;
+    OperationPlan optimize_plan() const;
+    std::vector<ErrorEvent> diagnose() const;
+    VerificationResult verify() const;
+    BenchmarkResult benchmark() const;
+    ApplyResult apply(const OperationPlan& plan, bool approved) const;
+    ReportBundle report(const std::string& directory) const;
+
+    /// Return one deterministic, provider-backed status document for frontends.
+    /// This is read-only and performs no hardware mutation.
+    std::string status_json() const;
+
+private:
+    const Provider& provider_;
+};
+std::string json(const Environment&);
+std::string json(const TelemetrySnapshot&);
+std::string json(const OperationPlan&);
+std::string json(const BenchmarkResult&);
+std::string json(const VerificationResult&);
+const char* to_string(ProviderMode);
+const char* to_string(ControlState);
 } // namespace isb::hub
