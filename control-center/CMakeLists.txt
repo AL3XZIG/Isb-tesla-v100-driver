@@ -1,7 +1,7 @@
 include(CTest)
 
 add_library(isb-control-center-core INTERFACE)
-target_link_libraries(isb-control-center-core INTERFACE isb-hub)
+target_link_libraries(isb-control-center-core INTERFACE isb-hub isb-optiscaler-integration)
 target_compile_features(isb-control-center-core INTERFACE cxx_std_17)
 
 if(BUILD_TESTING)
