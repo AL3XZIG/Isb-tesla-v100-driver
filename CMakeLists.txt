@@ -20,15 +20,16 @@ endfunction()
 # Core and stable user-facing components.
 isb_add_component(common)
 isb_add_component(cal)
-isb_add_component(hub)
-isb_add_component(cli)
 isb_add_component(providers/nvml)
 isb_add_component(providers/vulkan)
 isb_add_component(providers/cuda)
-isb_add_component(control-center)
 
-# Graphics upscaling layer (boundary/adapter for OptiScaler, FSR, XeSS)
+# Graphics upscaling/render-path layer.
 isb_add_component(graphics)
+
+isb_add_component(hub)
+isb_add_component(cli)
+isb_add_component(control-center)
 
 # Experimental components are optional at the directory level: they are only
 # added when their own CMakeLists.txt is present.
