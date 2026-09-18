@@ -1,8 +1,11 @@
 #include "isb/hub/hub.hpp"
 #include "isb/graphics/upscaler_types.hpp"
 #include "isb/graphics/render_path_types.hpp"
+#include <algorithm>
 #include <iostream>
 #include <memory>
+#include <string>
+#include <vector>
 using namespace isb::hub;
 
 namespace {
