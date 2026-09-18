@@ -15,7 +15,7 @@ target_include_directories(isb-graphics-upscaler
 )
 
 target_link_libraries(isb-graphics-upscaler
-    PUBLIC isb-common isb-cal isb-hub
+    PUBLIC isb-common isb-cal
     PRIVATE isb-nvml isb-vulkan
 )
 
