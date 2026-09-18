@@ -27,6 +27,8 @@ int main() {
 
     auto move_only = isb::common::Observed<std::unique_ptr<int>, isb::common::SourceKind::Vulkan>::reported(
         std::make_unique<int>(42));
-    assert(move_only.value && *move_only.value == 42);
+    assert(move_only.value.has_value());
+    const int deref_value = *(*move_only.value);
+    assert(deref_value == 42);
     assert(move_only.source == isb::common::SourceKind::Vulkan);
 }

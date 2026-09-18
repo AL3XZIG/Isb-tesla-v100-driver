@@ -1,48 +1,48 @@
-# Build
+```
+# Compiled and build artifacts
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.a
+*.out
 build/
-out/
-cmake-build-*/
-CMakeFiles/
-CMakeCache.txt
-compile_commands.json
+dist/
+target/
 
-# Python
-__pycache__/
-*.py[cod]
-.venv/
+# Dependencies
+node_modules/
 venv/
-.pytest_cache/
+.venv/
+__pycache__/
 .mypy_cache/
+.pytest_cache/
+.gradle/
+julia-*/
+zig*/
 
-# IDEs
+# Logs and temp files
+*.log
+*.tmp
+*.swp
+*.swo
+
+# Environment
+.env
+.env.local
+*.env.*
+
+# Editors
 .vscode/
 .idea/
-*.swp
 
-# CUDA / profiling artifacts
-*.nsys-rep
-*.ncu-rep
-*.qdrep
-*.sqlite
+# Coverage
+coverage/
+htmlcov/
+.coverage
 
-# Runtime data
-logs/
-*.log
-tmp/
-
-# Models and large assets
-models/weights/
-*.safetensors
-*.onnx
-*.engine
-*.plan
-
-# Secrets
-.env
-*.pem
-*.key
-credentials.json
-
-# OS files
+# System
 .DS_Store
 Thumbs.db
+```
