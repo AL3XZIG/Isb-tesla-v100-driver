@@ -1,27 +1,20 @@
 ```
-# Build artifacts
-*.o
-*.obj
-*.a
-*.so
-*.dylib
-*.dll
-*.exe
-*.out
+# Build directories
+build-cap/
+build-clean/
+build-nvml-disabled/
 
-# CMake build directories
-build/
-cmake-build-*/
-_CacheData/
+# CMake files
+CMakeCache.txt
+CMakeFiles/
+CMakeRuleHashes.txt
+cmake.check_cache
+Makefile
+cmake_install.cmake
+CTestTestfile.cmake
+DartConfiguration.tcl
 
-# Dependencies
-vendor/
-
-# Logs
-*.log
-
-# Temporary files
-*.tmp
-*.swp
-*~
+# Test related
+Testing/
+isb-*
 ```
