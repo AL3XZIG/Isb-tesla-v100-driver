@@ -16,7 +16,7 @@ target_include_directories(isb-graphics-upscaler
 
 target_link_libraries(isb-graphics-upscaler
     PUBLIC isb-common isb-cal
-    PRIVATE isb-nvml isb-vulkan
+    PRIVATE isb-nvml-observation isb-vulkan
 )
 
 target_compile_features(isb-graphics-upscaler PUBLIC cxx_std_17)
