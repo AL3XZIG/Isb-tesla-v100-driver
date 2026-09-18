@@ -1,0 +1,243 @@
+Start testing: Sep 18 12:52 UTC
+----------------------------------------------------------
+1/16 Testing: isb-common-tests
+1/16 Test: isb-common-tests
+Command: "/workspace/build/common/isb-common-tests"
+Directory: /workspace/build/common
+"isb-common-tests" start time: Sep 18 12:52 UTC
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"isb-common-tests" end time: Sep 18 12:52 UTC
+"isb-common-tests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+2/16 Testing: isb-common-error-tests
+2/16 Test: isb-common-error-tests
+Command: "/workspace/build/common/isb-common-error-tests"
+Directory: /workspace/build/common
+"isb-common-error-tests" start time: Sep 18 12:52 UTC
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"isb-common-error-tests" end time: Sep 18 12:52 UTC
+"isb-common-error-tests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+3/16 Testing: isb-common-error-release-tests
+3/16 Test: isb-common-error-release-tests
+Command: "/workspace/build/common/isb-common-error-release-tests"
+Directory: /workspace/build/common
+"isb-common-error-release-tests" start time: Sep 18 12:52 UTC
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"isb-common-error-release-tests" end time: Sep 18 12:52 UTC
+"isb-common-error-release-tests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+4/16 Testing: isb-common-observed-tests
+4/16 Test: isb-common-observed-tests
+Command: "/workspace/build/common/isb-common-observed-tests"
+Directory: /workspace/build/common
+"isb-common-observed-tests" start time: Sep 18 12:52 UTC
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"isb-common-observed-tests" end time: Sep 18 12:52 UTC
+"isb-common-observed-tests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+5/16 Testing: isb-common-capability-state-tests
+5/16 Test: isb-common-capability-state-tests
+Command: "/workspace/build/common/isb-common-capability-state-tests"
+Directory: /workspace/build/common
+"isb-common-capability-state-tests" start time: Sep 18 12:52 UTC
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"isb-common-capability-state-tests" end time: Sep 18 12:52 UTC
+"isb-common-capability-state-tests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+6/16 Testing: isb-cal-tests
+6/16 Test: isb-cal-tests
+Command: "/workspace/build/cal/isb-cal-tests"
+Directory: /workspace/build/cal
+"isb-cal-tests" start time: Sep 18 12:52 UTC
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"isb-cal-tests" end time: Sep 18 12:52 UTC
+"isb-cal-tests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+7/16 Testing: isb-hub-tests
+7/16 Test: isb-hub-tests
+Command: "/workspace/build/hub/isb-hub-tests"
+Directory: /workspace/build/hub
+"isb-hub-tests" start time: Sep 18 12:52 UTC
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"isb-hub-tests" end time: Sep 18 12:52 UTC
+"isb-hub-tests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+8/16 Testing: isb-nvml-types-tests
+8/16 Test: isb-nvml-types-tests
+Command: "/workspace/build/providers/nvml/isb-nvml-types-tests"
+Directory: /workspace/build/providers/nvml
+"isb-nvml-types-tests" start time: Sep 18 12:52 UTC
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"isb-nvml-types-tests" end time: Sep 18 12:52 UTC
+"isb-nvml-types-tests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+9/16 Testing: isb-nvml-live-observation-contract-tests
+9/16 Test: isb-nvml-live-observation-contract-tests
+Command: "/workspace/build/providers/nvml/isb-nvml-live-observation-contract-tests"
+Directory: /workspace/build/providers/nvml
+"isb-nvml-live-observation-contract-tests" start time: Sep 18 12:52 UTC
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"isb-nvml-live-observation-contract-tests" end time: Sep 18 12:52 UTC
+"isb-nvml-live-observation-contract-tests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+10/16 Testing: isb-nvml-provider-availability-tests
+10/16 Test: isb-nvml-provider-availability-tests
+Command: "/workspace/build/providers/nvml/isb-nvml-provider-availability-tests"
+Directory: /workspace/build/providers/nvml
+"isb-nvml-provider-availability-tests" start time: Sep 18 12:52 UTC
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"isb-nvml-provider-availability-tests" end time: Sep 18 12:52 UTC
+"isb-nvml-provider-availability-tests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+11/16 Testing: isb-vulkan-tests
+11/16 Test: isb-vulkan-tests
+Command: "/workspace/build/providers/vulkan/isb-vulkan-tests"
+Directory: /workspace/build/providers/vulkan
+"isb-vulkan-tests" start time: Sep 18 12:52 UTC
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"isb-vulkan-tests" end time: Sep 18 12:52 UTC
+"isb-vulkan-tests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+12/16 Testing: isb-cuda-tests
+12/16 Test: isb-cuda-tests
+Command: "/workspace/build/providers/cuda/isb-cuda-tests"
+Directory: /workspace/build/providers/cuda
+"isb-cuda-tests" start time: Sep 18 12:52 UTC
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"isb-cuda-tests" end time: Sep 18 12:52 UTC
+"isb-cuda-tests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+13/16 Testing: isb-control-center-hub-tests
+13/16 Test: isb-control-center-hub-tests
+Command: "/workspace/build/control-center/isb-control-center-hub-tests"
+Directory: /workspace/build/control-center
+"isb-control-center-hub-tests" start time: Sep 18 12:52 UTC
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"isb-control-center-hub-tests" end time: Sep 18 12:52 UTC
+"isb-control-center-hub-tests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+14/16 Testing: graphics-capability-tests
+14/16 Test: graphics-capability-tests
+Command: "/workspace/build/experiments/graphics/graphics-capability-tests"
+Directory: /workspace/build/experiments/graphics
+"graphics-capability-tests" start time: Sep 18 12:52 UTC
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"graphics-capability-tests" end time: Sep 18 12:52 UTC
+"graphics-capability-tests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+15/16 Testing: isb-experimental-compute-tests
+15/16 Test: isb-experimental-compute-tests
+Command: "/workspace/build/experiments/compute/isb-experimental-compute-tests"
+Directory: /workspace/build/experiments/compute
+"isb-experimental-compute-tests" start time: Sep 18 12:52 UTC
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"isb-experimental-compute-tests" end time: Sep 18 12:52 UTC
+"isb-experimental-compute-tests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+16/16 Testing: isb-benchmarks-tests
+16/16 Test: isb-benchmarks-tests
+Command: "/workspace/build/experiments/benchmarks/isb-benchmarks-tests"
+Directory: /workspace/build/experiments/benchmarks
+"isb-benchmarks-tests" start time: Sep 18 12:52 UTC
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"isb-benchmarks-tests" end time: Sep 18 12:52 UTC
+"isb-benchmarks-tests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Sep 18 12:52 UTC

@@ -1,0 +1,1 @@
+/usr/bin/c++ -O3 -DNDEBUG CMakeFiles/isb.dir/main.cpp.o -o isb  ../hub/libisb-hub.a ../cal/libisb-cal.a ../common/libisb-common.a 
