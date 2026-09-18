@@ -136,7 +136,9 @@ void test_v100_baseline_factory() {
 
     assert(sxm2.identity.vendor == "NVIDIA");
     assert(sxm2.identity.architecture == "Volta");
-    assert(sxm2.identity.compute_capability == ComputeCapability{7, 0});
+    assert(sxm2.identity.compute_capability.has_value());
+    assert(sxm2.identity.compute_capability->major == 7);
+    assert(sxm2.identity.compute_capability->minor == 0);
     assert(sxm2.compute.cuda_cores.has_value());
     assert(*sxm2.compute.cuda_cores == 5120);
     assert(sxm2.compute.tensor_cores.state == CapabilityState::Available);
