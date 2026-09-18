@@ -8,11 +8,16 @@ namespace {
 
 const char* yes_no_unknown(cal::CapabilityState state) noexcept {
     switch (state) {
-    case cal::CapabilityState::Available: return "YES";
-    case cal::CapabilityState::Unavailable: return "NO";
+    case cal::CapabilityState::Available:
+    case cal::CapabilityState::Ready:
+        return "YES";
+    case cal::CapabilityState::Unavailable:
+    case cal::CapabilityState::Unsupported:
+        return "NO";
     case cal::CapabilityState::Unknown:
     case cal::CapabilityState::PermissionDenied:
     case cal::CapabilityState::Error:
+    case cal::CapabilityState::Partial:
         return "UNKNOWN";
     }
     return "UNKNOWN";
@@ -22,10 +27,12 @@ const char* availability(cal::CapabilityState state) noexcept {
     switch (state) {
     case cal::CapabilityState::Available: return "AVAILABLE";
     case cal::CapabilityState::Unavailable: return "UNAVAILABLE";
-    case cal::CapabilityState::Unknown:
-    case cal::CapabilityState::PermissionDenied:
-    case cal::CapabilityState::Error:
-        return "UNKNOWN";
+    case cal::CapabilityState::PermissionDenied: return "PERMISSION DENIED";
+    case cal::CapabilityState::Error: return "ERROR";
+    case cal::CapabilityState::Partial: return "PARTIAL";
+    case cal::CapabilityState::Ready: return "READY";
+    case cal::CapabilityState::Unsupported: return "UNSUPPORTED";
+    case cal::CapabilityState::Unknown: return "UNKNOWN";
     }
     return "UNKNOWN";
 }
