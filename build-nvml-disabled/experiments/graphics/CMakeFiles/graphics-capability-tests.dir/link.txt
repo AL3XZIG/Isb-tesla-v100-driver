@@ -1,1 +1,0 @@
-/usr/bin/c++ "CMakeFiles/graphics-capability-tests.dir/tests/capability_test.cpp.o" -o graphics-capability-tests  libisb-graphics-capabilities.a ../../cal/libisb-cal.a ../../common/libisb-common.a -ldl 
