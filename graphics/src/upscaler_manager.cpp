@@ -130,6 +130,7 @@ public:
     }
 
     UpscalerResult recommend_backend(const GameDetectionResult& game) const override {
+        (void)game;
         UpscalerResult result;
         result.provenance = {"mock", "Recommendation logic is boundary-only", true};
         
@@ -178,6 +179,7 @@ public:
     }
 
     UpscalerResult apply_config(const UpscalerConfig& config, bool approved) override {
+        (void)config;
         UpscalerResult result;
         result.provenance = {"mock", "Configuration application is boundary-only", true};
         
@@ -283,6 +285,7 @@ public:
 } // namespace
 
 std::unique_ptr<IUpscalerManager> create_upscaler_manager(bool mock_mode) {
+    (void)mock_mode;
     // Always use mock for now - real implementation requires:
     // 1. OptiScaler integration
     // 2. FSR SDK integration
