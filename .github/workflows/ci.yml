@@ -30,3 +30,24 @@ jobs:
 
       - name: Test
         run: ctest --test-dir build --output-on-failure
+
+  nvml-disabled:
+    name: CMake / NVML disabled / Ubuntu
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure
+        run: >-
+          cmake -S . -B build-nvml-disabled
+          -DCMAKE_BUILD_TYPE=Release
+          -DBUILD_TESTING=ON
+          -DISB_ENABLE_NVML=OFF
+
+      - name: Build
+        run: cmake --build build-nvml-disabled --parallel
+
+      - name: Test
+        run: ctest --test-dir build-nvml-disabled --output-on-failure
