@@ -1,1 +1,0 @@
-/usr/bin/c++ "CMakeFiles/render-path-tests.dir/tests/render_path_test.cpp.o" -o render-path-tests  libisb-graphics-upscaler.a ../hub/libisb-hub.a ../cal/libisb-cal.a ../common/libisb-common.a 

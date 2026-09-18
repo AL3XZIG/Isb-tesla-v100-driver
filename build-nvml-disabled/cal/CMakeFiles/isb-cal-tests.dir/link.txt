@@ -1,1 +1,0 @@
-/usr/bin/c++ "CMakeFiles/isb-cal-tests.dir/tests/capabilities_test.cpp.o" -o isb-cal-tests  libisb-cal.a ../common/libisb-common.a 

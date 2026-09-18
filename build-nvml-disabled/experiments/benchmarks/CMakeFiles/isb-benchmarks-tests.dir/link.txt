@@ -1,1 +1,0 @@
-/usr/bin/c++ "CMakeFiles/isb-benchmarks-tests.dir/tests/benchmark_test.cpp.o" -o isb-benchmarks-tests  libisb-benchmarks.a 

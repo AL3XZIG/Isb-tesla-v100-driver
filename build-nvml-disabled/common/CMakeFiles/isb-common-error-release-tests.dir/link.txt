@@ -1,1 +1,0 @@
-/usr/bin/c++ "CMakeFiles/isb-common-error-release-tests.dir/tests/error_test.cpp.o" -o isb-common-error-release-tests  libisb-common.a 
