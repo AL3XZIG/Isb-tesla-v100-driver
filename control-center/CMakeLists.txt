@@ -15,7 +15,11 @@ if(ISB_BUILD_CONTROL_CENTER)
   find_package(Qt6 COMPONENTS Widgets QUIET)
   if(Qt6Widgets_FOUND)
     qt_standard_project_setup()
-    qt_add_executable(isb-v100-control-center qt/main.cpp)
+    qt_add_executable(isb-v100-control-center 
+      qt/main.cpp
+      qt/mainwindow.cpp
+      qt/mainwindow.hpp
+    )
     target_link_libraries(isb-v100-control-center PRIVATE isb-control-center-core Qt6::Widgets)
     target_compile_features(isb-v100-control-center PRIVATE cxx_std_17)
   else()

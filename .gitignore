@@ -1,31 +1,33 @@
-# Compiled and build artifacts
+```
+# Build artifacts
 *.o
 *.obj
-*.exe
-*.dll
-*.so
 *.a
+*.lib
+*.so
+*.dll
+*.exe
 *.out
+
+# CMake build directory
 build/
-dist/
-target/
+
+# Qt specific
+*.moc
+*.qm
+*.qrc
+*.pro.user
 
 # Dependencies
-node_modules/
 venv/
 .venv/
 __pycache__/
-.mypy_cache/
-.pytest_cache/
-.gradle/
-julia-*/
-zig*/
+*.egg-info/
 
 # Logs and temp files
 *.log
 *.tmp
 *.swp
-*.swo
 
 # Environment
 .env
@@ -35,12 +37,15 @@ zig*/
 # Editors
 .vscode/
 .idea/
+*.swp
+*.swo
+
+# System
+.DS_Store
+Thumbs.db
 
 # Coverage
 coverage/
 htmlcov/
 .coverage
-
-# System
-.DS_Store
-Thumbs.db
+```

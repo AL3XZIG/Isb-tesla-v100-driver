@@ -1,224 +1,59 @@
-#include "isb/hub/hub.hpp"
+#include "mainwindow.hpp"
 
 #include <QApplication>
-#include <QComboBox>
-#include <QFormLayout>
-#include <QHBoxLayout>
-#include <QLabel>
-#include <QListWidget>
-#include <QMainWindow>
 #include <QMessageBox>
-#include <QPushButton>
-#include <QStackedWidget>
-#include <QTableWidget>
-#include <QVBoxLayout>
 #include <memory>
-#include <string>
 
 using namespace isb::hub;
 
-namespace {
-
-QWidget* panel(const QString& title) {
-    auto* box = new QWidget;
-    auto* layout = new QVBoxLayout(box);
-    layout->setContentsMargins(12, 10, 12, 10);
-    auto* heading = new QLabel(title);
-    heading->setObjectName("heading");
-    layout->addWidget(heading);
-    return box;
-}
-
-QString capability(const cal::CapabilityState state) {
-    return QString::fromStdString(cal::to_string(state));
-}
-
-class Window final : public QMainWindow {
-public:
-    Window()
-        : provider_(std::make_unique<MockProvider>()),
-          hub_(*provider_),
-          capability_snapshot_(hub_.capability_snapshot()),
-          telemetry_(hub_.telemetry()) {
-        setWindowTitle("ISB V100 Control Center");
-        resize(1080, 680);
-        build();
-    }
-
-private:
-    std::unique_ptr<Provider> provider_;
-    Hub hub_;
-    CapabilitySnapshot capability_snapshot_;
-    TelemetrySnapshot telemetry_;
-    QStackedWidget* pages_ = nullptr;
-
-    void build() {
-        auto* root = new QWidget;
-        auto* body = new QHBoxLayout(root);
-        body->setContentsMargins(0, 0, 0, 0);
-
-        auto* nav = new QListWidget;
-        nav->setFixedWidth(152);
-        nav->addItems({"GPU", "TUNING", "OPTIMIZATION", "GRAPHICS"});
-        nav->setCurrentRow(0);
-
-        pages_ = new QStackedWidget;
-        pages_->addWidget(gpu());
-        pages_->addWidget(tuning());
-        pages_->addWidget(optimization());
-        pages_->addWidget(graphics());
-
-        auto* right = new QVBoxLayout;
-        const auto environment = hub_.environment();
-        auto* header = new QLabel(
-            QString("MODE: %1  |  GPU: %2  |  TEMP: %3 C  |  UTIL: %4%  |  POWER: %5 W  |  CLOCK: %6 MHz  |  DRIVER: %7")
-                .arg(QString::fromStdString(to_string(environment.mode)))
-                .arg(QString::fromStdString(capability_snapshot_.capabilities.identity.exact_hardware_variant))
-                .arg(telemetry_.temperature_c)
-                .arg(telemetry_.gpu_utilization_percent)
-                .arg(telemetry_.power_w)
-                .arg(telemetry_.gpu_clock_mhz)
-                .arg(QString::fromStdString(environment.driver_version)));
-        header->setObjectName("header");
-        right->addWidget(header);
-        right->addWidget(pages_);
-
-        body->addWidget(nav);
-        body->addLayout(right);
-        connect(nav, &QListWidget::currentRowChanged, pages_, &QStackedWidget::setCurrentIndex);
-        setCentralWidget(root);
-    }
-
-    QWidget* gpu() {
-        auto* page = new QWidget;
-        auto* layout = new QHBoxLayout(page);
-
-        auto* hardware = panel("GPU");
-        auto* hardware_layout = qobject_cast<QVBoxLayout*>(hardware->layout());
-        auto* form = new QFormLayout;
-        const auto& c = capability_snapshot_.capabilities;
-        form->addRow("Model", new QLabel(QString::fromStdString(c.identity.exact_hardware_variant)));
-        form->addRow("Architecture", new QLabel(QString::fromStdString(c.identity.architecture)));
-        form->addRow("Compute capability", new QLabel(QString("%1.%2").arg(c.identity.compute_capability.major).arg(c.identity.compute_capability.minor)));
-        form->addRow("Tensor Cores", new QLabel(capability(c.hardware.tensor_cores.state)));
-        form->addRow("RT Cores", new QLabel(capability(c.hardware.rt_cores.state)));
-        form->addRow("Optical Flow", new QLabel(capability(c.hardware.optical_flow_accelerator.state)));
-        form->addRow("Display outputs", new QLabel(capability(c.hardware.display_outputs.state)));
-        hardware_layout->addLayout(form);
-        hardware_layout->addStretch();
-
-        auto* current = panel("CURRENT STATE");
-        auto* current_layout = qobject_cast<QVBoxLayout*>(current->layout());
-        auto* state = new QFormLayout;
-        state->addRow("GPU utilization", new QLabel(QString("%1%").arg(telemetry_.gpu_utilization_percent)));
-        state->addRow("Memory utilization", new QLabel(QString("%1%").arg(telemetry_.memory_utilization_percent)));
-        state->addRow("Temperature", new QLabel(QString("%1 C").arg(telemetry_.temperature_c)));
-        state->addRow("Power", new QLabel(QString("%1 / %2 W").arg(telemetry_.power_w).arg(telemetry_.power_limit_w)));
-        state->addRow("GPU clock", new QLabel(QString("%1 MHz").arg(telemetry_.gpu_clock_mhz)));
-        state->addRow("Memory clock", new QLabel(QString("%1 MHz").arg(telemetry_.memory_clock_mhz)));
-        state->addRow("VRAM", new QLabel(QString("%1 / %2 MiB").arg(telemetry_.vram_used_mib).arg(telemetry_.vram_total_mib)));
-        state->addRow("ECC", new QLabel(QString::fromStdString(telemetry_.ecc)));
-        current_layout->addLayout(state);
-
-        layout->addWidget(hardware);
-        layout->addWidget(current);
-        return page;
-    }
-
-    QWidget* tuning() {
-        auto* page = new QWidget;
-        auto* layout = new QVBoxLayout(page);
-
-        auto* profile = new QHBoxLayout;
-        auto* selector = new QComboBox;
-        selector->addItems({"Balanced", "Gaming", "Compute", "AI / Tensor", "Maximum Performance", "Low Power", "Custom"});
-        auto* review = new QPushButton("Review plan");
-        profile->addWidget(new QLabel("Profile"));
-        profile->addWidget(selector);
-        profile->addWidget(review);
-        profile->addStretch();
-        layout->addLayout(profile);
-
-        const auto controls = hub_.controls();
-        auto* table = new QTableWidget(static_cast<int>(controls.size()), 3);
-        table->setHorizontalHeaderLabels({"Control", "State", "Details"});
-        for (int i = 0; i < static_cast<int>(controls.size()); ++i) {
-            const auto& control = controls[static_cast<std::size_t>(i)];
-            table->setItem(i, 0, new QTableWidgetItem(QString::fromStdString(control.name)));
-            table->setItem(i, 1, new QTableWidgetItem(QString::fromStdString(to_string(control.state))));
-            table->setItem(i, 2, new QTableWidgetItem(QString::fromStdString(control.reason)));
-        }
-        layout->addWidget(table);
-
-        connect(review, &QPushButton::clicked, this, [this, selector] {
-            const auto plan = hub_.profile_plan(selector->currentText().toStdString());
-            QMessageBox dialog(this);
-            dialog.setWindowTitle("Requested → Planned → Apply → Verify");
-            dialog.setText(QString("Operations: %1\nUnknown: %2\nUnsupported: %3")
-                .arg(static_cast<int>(plan.operations.size()))
-                .arg(static_cast<int>(plan.unknown.size()))
-                .arg(static_cast<int>(plan.unsupported.size())));
-            dialog.setInformativeText(QString::fromStdString(plan.risks.empty() ? "No additional risk information." : plan.risks.front()));
-            dialog.setStandardButtons(QMessageBox::Cancel | QMessageBox::Apply);
-            if (dialog.exec() == QMessageBox::Apply) {
-                const auto result = hub_.apply(plan, true);
-                QMessageBox::information(
-                    this,
-                    "Apply result",
-                    QString("%1; verification: %2")
-                        .arg(result.state == OperationState::Failed ? "Failed" : "Completed")
-                        .arg(QString::fromStdString(result.verification.code)));
-            }
-        });
-
-        return page;
-    }
-
-    QWidget* optimization() {
-        auto* page = new QWidget;
-        auto* layout = new QVBoxLayout(page);
-        auto* title = new QLabel("GAMES & APPLICATIONS");
-        title->setObjectName("heading");
-        layout->addWidget(title);
-        auto* table = new QTableWidget(0, 5);
-        table->setHorizontalHeaderLabels({"Application", "Executable", "API", "Profile", "Compatibility"});
-        layout->addWidget(table);
-        layout->addWidget(new QLabel(
-            "Optimize follows SCAN → DETECT → ANALYZE → PLAN → USER REVIEW → APPLY → VERIFY. "
-            "Application discovery is not implemented by the current provider."));
-        return page;
-    }
-
-    QWidget* graphics() {
-        auto* page = new QWidget;
-        auto* layout = new QVBoxLayout(page);
-        auto* form = new QFormLayout;
-        form->addRow("Upscaling", new QLabel("Unknown — requires verified application/backend support"));
-        form->addRow("Frame generation", new QLabel("Unknown — native and compatibility-layer features are distinct"));
-        form->addRow("OptiScaler", new QLabel("Unknown — external component not detected by the current provider"));
-        layout->addLayout(form);
-        layout->addWidget(new QLabel(
-            "Graphics features are exposed only when a provider can establish a safe, verified configuration path."));
-        layout->addStretch();
-        return page;
-    }
-};
-
-} // namespace
-
 int main(int argc, char** argv) {
     QApplication app(argc, argv);
+    
     app.setStyleSheet(
-        "QWidget{background:#202124;color:#e8eaed;font-size:13px}"
-        "QListWidget{background:#171819;border:0;padding:8px}"
-        "QListWidget::item{padding:10px 8px}"
-        "QListWidget::item:selected{background:#34422d;color:#fff}"
-        "#header{background:#292b2e;padding:9px;color:#c9e7b9}"
-        "#heading{font-weight:700;color:#b8df9b}"
-        "QTableWidget{gridline-color:#3a3c3f;border:1px solid #3a3c3f}"
-        "QPushButton{background:#4d772f;border:0;padding:7px 12px;color:white}"
-        "QComboBox{padding:5px;background:#303236}");
-    Window window;
+        "QWidget{background:#1a1b1e;color:#e8eaed;font-size:13px}"
+        "QMainWindow{background:#1a1b1e}"
+        "QListWidget#sidebar{background:#0f1012;border:0;padding:8px;font-weight:500}"
+        "QListWidget#sidebar::item{padding:10px 12px;border-radius:4px;margin:2px 4px}"
+        "QListWidget#sidebar::item:selected{background:#3d7e36;color:#ffffff;font-weight:600}"
+        "QListWidget#sidebar::item:hover{background:#2a2c30}"
+        "QListWidget#sidebar::item:pressed{background:#3d7e36}"
+        "#header{background:#25272b;border-bottom:1px solid #3a3c42;padding:10px 16px}"
+        "#headerTitle{font-weight:700;font-size:14px;color:#8bc34a}"
+        "#headerInfo{color:#aab0b9;font-size:12px}"
+        "#providerBadge{background:#2d3136;color:#8bc34a;padding:4px 10px;border-radius:3px;font-size:11px;font-weight:600}"
+        "#gpuStatus{color:#ffb74d;font-size:12px;font-weight:600}"
+        "#panelHeading{font-weight:700;color:#8bc34a;font-size:13px}"
+        "#section{background:#25272b;border:1px solid #3a3c42;border-radius:6px}"
+        "#sectionHeading{font-weight:700;color:#aab0b9;font-size:12px;margin-bottom:8px}"
+        "#fieldName{color:#8bc34a;font-weight:600;font-size:12px}"
+        "#fieldValue{color:#e8eaed;font-size:12px}"
+        "#pageTitle{font-weight:700;font-size:18px;color:#8bc34a;margin-bottom:8px}"
+        "#profileDescription{color:#aab0b9;font-size:12px;margin-top:8px}"
+        "#infoText{color:#6a6f77;font-size:11px;font-style:italic;margin-top:8px}"
+        "#presetDescription{color:#aab0b9;font-size:12px;margin-top:8px}"
+        "#flowDescription{color:#aab0b9;font-size:12px;line-height:1.5}"
+        "#optimizationStatus{color:#aab0b9;font-size:12px;line-height:1.6}"
+        "QTableWidget{background:#1f2126;gridline-color:#3a3c42;border:1px solid #3a3c42;font-size:12px}"
+        "QTableWidget::item{padding:6px 8px}"
+        "QHeaderView::section{background:#2d3136;color:#aab0b9;padding:8px;border:1px solid #3a3c42;font-weight:600}"
+        "QPushButton{background:#3d7e36;border:0;padding:8px 16px;color:white;font-weight:600;border-radius:4px;min-width:80px}"
+        "QPushButton:hover{background:#4a9441}"
+        "QPushButton:pressed{background:#2f662a}"
+        "QPushButton:disabled{background:#3a3c42;color:#6a6f77}"
+        "QComboBox{padding:6px 10px;background:#2d3136;border:1px solid #3a3c42;border-radius:4px;color:#e8eaed;font-size:12px}"
+        "QComboBox::drop-down{border:0;width:20px}"
+        "QComboBox QAbstractItemView{background:#2d3136;border:1px solid #3a3c42;selection-background-color:#3d7e36}"
+        "QScrollArea{border:0;background:transparent}"
+        "QFrame{background:transparent}"
+        "QLabel{color:#e8eaed}"
+        "QMessageBox{background:#1f2126}"
+        "QMessageBox QLabel{color:#e8eaed}"
+        "QGroupBox{border:1px solid #3a3c42;border-radius:6px;margin-top:12px;font-weight:600;color:#8bc34a}"
+        "QGroupBox::title{subcontrol-origin:margin;subcontrol-position:top left;left:12px;padding:0 6px;color:#8bc34a}");
+    
+    auto provider = std::make_unique<MockProvider>();
+    isb::control_center::MainWindow window(std::move(provider));
     window.show();
+    
     return app.exec();
 }
