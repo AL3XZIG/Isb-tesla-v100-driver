@@ -4,6 +4,12 @@ add_library(isb-control-center-core INTERFACE)
 target_link_libraries(isb-control-center-core INTERFACE isb-hub)
 target_compile_features(isb-control-center-core INTERFACE cxx_std_17)
 
+if(BUILD_TESTING)
+  add_executable(isb-control-center-hub-tests tests/hub_integration_test.cpp)
+  target_link_libraries(isb-control-center-hub-tests PRIVATE isb-control-center-core)
+  add_test(NAME isb-control-center-hub-tests COMMAND isb-control-center-hub-tests)
+endif()
+
 option(ISB_BUILD_CONTROL_CENTER "Build the optional Qt 6 Widgets Control Center" ON)
 if(ISB_BUILD_CONTROL_CENTER)
   find_package(Qt6 COMPONENTS Widgets QUIET)
