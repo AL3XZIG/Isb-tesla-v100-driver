@@ -14,20 +14,6 @@
 namespace isb::graphics {
 namespace {
 
-bool contains_ci(const std::string& text, const std::string& needle) {
-    if (needle.empty()) return true;
-    auto it = text.begin();
-    for (;;) {
-        it = std::search(it, text.end(), needle.begin(), needle.end(),
-                          [](char a, char b) {
-                              return std::tolower(static_cast<unsigned char>(a)) ==
-                                     std::tolower(static_cast<unsigned char>(b));
-                          });
-        if (it == text.end()) return false;
-        return true;
-    }
-}
-
 bool matches_platform_display(const GPUDescription& gpu,
                               const platform::PlatformSnapshot& platform_snapshot) {
     for (const auto& adapter : platform_snapshot.display_adapters) {
@@ -409,9 +395,7 @@ public:
             config.available_apis.end());
 
         config.required_env_vars = platform::recommended_linux_environment(config);
-        const auto analyzed = analyze_config(config);
-        analyzed.config;
-        result = analyzed;
+        result = analyze_config(config);
         result.provenance = {"real", "NVML + Vulkan + OS display-adapter providers", false};
         return result;
     }
