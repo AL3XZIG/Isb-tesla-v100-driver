@@ -1,0 +1,2 @@
+/usr/bin/ar qc libisb-nvml.a "CMakeFiles/isb-nvml.dir/src/nvml_provider.cpp.o" "CMakeFiles/isb-nvml.dir/src/hub_provider.cpp.o"
+/usr/bin/ranlib libisb-nvml.a

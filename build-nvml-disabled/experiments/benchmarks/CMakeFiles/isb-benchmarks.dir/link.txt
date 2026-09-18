@@ -1,0 +1,2 @@
+/usr/bin/ar qc libisb-benchmarks.a "CMakeFiles/isb-benchmarks.dir/src/benchmark.cpp.o" "CMakeFiles/isb-benchmarks.dir/src/report.cpp.o"
+/usr/bin/ranlib libisb-benchmarks.a
