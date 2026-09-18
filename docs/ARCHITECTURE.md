@@ -425,3 +425,21 @@ Research code must never become an accidental runtime dependency of the Hub.
 ## Current implementation boundary
 
 The build currently contains CAL plus a small `hub/` orchestration library and `cli/` frontend. `MockProvider` supplies explicitly synthetic V100 fixture evidence; `UnavailableProvider` preserves unknown states when optional NVML/CUDA/Vulkan/OS providers are absent. The CLI delegates to `Hub`; it owns no hardware business logic. Mutation is deliberately unavailable until a provider can apply and read back a setting.
+
+
+## 20. Verified ownership and implementation boundary
+
+The following points are established from the repository audit and merged stabilization work:
+
+- **Foundation:** `common/` owns the implemented `Status`, `Result<T>` and `ErrorCode` primitives. `core/TASK.md` is a specification for provider-neutral orchestration; there is currently no production `core` target establishing a competing foundation owner.
+- **Capability model:** CAL owns the provider-neutral capability schema. Providers establish observations. Hub owns the user-facing capability snapshot and provenance boundary.
+- **Control plane:** `hub/` is the canonical user-facing orchestration layer. There is no second production `ControlPlane` contract.
+- **Frontends:** CLI and optional Qt Control Center are consumers of Hub contracts. They must not call NVML/CUDA/Vulkan/DXGI directly or duplicate business logic.
+- **Qualification:** qualification results are evidence-gated. Synthetic/mock and unavailable-provider states are not equivalent to physical V100 evidence.
+- **Mutation:** the current provider path is intentionally read-only. A successful-looking command execution is not by itself proof that hardware state changed.
+
+### Documentation status rule
+
+Older specifications that describe a complete independent driver, a separate control-plane API, or ownership of foundation primitives by `core/` are superseded where they conflict with this verified boundary. They remain historical/reference material unless explicitly updated.
+
+The target repository tree is architectural guidance. Existing code should be moved only when the corresponding ownership and dependency boundary is implemented and tested.
