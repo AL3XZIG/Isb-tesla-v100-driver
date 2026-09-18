@@ -26,6 +26,7 @@ isb_add_component(providers/nvml)
 isb_add_component(providers/vulkan)
 isb_add_component(providers/cuda)
 isb_add_component(control-center)
+isb_add_component(integrations/optiscaler)
 
 # Experimental components are optional at the directory level: they are only
 # added when their own CMakeLists.txt is present.
