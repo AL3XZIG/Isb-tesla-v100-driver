@@ -1,4 +1,5 @@
 #include "isb/hub/hub.hpp"
+#include "isb/optiscaler/manager.hpp"
 
 #include <QApplication>
 #include <QComboBox>
@@ -195,7 +196,11 @@ private:
         auto* form = new QFormLayout;
         form->addRow("Upscaling", new QLabel("Unknown — requires verified application/backend support"));
         form->addRow("Frame generation", new QLabel("Unknown — native and compatibility-layer features are distinct"));
-        form->addRow("OptiScaler", new QLabel("Unknown — external component not detected by the current provider"));
+        const auto opti = optiscaler::Manager("components/optiscaler").detect();
+        const auto opti_state = opti.state == optiscaler::InstallState::Installed ? "Installed" :
+                                opti.state == optiscaler::InstallState::Invalid ? "Invalid" : "Not installed";
+        form->addRow("OptiScaler", new QLabel(QString::fromUtf8(opti_state)));
+        form->addRow("Version", new QLabel(QString::fromStdString(opti.manifest.version.empty() ? "Unknown" : opti.manifest.version)));
         layout->addLayout(form);
         layout->addWidget(new QLabel(
             "Graphics features are exposed only when a provider can establish a safe, verified configuration path."));
