@@ -21,10 +21,10 @@ int test_gpu_role_strings() {
     assert(from_gpu_role_string("Display Only") == GPURole::DisplayOnly);
     assert(from_gpu_role_string("compute_and_display") == GPURole::ComputeAndDisplay);
     assert(from_gpu_role_string("invalid") == GPURole::Unknown);
-    assert(from_string("ComputeOnly") == GPURole::ComputeOnly);
-    assert(from_string("Display Only") == GPURole::DisplayOnly);
-    assert(from_string("compute_and_display") == GPURole::ComputeAndDisplay);
-    assert(from_string("invalid") == GPURole::Unknown);
+    assert(from_gpu_role_string("ComputeOnly") == GPURole::ComputeOnly);
+    assert(from_gpu_role_string("Display Only") == GPURole::DisplayOnly);
+    assert(from_gpu_role_string("compute_and_display") == GPURole::ComputeAndDisplay);
+    assert(from_gpu_role_string("invalid") == GPURole::Unknown);
     
     std::cout << "PASS: gpu_role_strings\n";
     return 0;

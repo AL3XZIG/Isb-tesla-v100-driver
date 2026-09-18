@@ -24,8 +24,6 @@ enum class GPURole {
 
 const char* to_string(GPURole role) noexcept;
 GPURole from_gpu_role_string(const std::string& str) noexcept;
-/// Alias for from_gpu_role_string for convenience
-inline GPURole from_string(const std::string& str) noexcept { return from_gpu_role_string(str); }
 
 /// Graphics API type
 enum class GraphicsAPI {
