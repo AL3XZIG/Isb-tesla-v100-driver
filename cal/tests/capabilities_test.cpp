@@ -47,6 +47,7 @@ void test_capability_states() {
 }
 
 void test_enum_string_fallbacks() {
+    using isb::common::to_string;
     assert(std::string(to_string(CapabilityState::Unknown)) == "unknown");
     assert(std::string(to_string(CapabilityState::Available)) == "available");
     assert(std::string(to_string(CapabilityState::Unavailable)) == "unavailable");
@@ -64,9 +65,9 @@ void test_enum_string_fallbacks() {
     assert(std::string(to_string(TensorPrecision::INT4)) == "int4");
 
     // Defensive fallback for invalid values crossing an ABI or deserialization boundary.
-    assert(std::string(to_string(static_cast<CapabilityState>(0xffU))) == "unknown");
-    assert(std::string(to_string(static_cast<GpuVariant>(0xffU))) == "unknown");
-    assert(std::string(to_string(static_cast<TensorPrecision>(0xffU))) == "unknown");
+    assert(std::string(isb::cal::to_string(static_cast<CapabilityState>(0xffU))) == "unknown");
+    assert(std::string(isb::cal::to_string(static_cast<GpuVariant>(0xffU))) == "unknown");
+    assert(std::string(isb::cal::to_string(static_cast<TensorPrecision>(0xffU))) == "unknown");
 }
 
 GpuCapabilities make_v100(GpuVariant variant) {

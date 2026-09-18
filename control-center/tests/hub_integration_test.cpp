@@ -4,6 +4,7 @@
 
 int main() {
     using namespace isb::hub;
+    using namespace isb::cal;
 
     MockProvider provider;
     Hub hub(provider);
@@ -13,13 +14,13 @@ int main() {
     assert(env.provenance.synthetic);
 
     const auto snapshot = hub.capability_snapshot();
-    assert(snapshot.capabilities.identity.gpu_variant == cal::GpuVariant::V100_SXM2);
-    assert(snapshot.capabilities.hardware.tensor_cores.state == cal::CapabilityState::Available);
+    assert(snapshot.capabilities.identity.variant == GpuVariant::V100_SXM2);
+    assert(snapshot.capabilities.hardware.tensor_cores.state == CapabilityState::Available);
     assert(snapshot.provenance.provider == env.provenance.provider);
     assert(snapshot.provenance.synthetic);
 
     const auto capabilities = hub.capabilities();
-    assert(capabilities.identity.gpu_variant == snapshot.capabilities.identity.gpu_variant);
+    assert(capabilities.identity.variant == snapshot.capabilities.identity.variant);
 
     const auto telemetry = hub.telemetry();
     assert(telemetry.synthetic);
