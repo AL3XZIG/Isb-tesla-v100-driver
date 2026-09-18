@@ -1,0 +1,2 @@
+/usr/bin/ar qc libisb-vulkan.a "CMakeFiles/isb-vulkan.dir/src/vulkan_provider.cpp.o"
+/usr/bin/ranlib libisb-vulkan.a
