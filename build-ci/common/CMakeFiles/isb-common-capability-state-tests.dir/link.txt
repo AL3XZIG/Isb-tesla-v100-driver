@@ -1,0 +1,1 @@
+/usr/bin/c++ -O3 -DNDEBUG "CMakeFiles/isb-common-capability-state-tests.dir/tests/capability_state_test.cpp.o" -o isb-common-capability-state-tests  libisb-common.a 

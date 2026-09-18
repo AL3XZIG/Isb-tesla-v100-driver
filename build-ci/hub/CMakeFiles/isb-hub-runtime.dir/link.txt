@@ -1,0 +1,2 @@
+/usr/bin/ar qc libisb-hub-runtime.a "CMakeFiles/isb-hub-runtime.dir/src/runtime_provider.cpp.o"
+/usr/bin/ranlib libisb-hub-runtime.a

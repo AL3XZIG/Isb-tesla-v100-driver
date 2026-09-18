@@ -1,56 +1,43 @@
+```
 # Compiled and build artifacts
 *.o
 *.obj
-*.a
-*.lib
-*.so
-*.dll
-*.dylib
 *.exe
+*.dll
+*.so
+*.a
 *.out
-*.bin
-*.pyc
-*.class
-__pycache__/
-
-# CMake generated files
-CMakeCache.txt
-CMakeFiles/
-CTestTestfile.cmake
-DartConfiguration.tcl
-cmake_install.cmake
-Makefile
-compile_commands.json
-
-# Build directories
-build/
-build-*/
-dist/
-target/
-.gradle/
-.mypy_cache/
-.pytest_cache/
-coverage/
-htmlcov/
 
 # Dependencies
 node_modules/
 venv/
 .venv/
-.env
-.env.local
-*.env.*
+__pycache__/
+.mypy_cache/
+.pytest_cache/
+target/
+.gradle/
+
+# Logs and temp files
+*.log
+*.tmp
+*.swp
 
 # Editors
 .vscode/
 .idea/
-*.swp
-*.swo
-*.tmp
 
-# Logs
-*.log
+# Environment
+.env
+.env.local
+*.env.*
 
-# System files
+# Coverage
+coverage/
+htmlcov/
+.coverage
+
+# OS specific
 .DS_Store
 Thumbs.db
+```
