@@ -50,7 +50,9 @@ hub::TelemetrySnapshot telemetry_from(const RawGpuObservation& o) {
         }
         t.nvlink = std::to_string(active) + "/" + std::to_string(links.size()) + " active";
     }
-    t.driver = "NVML provider";
+    if (const auto* value = get(o.process_count)) t.process_count = static_cast<int>(*value);
+    if (const auto* value = get(o.driver_version)) t.driver = *value;
+    else t.driver = "NVML provider";
     return t;
 }
 
@@ -81,9 +83,27 @@ cal::GpuCapabilities capabilities_from(const RawGpuObservation& o) {
 
 } // namespace
 
-hub::Environment HubProvider::environment() const {
-    return {"unknown", "unknown", hub::ProviderMode::Real,
-            {"nvml", "NVML provider compiled; runtime state is queried on demand", false}};
+hub::hub::Environment HubProvider::environment() const {
+    auto provider = make_nvml_provider();
+    if (!provider) {
+        return {"unknown", "unknown", hub::ProviderMode::Unavailable,
+                {"nvml", "NVML library/header integration is unavailable", false}};
+    }
+    auto result = provider->observe();
+    if (!result.ok()) {
+        return {"unknown", "unknown", hub::ProviderMode::Unavailable,
+                {"nvml", "NVML query failed: " + result.status().message(), false}};
+    }
+    if (result.value().empty()) {
+        return {"unknown", "unknown", hub::ProviderMode::Unavailable,
+                {"nvml", "NVML initialized but reported no devices", false}};
+    }
+    std::string driver = "unknown";
+    if (result.value().front().driver_version.value) {
+        driver = *result.value().front().driver_version.value;
+    }
+    return {"unknown", driver, hub::ProviderMode::Real,
+            {"nvml", "read-only NVML observation", false}};
 }
 
 cal::GpuCapabilities HubProvider::capabilities() const {
