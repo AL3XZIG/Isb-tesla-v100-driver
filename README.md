@@ -250,7 +250,7 @@ See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the detailed model and [`
 The target structure is organized around the hub while preserving the existing CAL, FixEngine and verification foundations:
 
 ```text
-core/                  shared state, orchestration and stable contracts
+core/                  architecture specification area; no production target
 hub/                   V100 control-plane orchestration
 cal/                   capability abstraction; no runtime probing
 capabilities/          V100/GV100 capability definitions
@@ -352,3 +352,18 @@ Project licensing and third-party provenance are maintained under [`legal/`](leg
 ## Current backend build
 
 The currently buildable backend is a headless Hub with a deterministic mock provider and safe unavailable-provider path. It offers inspection, capabilities, telemetry, profiles/plans, diagnostics, verification, benchmark fixture, and report generation; it does not apply hardware mutations. See [First backend build](docs/FIRST_BUILD.md).
+
+
+## Verified repository status (PR #37)
+
+This section records the current implementation boundary after the stabilization work completed so far. It is intentionally narrower than the target feature set above.
+
+- The mainline product is a V100-focused user-space Hub/control plane, not an independent NVIDIA driver.
+- `common/` remains the owner of the implemented foundation primitives such as `Status`, `Result<T>` and `ErrorCode`; `core/` currently contains specification material rather than a production target.
+- `hub/` is the canonical user-facing control plane. CLI and Control Center code must consume Hub contracts rather than provider APIs directly.
+- PR #35 stabilized qualification evidence gating: mock, unavailable and unverified results cannot be reported as real hardware PASS evidence.
+- PR #36 added the read-only deterministic Hub status surface and CLI status path. Its output preserves provider mode and synthetic provenance.
+- The default build remains C++17/CMake-based; optional provider and GUI components must remain optional.
+- The repository still has no verified physical Tesla V100 qualification result. Hardware claims remain subject to #35b.
+
+The roadmap in `docs/TASKS.md` is authoritative for what is implemented versus planned. Target-directory diagrams describe intended ownership, not a requirement that every directory already exists or is production-ready.
