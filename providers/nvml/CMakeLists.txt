@@ -30,5 +30,7 @@ if(BUILD_TESTING)
 
     add_executable(isb-nvml-provider-availability-tests tests/provider_availability_test.cpp)
     target_link_libraries(isb-nvml-provider-availability-tests PRIVATE isb-nvml)
+    target_include_directories(isb-nvml-provider-availability-tests PRIVATE
+        ${PROJECT_SOURCE_DIR}/hub/include)
     add_test(NAME isb-nvml-provider-availability-tests COMMAND isb-nvml-provider-availability-tests)
 endif()
