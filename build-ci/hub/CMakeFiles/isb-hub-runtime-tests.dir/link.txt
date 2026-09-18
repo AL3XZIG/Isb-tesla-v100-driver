@@ -1,1 +1,0 @@
-/usr/bin/c++ -O3 -DNDEBUG "CMakeFiles/isb-hub-runtime-tests.dir/tests/runtime_provider_test.cpp.o" -o isb-hub-runtime-tests  libisb-hub-runtime.a ../providers/nvml/libisb-nvml.a libisb-hub.a ../cal/libisb-cal.a ../providers/nvml/libisb-nvml-observation.a ../providers/cuda/libisb-cuda.a ../providers/vulkan/libisb-vulkan.a ../common/libisb-common.a 

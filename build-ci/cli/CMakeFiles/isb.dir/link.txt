@@ -1,1 +1,0 @@
-/usr/bin/c++ -O3 -DNDEBUG CMakeFiles/isb.dir/main.cpp.o -o isb  ../hub/libisb-hub.a ../graphics/libisb-graphics-upscaler.a ../cal/libisb-cal.a ../providers/nvml/libisb-nvml-observation.a ../providers/vulkan/libisb-vulkan.a ../common/libisb-common.a 

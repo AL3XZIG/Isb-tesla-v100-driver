@@ -1,2 +1,0 @@
-/usr/bin/ar qc libisb-nvml-observation.a "CMakeFiles/isb-nvml-observation.dir/src/nvml_provider.cpp.o"
-/usr/bin/ranlib libisb-nvml-observation.a
