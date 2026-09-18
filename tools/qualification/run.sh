@@ -69,7 +69,7 @@ fi
 
 printf 'qualification_mode=%s\n' "${RUN_MODE}" >> "${REPORT_DIR}/run.txt"
 printf 'name|state|log\n' > "${REPORT_DIR}/results.tsv"
-printf '%s|%s|%s\n' "status" "${RUN_MODE}" "${REPORT_DIR}/logs/status.log" >> "${REPORT_DIR}/results.tsv"
+printf '%s|%s|%s\n' "status" "${RUN_MODE}" "${REPORT_DIR}/logs/status.stderr" >> "${REPORT_DIR}/results.tsv"
 
 run_case capabilities "${BUILD_DIR}/cli/isb" --json capabilities
 run_case telemetry "${BUILD_DIR}/cli/isb" --json telemetry
