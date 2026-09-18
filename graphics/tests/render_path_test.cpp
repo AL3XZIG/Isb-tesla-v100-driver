@@ -16,7 +16,7 @@ int test_gpu_role_strings() {
     assert(std::string(to_string(GPURole::ComputeAndDisplay)) == "Compute and Display");
     
     // Test from_string conversions
-    assert(from_string("Unknown") == GPURole::Unknown);
+    assert(from_gpu_role_string("Unknown") == GPURole::Unknown);
     assert(from_string("ComputeOnly") == GPURole::ComputeOnly);
     assert(from_string("Display Only") == GPURole::DisplayOnly);
     assert(from_string("compute_and_display") == GPURole::ComputeAndDisplay);
