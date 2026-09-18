@@ -1,5 +1,29 @@
 # ISB V100 Hub — Implementation Plan From Current State
 
+## Evidence-based architecture gate
+
+Do not infer ownership from directory names or old specifications. The current repository must be audited before architectural migration.
+
+Confirmed baseline:
+- `core/` exists and contains `core/TASK.md`.
+- `core/TASK.md` specifies provider-neutral orchestration/runtime state and explicitly does not add production implementation by itself.
+- `common/` contains the implemented `Status`, `Result<T>` and `ErrorCode` primitives used by current code.
+- The existence of `core/TASK.md` does not prove that `core` owns foundation primitives.
+- Whether the repository actually implements separate driver and user-control planes must be established from code and dependency ownership, not assumed.
+
+### Stabilization rule
+
+The first task is an ownership audit. Do not perform a blind `common → core` migration.
+
+The intended user-facing boundary is:
+
+`Panel → Hub → Providers`
+
+Hub is the user-space control plane. Do not introduce a second `ControlPlane` abstraction or an `isb-contracts` library unless a concrete wire boundary/second consumer later requires it.
+
+If the repository audit confirms a separate low-level driver plane, document it as a distinct plane with explicit ownership rules. Otherwise treat `core/TASK.md` as a specification that may be superseded.
+
+
 This plan starts from the current `main` state. It is intentionally **pre-test**: implementation and static/code review tasks come first. Do not start hardware testing or declare a feature stable until the final test gate is reached.
 
 ## Current baseline
@@ -76,6 +100,8 @@ Required actions:
 
 ## 0.2 Establish component classification
 
+Classification must follow the actual repository and dependency graph. Do not label `core/` as the foundation owner until #29 establishes that.
+
 Classify modules as:
 
 - **stable/core** — `common`, `cal`, `hub`, `cli`, core control-plane contracts;
@@ -101,9 +127,15 @@ For each public header:
 
 ---
 
-# Phase 1 — Common contracts and Control Plane completion
+# Phase 1 — Foundation ownership and Hub control-plane consolidation
 
-## 1.1 Unify duplicated models
+## 1.1 Resolve foundation ownership
+
+Audit `core/TASK.md`, production `core/` code, `common/` headers and all consumers of `Status`, `Result<T>`, `ErrorCode` and `Provenance`.
+
+Choose one explicit owner per primitive. If `core/TASK.md` is obsolete, mark it superseded. Do not create a third compatibility layer.
+
+## 1.2 Unify duplicated models
 
 Create or reconcile common contracts for:
 
@@ -119,7 +151,7 @@ Before adding a new struct, search the repository for an existing equivalent and
 
 Do not maintain two incompatible representations of the same concept.
 
-## 1.2 Standardize capability state
+## 1.3 Standardize capability state
 
 Use one semantic model throughout the Hub:
 
@@ -130,7 +162,7 @@ Use one semantic model throughout the Hub:
 
 A permission error is not proof that hardware is unsupported.
 
-## 1.3 Complete operation model
+## 1.4 Complete operation model
 
 Implement a common operation record containing at minimum:
 
@@ -153,7 +185,7 @@ The model must support:
 
 `PLAN -> USER REVIEW -> APPLY -> READ BACK -> VERIFY -> RESULT`.
 
-## 1.4 Complete deterministic serialization
+## 1.5 Complete deterministic serialization
 
 All externally persisted contracts must have deterministic serialization.
 
@@ -172,11 +204,27 @@ Prefer a single project JSON utility instead of hand-written serializers scatter
 
 ---
 
+## 1.6 Consolidate the user-control entry point
+
+Audit current `control-center::ControlPlane` and all Control Center call sites, including Qt `main.cpp`, src, include and tests.
+
+Target boundary:
+
+`Panel → Hub → Providers`
+
+Panel must not include or link provider implementations. Hub receives providers through injection. MockProvider is used below the real Hub path.
+
+Only after this consolidation should observation contracts be unified.
+
 # Phase 2 — Real read-only provider layer
 
 This is the most important implementation phase before tuning or GUI completion.
 
-## 2.1 NVML provider
+## 2.1 Observation contract audit
+
+Search repository-wide for `Observed<T>` and equivalent wrappers. Confirm actual duplicates before creating a common abstraction. Generic observation semantics may be shared; provider-specific raw observation payloads remain provider-specific.
+
+## 2.2 NVML provider
 
 Implement a production read-only NVML adapter behind the existing provider contract.
 
@@ -201,7 +249,7 @@ Collect where exposed:
 
 Every field must carry availability/provenance state.
 
-## 2.2 Exact V100 identification
+## 2.3 Exact V100 identification
 
 Detect rather than assume:
 
@@ -212,7 +260,7 @@ Detect rather than assume:
 
 Do not infer variant solely from a user-selected profile.
 
-## 2.3 CUDA provider
+## 2.4 CUDA provider
 
 Add read-only CUDA runtime/driver probing:
 
@@ -226,7 +274,7 @@ Add read-only CUDA runtime/driver probing:
 
 CUDA absence must be represented as a detected environment state, not as a compile-time assumption.
 
-## 2.4 Vulkan provider
+## 2.5 Vulkan provider
 
 Implement read-only Vulkan probing where available:
 
@@ -240,7 +288,7 @@ Implement read-only Vulkan probing where available:
 
 No Vulkan feature may be claimed from V100 hardware alone.
 
-## 2.5 Windows graphics provider
+## 2.6 Windows graphics provider
 
 Implement a platform boundary for Windows:
 
@@ -252,7 +300,7 @@ Implement a platform boundary for Windows:
 
 Never hard-code a particular NVIDIA/Google driver version as universally compatible.
 
-## 2.6 Linux provider boundary
+## 2.7 Linux provider boundary
 
 Provide Linux-specific environment detection without polluting portable contracts:
 
@@ -839,7 +887,17 @@ The installer must never replace or overwrite the NVIDIA base driver automatical
 
 ---
 
-# Phase 15 — Pre-test code freeze
+# Phase 15 — Architecture and documentation synchronization
+
+Before code freeze:
+- document verified `core`/ `common` ownership;
+- document whether multiple architectural planes are actually implemented;
+- document `Panel → Hub → Providers`;
+- document Hub as the only user-space control plane;
+- mark superseded specifications;
+- synchronize README, TASKS, IMPLEMENTATION_PLAN and GUIDE.
+
+# Phase 16 — Pre-test code freeze
 
 Before any hardware qualification:
 
@@ -859,7 +917,7 @@ Only after this phase is complete may the project enter the test phase.
 
 ---
 
-# Final test gate — starts only after implementation phases
+# Final test gate — starts only after implementation and stabilization phases
 
 ## Clean build
 
@@ -916,24 +974,26 @@ A feature is not called stable merely because it builds. It requires:
 # Recommended execution order
 
 ```text
-0  Build/CMake integrity
-1  Common contracts
-2  Real read-only providers
-3  Capability engine
-4  Telemetry
-5  Tuning backend
-6  FixEngine integration
-7  Optimization engine
-8  Game compatibility
-9  OptiScaler manager
-10 Graphics backend
-11 Reports/evidence
-12 CLI completion
-13 Qt Control Center
-14 Installer/deployment
-15 Pre-test code freeze
-16 TEST GATE
-17 Real V100 qualification
+0  Build/CMake integrity + #29 foundation/architecture audit
+1  #31 Hub canonical control API
+2  #30 Observation contract consolidation
+3  #32 Capability ownership/engine
+4  Real read-only providers
+5  Telemetry
+6  Tuning backend
+7  FixEngine integration
+8  Optimization engine
+9  Game compatibility
+10 OptiScaler manager
+11 Graphics backend
+12 Reports/evidence
+13 CLI completion
+14 Qt Control Center
+15 Installer/deployment
+16 #37 Architecture/docs synchronization
+17 Pre-test code freeze
+18 TEST GATE
+19 Real V100 qualification
 ```
 
-The key principle is: **finish the real backend and evidence path before polishing the GUI, and finish implementation before starting hardware tests.**
+The key principle is: **audit ownership first, make Hub the single user-control entry point, consolidate observations second, then build features. Hardware qualification starts only after the implementation and test gates.**
