@@ -38,7 +38,7 @@ public:
     Window()
         : provider_(std::make_unique<MockProvider>()),
           hub_(*provider_),
-          capabilities_(hub_.capabilities()),
+          capability_snapshot_(hub_.capability_snapshot()),
           telemetry_(hub_.telemetry()) {
         setWindowTitle("ISB V100 Control Center");
         resize(1080, 680);
@@ -48,7 +48,7 @@ public:
 private:
     std::unique_ptr<Provider> provider_;
     Hub hub_;
-    cal::GpuCapabilities capabilities_;
+    CapabilitySnapshot capability_snapshot_;
     TelemetrySnapshot telemetry_;
     QStackedWidget* pages_ = nullptr;
 
@@ -73,7 +73,7 @@ private:
         auto* header = new QLabel(
             QString("MODE: %1  |  GPU: %2  |  TEMP: %3 C  |  UTIL: %4%  |  POWER: %5 W  |  CLOCK: %6 MHz  |  DRIVER: %7")
                 .arg(QString::fromStdString(to_string(environment.mode)))
-                .arg(QString::fromStdString(capabilities_.identity.exact_hardware_variant))
+                .arg(QString::fromStdString(capability_snapshot_.capabilities.identity.exact_hardware_variant))
                 .arg(telemetry_.temperature_c)
                 .arg(telemetry_.gpu_utilization_percent)
                 .arg(telemetry_.power_w)
@@ -96,7 +96,7 @@ private:
         auto* hardware = panel("GPU");
         auto* hardware_layout = qobject_cast<QVBoxLayout*>(hardware->layout());
         auto* form = new QFormLayout;
-        const auto& c = capabilities_;
+        const auto& c = capability_snapshot_.capabilities;
         form->addRow("Model", new QLabel(QString::fromStdString(c.identity.exact_hardware_variant)));
         form->addRow("Architecture", new QLabel(QString::fromStdString(c.identity.architecture)));
         form->addRow("Compute capability", new QLabel(QString("%1.%2").arg(c.identity.compute_capability.major).arg(c.identity.compute_capability.minor)));
