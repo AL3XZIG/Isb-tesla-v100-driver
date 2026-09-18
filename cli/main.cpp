@@ -135,18 +135,18 @@ int main(int argc, char** argv) {
             return 0;
         }
         if (args[1] == "plan") {
-            const auto result = manager->plan_config();
+            const auto result = render_hub.render_path_plan(mock);
             std::cout << result.message << "\\n";
             return result.status == isb::common::CapabilityState::Error ? 1 : 0;
         }
         if (args[1] == "configure") {
             const bool apply = std::find(args.begin() + 2, args.end(), "--apply") != args.end();
-            const auto result = manager->apply_config(apply);
+            const auto result = render_hub.render_path_configure(mock, apply);
             std::cout << result.message << "\\n";
             return result.status == isb::common::CapabilityState::Error ? 1 : 0;
         }
         if (args[1] == "verify") {
-            const auto result = manager->verify_config();
+            const auto result = render_hub.render_path_verify(mock);
             std::cout << result.message << "\\n";
             return result.status == isb::common::CapabilityState::Error ? 1 : 0;
         }
