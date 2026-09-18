@@ -12,7 +12,7 @@ const char* to_string(GPURole role) noexcept {
     return "Unknown";
 }
 
-GPURole from_string(const std::string& str) noexcept {
+GPURole from_gpu_role_string(const std::string& str) noexcept {
     if (str == "Unknown" || str == "unknown") return GPURole::Unknown;
     if (str == "Compute Only" || str == "compute_only" || str == "ComputeOnly") 
         return GPURole::ComputeOnly;
