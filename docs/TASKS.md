@@ -80,6 +80,8 @@ Until the stabilization sequence is complete, do not add new GUI features, tunin
 
 ### #36 — CMake and verification stabilization
 
+> Roadmap note: repository PR #36 is the deterministic Hub status feature. It does not by itself close this roadmap item; the CMake/verification checklist below remains the stabilization gate.
+
 - [ ] Audit target ownership and duplicate registrations.
 - [ ] Keep optional providers optional.
 - [ ] Guard tests correctly.
@@ -89,12 +91,12 @@ Until the stabilization sequence is complete, do not add new GUI features, tunin
 
 ### #37 — Architecture/documentation synchronization
 
-- [ ] Update README from verified repository facts only.
-- [ ] Document `Panel → Hub → Providers`.
-- [ ] Do not describe a separate driver plane unless the repository audit confirms one.
-- [ ] Document `core`/ `common` ownership after #29.
-- [ ] Mark superseded specifications.
-- [ ] Synchronize IMPLEMENTATION_PLAN.md, TASKS.md and GUIDE.md.
+- [x] Update README from verified repository facts only.
+- [x] Document `Panel → Hub → Providers`.
+- [x] Do not describe a separate driver plane unless the repository audit confirms one.
+- [x] Document `core`/ `common` ownership after #29.
+- [x] Mark superseded specifications.
+- [x] Synchronize IMPLEMENTATION_PLAN.md, TASKS.md and GUIDE.md.
 
 ## P1 — Foundation and integration
 
@@ -274,3 +276,8 @@ A feature is not stable until it has:
 ## Recommended implementation order
 
 `#29 Foundation audit → #31 Hub API → #30 Observation contracts → #32 Capability ownership → #33 Experiments → #34 Reports → #35a Software qualification → #36 CMake/verification → #37 Documentation → test gate → #35b Real V100 qualification → feature work → research`
+
+
+## Documentation synchronization record
+
+PR #37 synchronizes the primary architecture/status documents with the verified repository state after PRs #29–#36. In particular, PR #36 is recorded as the deterministic read-only Hub status feature, while the roadmap's CMake/verification stabilization checklist remains an independent gate.
