@@ -1,14 +1,31 @@
-```
-# Compiled and build artifacts
+# Build trees and generated CMake artifacts
+build/
+build-*/
+cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+CTestTestfile.cmake
+cmake_install.cmake
+Makefile
+Makefile.*
+compile_commands.json
+install_manifest.txt
+Testing/
+
+# Compiled artifacts
 *.o
 *.obj
-*.exe
-*.dll
-*.so
+*.lo
 *.a
+*.lib
+*.so
+*.dylib
+*.dll
+*.exe
 *.out
+*.bin
 
-# Dependencies
+# Dependencies / generated language tooling
 node_modules/
 venv/
 .venv/
@@ -40,4 +57,3 @@ htmlcov/
 # OS specific
 .DS_Store
 Thumbs.db
-```

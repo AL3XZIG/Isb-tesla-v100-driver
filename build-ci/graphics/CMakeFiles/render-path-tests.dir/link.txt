@@ -1,1 +1,0 @@
-/usr/bin/c++ -O3 -DNDEBUG "CMakeFiles/render-path-tests.dir/tests/render_path_test.cpp.o" -o render-path-tests  libisb-graphics-upscaler.a ../cal/libisb-cal.a ../providers/nvml/libisb-nvml-observation.a ../providers/vulkan/libisb-vulkan.a ../common/libisb-common.a 

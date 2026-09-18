@@ -1,1 +1,0 @@
-/usr/bin/c++ -O3 -DNDEBUG "CMakeFiles/isb-cuda-tests.dir/tests/provider_contract_test.cpp.o" -o isb-cuda-tests  libisb-cuda.a ../../common/libisb-common.a 

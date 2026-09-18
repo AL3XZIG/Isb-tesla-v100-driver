@@ -1,2 +1,0 @@
-/usr/bin/ar qc libisb-graphics-upscaler.a "CMakeFiles/isb-graphics-upscaler.dir/src/upscaler_types.cpp.o" "CMakeFiles/isb-graphics-upscaler.dir/src/upscaler_manager.cpp.o" "CMakeFiles/isb-graphics-upscaler.dir/src/render_path_types.cpp.o" "CMakeFiles/isb-graphics-upscaler.dir/src/render_path_manager.cpp.o" "CMakeFiles/isb-graphics-upscaler.dir/src/render_path_platform.cpp.o"
-/usr/bin/ranlib libisb-graphics-upscaler.a
