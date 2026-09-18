@@ -1,2 +1,0 @@
-/usr/bin/ar qc libisb-cal.a "CMakeFiles/isb-cal.dir/src/capabilities.cpp.o" "CMakeFiles/isb-cal.dir/src/v100.cpp.o"
-/usr/bin/ranlib libisb-cal.a
