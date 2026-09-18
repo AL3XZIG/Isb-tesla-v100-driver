@@ -9,6 +9,9 @@ const char* to_string(CapabilityState state) noexcept {
     case CapabilityState::Unavailable: return "unavailable";
     case CapabilityState::PermissionDenied: return "permission_denied";
     case CapabilityState::Error: return "error";
+    case CapabilityState::Partial: return "partial";
+    case CapabilityState::Ready: return "ready";
+    case CapabilityState::Unsupported: return "unsupported";
     }
     return "unknown";
 }
