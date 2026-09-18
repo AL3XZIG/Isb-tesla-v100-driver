@@ -6,7 +6,7 @@
 #include <sstream>
 
 using namespace isb::graphics;
-using isb::CapabilityState;
+using isb::common::CapabilityState;
 
 int test_gpu_role_strings() {
     // Test to_string conversions
@@ -16,11 +16,11 @@ int test_gpu_role_strings() {
     assert(std::string(to_string(GPURole::ComputeAndDisplay)) == "Compute and Display");
     
     // Test from_string conversions
-    assert(from_string("Unknown") == GPURole::Unknown);
-    assert(from_string("ComputeOnly") == GPURole::ComputeOnly);
-    assert(from_string("Display Only") == GPURole::DisplayOnly);
-    assert(from_string("compute_and_display") == GPURole::ComputeAndDisplay);
-    assert(from_string("invalid") == GPURole::Unknown);
+    assert(from_gpu_role_string("Unknown") == GPURole::Unknown);
+    assert(from_gpu_role_string("ComputeOnly") == GPURole::ComputeOnly);
+    assert(from_gpu_role_string("Display Only") == GPURole::DisplayOnly);
+    assert(from_gpu_role_string("compute_and_display") == GPURole::ComputeAndDisplay);
+    assert(from_gpu_role_string("invalid") == GPURole::Unknown);
     
     std::cout << "PASS: gpu_role_strings\n";
     return 0;

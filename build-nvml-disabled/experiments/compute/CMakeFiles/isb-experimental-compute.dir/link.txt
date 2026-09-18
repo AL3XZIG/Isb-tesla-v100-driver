@@ -1,0 +1,2 @@
+/usr/bin/ar qc libisb-experimental-compute.a "CMakeFiles/isb-experimental-compute.dir/src/device.cpp.o" "CMakeFiles/isb-experimental-compute.dir/src/report.cpp.o"
+/usr/bin/ranlib libisb-experimental-compute.a
