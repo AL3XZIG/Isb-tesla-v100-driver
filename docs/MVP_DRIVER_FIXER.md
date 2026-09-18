@@ -1,3 +1,7 @@
+# Superseded mainline specification
+
+> This document is historical/reference material. The mainline product architecture was subsequently established as the V100-focused user-space ISB Hub/control plane. It must not be used as evidence for an independent production NVIDIA driver or a separate ControlPlane API. See `docs/ARCHITECTURE.md` and `docs/TASKS.md` for the current verified boundary.
+
 # ISB Driver Fixer MVP
 
 ## Objective
