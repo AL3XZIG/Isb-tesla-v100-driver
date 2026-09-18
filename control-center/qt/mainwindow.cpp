@@ -39,6 +39,10 @@ QWidget* createSection(const QString& title) {
     return section;
 }
 
+QVBoxLayout* getSectionLayout(QWidget* section) {
+    return qobject_cast<QVBoxLayout*>(section->layout());
+}
+
 void addFormRow(QLayout* layout, const QString& label, const QString& value) {
     auto* row = new QHBoxLayout;
     row->setSpacing(8);
@@ -241,7 +245,6 @@ QWidget* MainWindow::buildTuningPage() {
     layout->setSpacing(16);
     
     auto* profileSection = createSection("Performance Profile");
-    auto* profLayout = profileSection->layout();
     
     auto* profileRow = new QHBoxLayout;
     profileRow->setSpacing(12);
@@ -253,7 +256,7 @@ QWidget* MainWindow::buildTuningPage() {
         "Maximum Performance", "Compute", "AI / Tensor", "Custom"
     });
     connect(profileSelector_, QOverload<int>::of(&QComboBox::currentIndexChanged),
-            this, [this](int) { onProfileChanged(profileSelector_->currentText().toStdString()); });
+            this, [this](int) { onProfileChanged(profileSelector_->currentText()); });
     
     profileDescriptionLabel_ = new QLabel("Normal performance / power balance.");
     profileDescriptionLabel_->setWordWrap(true);
@@ -271,6 +274,7 @@ QWidget* MainWindow::buildTuningPage() {
     profileRow->addWidget(applyProfileButton_);
     profileRow->addStretch();
     
+    auto* profLayout = getSectionLayout(profileSection);
     profLayout->addLayout(profileRow);
     profLayout->addWidget(profileDescriptionLabel_);
     
@@ -430,7 +434,6 @@ QWidget* MainWindow::buildAppearancePage() {
     layout->addWidget(title);
     
     auto* presetSection = createSection("Appearance Preset");
-    auto* presetLayout = presetSection->layout();
     
     auto* presetRow = new QHBoxLayout;
     presetRow->setSpacing(12);
@@ -448,6 +451,7 @@ QWidget* MainWindow::buildAppearancePage() {
     presetRow->addWidget(appearancePreset_);
     presetRow->addStretch();
     
+    auto* presetLayout = getSectionLayout(presetSection);
     presetLayout->addLayout(presetRow);
     
     auto* presetDesc = new QLabel(
@@ -701,7 +705,7 @@ QString MainWindow::formatCapabilityState(hub::ControlState state) const {
 }
 
 QString MainWindow::formatCapabilityState(cal::CapabilityState state) const {
-    return QString::fromStdString(hub::to_string(state));
+    return QString::fromStdString(common::to_string(state));
 }
 
 QString MainWindow::formatValueOrUnknown(const std::string& value) const {

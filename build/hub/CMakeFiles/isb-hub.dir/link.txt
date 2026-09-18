@@ -1,0 +1,2 @@
+/usr/bin/ar qc libisb-hub.a "CMakeFiles/isb-hub.dir/src/hub.cpp.o"
+/usr/bin/ranlib libisb-hub.a
