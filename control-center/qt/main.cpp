@@ -1,4 +1,5 @@
 #include "mainwindow.hpp"
+#include "isb/hub/runtime_provider.hpp"
 
 #include <QApplication>
 #include <QMessageBox>
@@ -51,7 +52,7 @@ int main(int argc, char** argv) {
         "QGroupBox{border:1px solid #3a3c42;border-radius:6px;margin-top:12px;font-weight:600;color:#8bc34a}"
         "QGroupBox::title{subcontrol-origin:margin;subcontrol-position:top left;left:12px;padding:0 6px;color:#8bc34a}");
     
-    auto provider = std::make_unique<MockProvider>();
+    auto provider = isb::hub::make_runtime_provider();
     isb::control_center::MainWindow window(std::move(provider));
     window.show();
     
