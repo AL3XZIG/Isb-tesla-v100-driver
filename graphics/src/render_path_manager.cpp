@@ -331,6 +331,35 @@ public:
             config.gpus.push_back(std::move(gpu));
         }
 
+        // Add display adapters that are not visible through NVML (typically iGPUs).
+        for (const auto& adapter : platform_snapshot.display_adapters) {
+            bool already_present = false;
+            for (const auto& gpu : config.gpus) {
+                const bool pci_match = !adapter.pci_bus.empty() && !gpu.pci_bus.empty() &&
+                                       adapter.pci_bus == gpu.pci_bus;
+                const bool id_match = adapter.vendor_id != 0 && adapter.device_id != 0 &&
+                                      adapter.vendor_id == gpu.vendor_id &&
+                                      adapter.device_id == gpu.device_id;
+                if (pci_match || id_match) {
+                    already_present = true;
+                    break;
+                }
+            }
+            if (!already_present) {
+                GPUDescription display_gpu;
+                display_gpu.name = adapter.name.empty() ? "OS display adapter" : adapter.name;
+                display_gpu.vendor = "OS";
+                display_gpu.pci_bus = adapter.pci_bus;
+                display_gpu.vendor_id = adapter.vendor_id;
+                display_gpu.device_id = adapter.device_id;
+                display_gpu.role = GPURole::DisplayOnly;
+                display_gpu.has_display_outputs = true;
+                display_gpu.is_active_display_adapter = adapter.active;
+                display_gpu.provenance = {"os", platform_snapshot.detail, false};
+                config.gpus.push_back(std::move(display_gpu));
+            }
+        }
+
         for (std::size_t i = 0; i < config.gpus.size(); ++i) {
             if (config.gpus[i].has_display_outputs ||
                 config.gpus[i].is_active_display_adapter) {
