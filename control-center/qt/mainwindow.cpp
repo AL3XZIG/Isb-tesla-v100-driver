@@ -614,9 +614,9 @@ void MainWindow::updateHeader() {
     QString headerText = QString("MODE: %1  |  GPU: %2  |  TEMP: %3°C  |  UTIL: %4%  |  POWER: %5W")
         .arg(QString::fromStdString(hub::to_string(env.mode)))
         .arg(QString::fromStdString(caps.identity.exact_hardware_variant))
-        .arg(telemetry.temperature_c != 0 ? QString::number(telemetry.temperature_c) : "Unknown")
-        .arg(telemetry.gpu_utilization_percent != 0 || telemetry.synthetic ? QString::number(telemetry.gpu_utilization_percent) : "Unknown")
-        .arg(telemetry.power_w != 0 || telemetry.synthetic ? QString::number(telemetry.power_w) : "Unknown");
+        .arg(telemetry.temperature_c ? QString::number(*telemetry.temperature_c) : "Unknown")
+        .arg(telemetry.gpu_utilization_percent ? QString::number(*telemetry.gpu_utilization_percent) : "Unknown")
+        .arg(telemetry.power_w ? QString::number(*telemetry.power_w) : "Unknown");
     
     headerLabel_->setText(headerText);
     
