@@ -2,6 +2,7 @@
 #include "isb/optiscaler/manager.hpp"
 
 #include <QApplication>
+#include <QCoreApplication>
 #include <QComboBox>
 #include <QFormLayout>
 #include <QHBoxLayout>
@@ -13,6 +14,7 @@
 #include <QStackedWidget>
 #include <QTableWidget>
 #include <QVBoxLayout>
+#include <filesystem>
 #include <memory>
 #include <string>
 
@@ -196,7 +198,8 @@ private:
         auto* form = new QFormLayout;
         form->addRow("Upscaling", new QLabel("Unknown — requires verified application/backend support"));
         form->addRow("Frame generation", new QLabel("Unknown — native and compatibility-layer features are distinct"));
-        const auto opti = optiscaler::Manager("components/optiscaler").detect();
+        const auto component_root = std::filesystem::path(QCoreApplication::applicationDirPath().toStdString()) / "components" / "optiscaler";
+        const auto opti = optiscaler::Manager(component_root).detect();
         const auto opti_state = opti.state == optiscaler::InstallState::Installed ? "Installed" :
                                 opti.state == optiscaler::InstallState::Invalid ? "Invalid" : "Not installed";
         form->addRow("OptiScaler", new QLabel(QString::fromUtf8(opti_state)));
