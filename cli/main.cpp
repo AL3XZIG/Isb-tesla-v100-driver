@@ -108,13 +108,17 @@ int main(int argc, char** argv) {
 
     if (args[0] == "render") {
         if (args.size() < 2) {
-            std::cerr << "usage: isb render <detect|plan|configure|verify> [--apply]\\n";
+            std::cerr << "usage: isb render <detect|plan|configure|verify> [--apply]\n";
             return 2;
         }
 
-        auto manager = isb::graphics::create_render_path_manager(mock);
+        std::unique_ptr<Provider> render_provider =
+            mock ? std::unique_ptr<Provider>(new MockProvider)
+                 : std::unique_ptr<Provider>(new UnavailableProvider);
+        Hub render_hub(*render_provider);
+
         if (args[1] == "detect") {
-            const auto result = manager->detect_gpus();
+            const auto result = render_hub.render_path_detect(mock);
             if (json_output) {
                 print_render_detection(result);
             } else {
