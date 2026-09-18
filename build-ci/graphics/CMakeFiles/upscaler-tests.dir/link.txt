@@ -1,0 +1,1 @@
+/usr/bin/c++ -O3 -DNDEBUG "CMakeFiles/upscaler-tests.dir/tests/upscaler_test.cpp.o" -o upscaler-tests  libisb-graphics-upscaler.a ../cal/libisb-cal.a ../providers/nvml/libisb-nvml-observation.a ../providers/vulkan/libisb-vulkan.a ../common/libisb-common.a 

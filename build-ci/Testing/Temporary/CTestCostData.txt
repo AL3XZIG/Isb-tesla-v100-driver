@@ -1,0 +1,20 @@
+isb-common-tests 1 0.00161577
+isb-common-error-tests 1 0.00129989
+isb-common-error-release-tests 1 0.00124449
+isb-common-observed-tests 1 0.00128794
+isb-common-capability-state-tests 1 0.00080975
+isb-cal-tests 1 0.00127077
+isb-nvml-types-tests 1 0.000861074
+isb-nvml-live-observation-contract-tests 1 0.00120045
+isb-nvml-provider-availability-tests 1 0.00126139
+isb-vulkan-tests 1 0.00122505
+isb-cuda-tests 1 0.00121016
+upscaler-tests 1 0.00161032
+render-path-tests 1 0.00147241
+isb-hub-tests 1 0.00188943
+isb-hub-runtime-tests 1 0.00128636
+isb-control-center-hub-tests 1 0.00131919
+graphics-capability-tests 1 0.00137502
+isb-experimental-compute-tests 1 0.00145913
+isb-benchmarks-tests 1 0.00136044
+---

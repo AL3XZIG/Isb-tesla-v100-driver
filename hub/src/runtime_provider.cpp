@@ -33,7 +33,15 @@ bool has_real_telemetry(const TelemetrySnapshot& t) {
            t.vram_total_mib.has_value();
 }
 
-cal::Version vulkan_version(std::uint32_t version) noexcept {\n    // Vulkan API versions are packed as variant:3 | major:7 | minor:10 | patch:12.\n    return cal::Version{\n        static_cast<int>((version >> 22U) & 0x7FU),\n        static_cast<int>((version >> 12U) & 0x3FFU),\n        static_cast<int>(version & 0xFFFU)};\n}\n\nbool is_v100_name(const std::string& name) {
+cal::Version vulkan_version(std::uint32_t version) noexcept {
+    // Vulkan API versions are packed as variant:3 | major:7 | minor:10 | patch:12.
+    return cal::Version{
+        static_cast<std::uint32_t>((version >> 22U) & 0x7FU),
+        static_cast<std::uint32_t>((version >> 12U) & 0x3FFU),
+        static_cast<std::uint32_t>(version & 0xFFFU)};
+}
+
+bool is_v100_name(const std::string& name) {
     std::string lower = name;
     std::transform(lower.begin(), lower.end(), lower.begin(),
                    [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
@@ -158,10 +166,7 @@ cal::GpuCapabilities RuntimeProvider::capabilities() const {
             caps.graphics.vulkan_state = common::CapabilityState::Available;
             if (result.value().instance_api_version.value) {
                 const auto version = *result.value().instance_api_version.value;
-                caps.graphics.vulkan_api_version = cal::Version{
-                    VK_VERSION_MAJOR(version),
-                    VK_VERSION_MINOR(version),
-                    VK_VERSION_PATCH(version)};
+                caps.graphics.vulkan_api_version = vulkan_version(version);
             }
         }
     }
