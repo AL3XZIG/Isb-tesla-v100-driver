@@ -112,13 +112,10 @@ int main(int argc, char** argv) {
             return 2;
         }
 
-        std::unique_ptr<Provider> render_provider =
-            mock ? std::unique_ptr<Provider>(new MockProvider)
-                 : std::unique_ptr<Provider>(new UnavailableProvider);
-        Hub render_hub(*render_provider);
+        auto render_manager = isb::graphics::create_render_path_manager(mock);
 
         if (args[1] == "detect") {
-            const auto result = render_hub.render_path_detect(mock);
+            const auto result = render_manager->detect_gpus();
             if (json_output) {
                 print_render_detection(result);
             } else {
@@ -139,18 +136,18 @@ int main(int argc, char** argv) {
             return 0;
         }
         if (args[1] == "plan") {
-            const auto result = render_hub.render_path_plan(mock);
+            const auto result = render_manager->plan_config();
             std::cout << result.message << "\\n";
             return result.status == isb::common::CapabilityState::Error ? 1 : 0;
         }
         if (args[1] == "configure") {
             const bool apply = std::find(args.begin() + 2, args.end(), "--apply") != args.end();
-            const auto result = render_hub.render_path_configure(mock, apply);
+            const auto result = render_manager->apply_config(apply);
             std::cout << result.message << "\\n";
             return result.status == isb::common::CapabilityState::Error ? 1 : 0;
         }
         if (args[1] == "verify") {
-            const auto result = render_hub.render_path_verify(mock);
+            const auto result = render_manager->verify_config();
             std::cout << result.message << "\\n";
             return result.status == isb::common::CapabilityState::Error ? 1 : 0;
         }
