@@ -1,0 +1,2 @@
+/usr/bin/ar qc libisb-graphics-capabilities.a "CMakeFiles/isb-graphics-capabilities.dir/src/adapter.cpp.o" "CMakeFiles/isb-graphics-capabilities.dir/src/report.cpp.o"
+/usr/bin/ranlib libisb-graphics-capabilities.a

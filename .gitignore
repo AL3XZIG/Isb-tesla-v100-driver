@@ -1,20 +1,4 @@
 ```
-# Build directories
-build-cap/
-build-clean/
-build-nvml-disabled/
-
-# CMake files
-CMakeCache.txt
-CMakeFiles/
-CMakeRuleHashes.txt
-cmake.check_cache
-Makefile
-cmake_install.cmake
-CTestTestfile.cmake
-DartConfiguration.tcl
-
-# Test related
-Testing/
-isb-*
+# Build artifacts
+build/
 ```

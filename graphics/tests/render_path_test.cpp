@@ -17,6 +17,10 @@ int test_gpu_role_strings() {
     
     // Test from_string conversions
     assert(from_gpu_role_string("Unknown") == GPURole::Unknown);
+    assert(from_gpu_role_string("ComputeOnly") == GPURole::ComputeOnly);
+    assert(from_gpu_role_string("Display Only") == GPURole::DisplayOnly);
+    assert(from_gpu_role_string("compute_and_display") == GPURole::ComputeAndDisplay);
+    assert(from_gpu_role_string("invalid") == GPURole::Unknown);
     assert(from_string("ComputeOnly") == GPURole::ComputeOnly);
     assert(from_string("Display Only") == GPURole::DisplayOnly);
     assert(from_string("compute_and_display") == GPURole::ComputeAndDisplay);

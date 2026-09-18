@@ -1,0 +1,1 @@
+/usr/bin/c++ "CMakeFiles/upscaler-tests.dir/tests/upscaler_test.cpp.o" -o upscaler-tests  libisb-graphics-upscaler.a ../hub/libisb-hub.a ../cal/libisb-cal.a ../common/libisb-common.a 
