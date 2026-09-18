@@ -1,62 +1,27 @@
 ```
 # Build artifacts
-build/
-dist/
 *.o
 *.obj
 *.a
-*.lib
 *.so
-*.dll
 *.dylib
+*.dll
 *.exe
+*.out
+
+# CMake build directories
+build/
+cmake-build-*/
+_CacheData/
 
 # Dependencies
-.venv/
-venv/
-env/
-node_modules/
-
-# C++ specific
-*.out
-*.i
-*.ii
-*.s
-*.su
-*.sln
-*.vcxproj
-*.vcproj
-*.user
-*.userosscache
-*.sdf
-*.opensdf
-*.opendb
-*.pidb
-*.svclog
-
-# Temporary files
-*.tmp
-*.temp
-*.bak
-*.swp
-*.swo
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
+vendor/
 
 # Logs
 *.log
 
-# Coverage
-coverage/
-htmlcov/
-.coverage
-
-# Environment
-.env
-.env.local
-*.env.*
+# Temporary files
+*.tmp
+*.swp
+*~
 ```

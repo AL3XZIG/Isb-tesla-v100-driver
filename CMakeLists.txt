@@ -27,6 +27,9 @@ isb_add_component(providers/vulkan)
 isb_add_component(providers/cuda)
 isb_add_component(control-center)
 
+# Graphics upscaling layer (boundary/adapter for OptiScaler, FSR, XeSS)
+isb_add_component(graphics)
+
 # Experimental components are optional at the directory level: they are only
 # added when their own CMakeLists.txt is present.
 isb_add_component(experiments/graphics)

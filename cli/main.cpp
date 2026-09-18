@@ -1,7 +1,45 @@
 #include "isb/hub/hub.hpp"
+#include "isb/graphics/upscaler_types.hpp"
 #include <iostream>
 #include <memory>
 using namespace isb::hub;
+
+void print_help() {
+    std::cout << R"(ISB Tesla V100 Driver - Command Line Interface
+
+Usage: isb [options] command [args...]
+
+Options:
+  --mock       Use mock provider (no real hardware access)
+  --json       Output in JSON format
+  --dry-run    Show plan without applying changes
+  --help       Show this help message
+
+Commands:
+  status                          Show system status
+  inspect                         Show GPU capabilities
+  capabilities                    Alias for inspect
+  telemetry                       Show telemetry data
+  profile list                    List available profiles
+  profile plan <name>             Show profile application plan
+  optimize                        Show optimization plan
+  diagnose                        Run diagnostics
+  verify                          Verify system state
+  benchmark                       Run benchmarks
+  report <dir>                    Generate report to directory
+  graphics status                 Show graphics upscaling status
+  graphics list                   List available upscaler backends
+  upscaler status                 Alias for graphics status
+  upscaler list                   Alias for graphics list
+
+Examples:
+  isb --mock status
+  isb --mock --json capabilities
+  isb --mock profile plan appearance
+  isb --mock optimize
+  isb --mock graphics status
+)";
+}
 
 int main(int argc, char** argv) {
     bool mock = false;
@@ -14,12 +52,75 @@ int main(int argc, char** argv) {
         if (x == "--mock") mock = true;
         else if (x == "--json") json_output = true;
         else if (x == "--dry-run") dry = true;
+        else if (x == "--help") {
+            print_help();
+            return 0;
+        }
         else args.push_back(x);
     }
 
     if (args.empty()) {
-        std::cerr << "usage: isb [--mock] [--json] status|inspect|capabilities|telemetry|profile list|profile plan <name>|optimize|diagnose|verify|benchmark|report <dir>\n";
+        std::cerr << "usage: isb [--mock] [--json] [--dry-run] [--help] <command>\n";
+        std::cerr << "Run 'isb --help' for more information.\n";
         return 2;
+    }
+
+    // Handle graphics/upscaler commands
+    if (args[0] == "graphics" || args[0] == "upscaler") {
+        if (args.size() < 2) {
+            std::cerr << "usage: isb " << args[0] << " <status|list>\n";
+            return 2;
+        }
+        
+        if (args[1] == "status" || args[1] == "list") {
+            // Create upscaler manager and show status
+            auto manager = isb::graphics::create_upscaler_manager(mock);
+            auto backends = manager->list_backends();
+            
+            if (json_output) {
+                std::cout << "{\n  \"backends\": [\n";
+                bool first = true;
+                for (const auto& b : backends) {
+                    if (!first) std::cout << ",\n";
+                    first = false;
+                    std::cout << "    {\n";
+                    std::cout << "      \"type\": \"" << isb::graphics::to_string(b.type) << "\",\n";
+                    std::cout << "      \"name\": \"" << b.name << "\",\n";
+                    std::cout << "      \"version\": \"" << b.version << "\",\n";
+                    std::cout << "      \"available\": " << (b.available ? "true" : "false") << ",\n";
+                    std::cout << "      \"supported\": " << (b.supported ? "true" : "false") << ",\n";
+                    std::cout << "      \"requires_external\": " << (b.requires_external ? "true" : "false") << "\n";
+                    if (b.requires_external) {
+                        std::cout << "      \"external_component\": \"" << b.external_component << "\"\n";
+                    }
+                    std::cout << "    }";
+                }
+                std::cout << "\n  ]\n}\n";
+            } else {
+                std::cout << "Upscaler Backends:\n";
+                for (const auto& b : backends) {
+                    std::cout << "  " << isb::graphics::to_string(b.type) << ": " << b.name;
+                    if (b.available) {
+                        std::cout << " [Available]";
+                    } else if (b.supported) {
+                        std::cout << " [Supported, not installed]";
+                    } else {
+                        std::cout << " [Boundary/Unsupported]";
+                    }
+                    if (b.requires_external) {
+                        std::cout << " (requires: " << b.external_component << ")";
+                    }
+                    if (b.provenance.synthetic) {
+                        std::cout << " [MOCK]";
+                    }
+                    std::cout << "\n";
+                }
+            }
+            return 0;
+        } else {
+            std::cerr << "unknown graphics command: " << args[1] << "\n";
+            return 2;
+        }
     }
 
     std::unique_ptr<Provider> provider =
@@ -54,7 +155,8 @@ int main(int argc, char** argv) {
         std::cout << report.directory << '\n';
         return 0;
     } else {
-        std::cerr << "unknown command\n";
+        std::cerr << "unknown command: " << args[0] << "\n";
+        std::cerr << "Run 'isb --help' for available commands.\n";
         return 2;
     }
 

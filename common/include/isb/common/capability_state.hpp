@@ -8,6 +8,9 @@ enum class CapabilityState {
     Unavailable,
     PermissionDenied,
     Error,
+    Partial,        ///< Partially available/functional
+    Ready,          ///< Ready to apply/configure
+    Unsupported     ///< Not supported on this system
 };
 
 const char* to_string(CapabilityState state) noexcept;
