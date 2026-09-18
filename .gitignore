@@ -1,4 +1,36 @@
-```
 # Build artifacts
 build/
-```
+build-*/
+
+# CMake generated files
+CMakeCache.txt
+CMakeFiles/
+CTestTestfile.cmake*
+DartConfiguration.tcl
+cmake_install.cmake
+Makefile
+compile_commands.json
+
+# Object files and binaries
+*.o
+*.o.d
+*.a
+*.so
+*.so.*
+*.dll
+*.lib
+*.dylib
+*.exe
+*.bin
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Test output
+Testing/
+LastTest.log
+ctest_test_output/
