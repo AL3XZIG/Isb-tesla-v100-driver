@@ -83,7 +83,7 @@ cal::GpuCapabilities capabilities_from(const RawGpuObservation& o) {
 
 } // namespace
 
-hub::hub::Environment HubProvider::environment() const {
+hub::Environment HubProvider::environment() const {
     auto provider = make_nvml_provider();
     if (!provider) {
         return {"unknown", "unknown", hub::ProviderMode::Unavailable,

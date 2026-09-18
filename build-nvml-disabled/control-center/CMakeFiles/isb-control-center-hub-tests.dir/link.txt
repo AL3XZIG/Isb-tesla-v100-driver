@@ -1,1 +1,0 @@
-/usr/bin/c++ "CMakeFiles/isb-control-center-hub-tests.dir/tests/hub_integration_test.cpp.o" -o isb-control-center-hub-tests  ../hub/libisb-hub.a ../cal/libisb-cal.a ../common/libisb-common.a 

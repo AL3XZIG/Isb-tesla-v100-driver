@@ -1,2 +1,0 @@
-/usr/bin/ar qc libisb-cuda.a "CMakeFiles/isb-cuda.dir/src/cuda_provider.cpp.o"
-/usr/bin/ranlib libisb-cuda.a
