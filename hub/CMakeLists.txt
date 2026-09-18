@@ -1,6 +1,6 @@
 add_library(isb-hub src/hub.cpp)
 target_include_directories(isb-hub PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_link_libraries(isb-hub PUBLIC isb-cal)
+target_link_libraries(isb-hub PUBLIC isb-cal isb-graphics-upscaler)
 target_compile_features(isb-hub PUBLIC cxx_std_17)
 if(BUILD_TESTING)
  add_executable(isb-hub-tests tests/hub_test.cpp)
