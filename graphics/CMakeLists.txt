@@ -6,6 +6,7 @@ add_library(isb-graphics-upscaler
     src/upscaler_manager.cpp
     src/render_path_types.cpp
     src/render_path_manager.cpp
+    src/render_path_platform.cpp
 )
 
 target_include_directories(isb-graphics-upscaler
@@ -15,6 +16,7 @@ target_include_directories(isb-graphics-upscaler
 
 target_link_libraries(isb-graphics-upscaler
     PUBLIC isb-common isb-cal isb-hub
+    PRIVATE isb-nvml isb-vulkan
 )
 
 target_compile_features(isb-graphics-upscaler PUBLIC cxx_std_17)
@@ -41,4 +43,8 @@ if(BUILD_TESTING)
     add_executable(render-path-tests tests/render_path_test.cpp)
     target_link_libraries(render-path-tests PRIVATE isb-graphics-upscaler)
     add_test(NAME render-path-tests COMMAND render-path-tests)
+endif()
+
+if(WIN32)
+    target_link_libraries(isb-graphics-upscaler PRIVATE dxgi)
 endif()
