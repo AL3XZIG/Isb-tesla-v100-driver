@@ -334,7 +334,7 @@ core/                  shared low-level state and contracts
 cal/                   capability abstraction
 capabilities/           V100/GV100 declarative capability data
 providers/              runtime/platform probes and management APIs
-fix/                    single FixEngine implementation
+fixer/                  single FixEngine implementation
 hub/                    user-facing orchestration/control plane
 games/                  discovery and game compatibility
 performance/            telemetry, tuning and throttling analysis
