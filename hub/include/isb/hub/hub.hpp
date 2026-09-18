@@ -1,6 +1,5 @@
 #pragma once
 #include "isb/cal/capabilities.hpp"
-#include "isb/graphics/render_path_types.hpp"
 #include <string>
 #include <vector>
 
@@ -68,10 +67,6 @@ public:
     /// This is read-only and performs no hardware mutation.
     std::string status_json() const;
 
-    graphics::RenderPathResult render_path_detect(bool mock_mode) const;
-    graphics::RenderPathOperationResult render_path_plan(bool mock_mode) const;
-    graphics::RenderPathOperationResult render_path_configure(bool mock_mode, bool approved) const;
-    graphics::RenderPathOperationResult render_path_verify(bool mock_mode) const;
 
 private:
     const Provider& provider_;
