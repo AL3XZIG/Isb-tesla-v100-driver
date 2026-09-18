@@ -1,4 +1,5 @@
 #include "isb/hub/hub.hpp"
+#include "isb/hub/runtime_provider.hpp"
 #include "isb/graphics/upscaler_types.hpp"
 #include "isb/graphics/render_path_types.hpp"
 #include <algorithm>
@@ -215,7 +216,7 @@ int main(int argc, char** argv) {
 
     std::unique_ptr<Provider> provider =
         mock ? std::unique_ptr<Provider>(new MockProvider)
-             : std::unique_ptr<Provider>(new UnavailableProvider);
+             : make_runtime_provider();
     Hub hub(*provider);
 
     std::string output;
