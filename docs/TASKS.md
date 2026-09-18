@@ -6,7 +6,97 @@ This roadmap defines the implementation order for the **V100-focused user-space 
 
 All user-facing workflows go through one thin `hub/` control plane. The CLI and `control-center/` GUI are frontends. Existing CAL, capability models, providers, FixEngine, diagnostics and verification remain shared foundations rather than being duplicated.
 
-## P0 — Foundation and integration
+## Stabilization freeze
+
+Until the stabilization sequence is complete, do not add new GUI features, tuning controls, optimization features, OptiScaler automation, experimental graphics/compute features, installer work, or alternative-driver implementation.
+
+### #29 — Foundation ownership audit
+
+- [ ] Read the complete `core/TASK.md`.
+- [ ] Inventory production code under `core/`.
+- [ ] Inventory `common/include/isb/common/*`.
+- [ ] Search users of `Status`, `Result<T>`, `ErrorCode`, `Provenance` and equivalent primitives.
+- [ ] Determine whether `core` and `common` overlap or have separate responsibilities.
+- [ ] Choose and document one owner for each foundation primitive.
+- [ ] Do not migrate `common → core` without evidence.
+- [ ] Fix the `Result<T>` invariant only after ownership is established.
+- [ ] Add regression coverage including NDEBUG/release behavior where applicable.
+- [ ] Mark `core/TASK.md` superseded if the audit proves it obsolete.
+
+### #31 — Hub canonical control API
+
+- [ ] Audit whether `control-center::ControlPlane` still exists on current `main`.
+- [ ] Consolidate any parallel API into Hub.
+- [ ] Audit Qt `main.cpp`, all Qt call sites, src/include/tests.
+- [ ] Enforce `Panel → Hub → Providers`.
+- [ ] Keep provider headers/targets out of Panel.
+- [ ] Inject providers into Hub.
+- [ ] Test Panel through the real Hub path with MockProvider.
+- [ ] Do not introduce another `ControlPlane` or `isb-contracts` target.
+
+### #30 — Observation contract consolidation
+
+- [ ] Search repository-wide for `Observed<T>` and equivalent wrappers.
+- [ ] Confirm actual duplication before changing anything.
+- [ ] Separate generic observation semantics from provider-specific raw observations.
+- [ ] Consolidate only genuinely identical contracts.
+- [ ] Add focused regression tests.
+
+### #32 — Capability ownership
+
+- [ ] Audit current capability owners before changing them.
+- [ ] Keep provider observations raw.
+- [ ] Define the Hub capability projection.
+- [ ] Preserve `Unknown != Unsupported`.
+- [ ] Remove duplicate models only after mapping all consumers.
+
+### #33 — Experiments reconciliation
+
+- [ ] Audit `experiments/compute` and `experiments/graphics`.
+- [ ] Classify each component: migrate, reference, isolate, or remove.
+- [ ] Evaluate CUDA → `providers/cuda` and Vulkan → `providers/vulkan`.
+- [ ] Do not mechanically rename directories.
+
+### #34 — Reports/manifests
+
+- [ ] Audit all report/manifest producers and schemas.
+- [ ] Choose one canonical evidence schema/version boundary.
+- [ ] Preserve provenance and synthetic/real evidence markers.
+
+### #35a — Software-only NVML qualification
+
+- [ ] Test with and without NVML availability.
+- [ ] Test unavailable-driver/library paths.
+- [ ] Test mock/fallback behavior.
+- [ ] Test error propagation without fabricated zero values.
+- [ ] Document hardware paths that remain unverified.
+
+### #35b — Real V100 qualification
+
+- [ ] Validate live success paths on NVIDIA hardware.
+- [ ] Validate V100-specific behavior on the target Tesla V100.
+- [ ] Record exact GPU, driver, runtime and API environment.
+- [ ] Do not mark hardware qualification complete without physical hardware evidence.
+
+### #36 — CMake and verification stabilization
+
+- [ ] Audit target ownership and duplicate registrations.
+- [ ] Keep optional providers optional.
+- [ ] Guard tests correctly.
+- [ ] Enforce Panel/Hub/Provider include and link isolation.
+- [ ] Add a CI architecture guard where practical.
+- [ ] Verify clean configure/build/test.
+
+### #37 — Architecture/documentation synchronization
+
+- [ ] Update README from verified repository facts only.
+- [ ] Document `Panel → Hub → Providers`.
+- [ ] Do not describe a separate driver plane unless the repository audit confirms one.
+- [ ] Document `core`/ `common` ownership after #29.
+- [ ] Mark superseded specifications.
+- [ ] Synchronize IMPLEMENTATION_PLAN.md, TASKS.md and GUIDE.md.
+
+## P1 — Foundation and integration
 
 - [x] Establish a buildable CAL + Hub control-plane baseline (FixEngine/verification integration remains pending).
 - [x] Define initial Hub contracts for inspect/status/capabilities/telemetry/plans/verify/benchmark/report; provider-backed apply remains intentionally unavailable.
@@ -17,7 +107,7 @@ All user-facing workflows go through one thin `hub/` control plane. The CLI and 
 - [ ] Keep synthetic fixtures explicitly marked `synthetic: true`.
 - [ ] Keep GUI and CLI on the same Hub contracts.
 
-## P0 — V100 capability and provider layer
+## P1 — V100 capability and provider layer
 
 - [ ] Detect exact V100 variant: SXM2 / PCIe / 16 GB / 32 GB where possible.
 - [ ] Separate hardware capability from base-driver/API capability and ISB-added capability.
@@ -27,7 +117,7 @@ All user-facing workflows go through one thin `hub/` control plane. The CLI and 
 - [ ] Record driver/package/version/API provenance for every observed capability.
 - [ ] Add capability-aware feature gating for Tensor Cores, ECC, RT Cores, Optical Flow, MIG, NVLink and display/output assumptions.
 
-## P1 — Hub / Home / V100 status
+## P2 — Hub / Home / V100 status
 
 - [ ] Implement headless `status` operation first.
 - [ ] Expose GPU identity, driver, CUDA/NVML/API state, temperature, utilization, power, clocks and ECC where available.
@@ -36,7 +126,7 @@ All user-facing workflows go through one thin `hub/` control plane. The CLI and 
 - [ ] Add `Optimize V100` plan generation without mutation.
 - [ ] Add transaction state and rollback metadata.
 
-## P1 — Performance
+## P2 — Performance
 
 - [ ] Implement read-only telemetry first.
 - [ ] Detect supported management controls before exposing them.
@@ -50,7 +140,7 @@ All user-facing workflows go through one thin `hub/` control plane. The CLI and 
 - [ ] Verify every applied setting through the underlying provider/API.
 - [ ] Add Thermal Guard: temperature history, throttling, clock drops and ECC anomalies.
 
-## P1 — Driver Doctor / FixEngine
+## P2 — Driver Doctor / FixEngine
 
 - [ ] Integrate existing fingerprinting and IDR evidence.
 - [ ] Integrate the existing FixEngine; do not create a second rule engine.
@@ -60,7 +150,7 @@ All user-facing workflows go through one thin `hub/` control plane. The CLI and 
 - [ ] Add driver/API/application compatibility records with maturity states.
 - [ ] Add regression fixtures for known V100 combinations.
 
-## P1 — Game Manager
+## P2 — Game Manager
 
 - [ ] Discover Steam/Epic/GOG/standalone installations where detectable.
 - [ ] Identify executable and graphics API where possible.
@@ -72,7 +162,7 @@ All user-facing workflows go through one thin `hub/` control plane. The CLI and 
 - [ ] Never silently modify online/anti-cheat games.
 - [ ] Add safe bulk optimization only for explicitly eligible games.
 
-## P1 — OptiScaler Manager
+## P2 — OptiScaler Manager
 
 - [ ] Treat OptiScaler as an external managed component.
 - [ ] Detect installed version and provenance.
@@ -85,7 +175,7 @@ All user-facing workflows go through one thin `hub/` control plane. The CLI and 
 - [ ] Do not silently download arbitrary binaries.
 - [ ] Preserve upstream OptiScaler source/license obligations if redistribution is ever enabled.
 
-## P1 — Graphics enhancement layer
+## P2 — Graphics enhancement layer
 
 - [ ] Define backend-independent graphics enhancement interfaces.
 - [ ] Implement safe spatial scaling where technically appropriate.
@@ -97,7 +187,7 @@ All user-facing workflows go through one thin `hub/` control plane. The CLI and 
 - [ ] Prefer documented loader/layer/plugin mechanisms over binary patching.
 - [ ] Do not claim native DLSS, RT hardware or Optical Flow support on V100.
 
-## P2 — Tensor Core / AI Lab
+## P3 — Tensor Core / AI Lab
 
 - [ ] Add FP16 and INT8 benchmark/correctness probes where supported.
 - [ ] Add Tensor Core throughput benchmark.
@@ -108,7 +198,7 @@ All user-facing workflows go through one thin `hub/` control plane. The CLI and 
 - [ ] Benchmark latency and image quality; do not equate AI upscaling with DLSS.
 - [ ] Investigate frame interpolation as a separate experimental feature with explicit latency/quality warnings.
 
-## P2 — Interconnect
+## P3 — Interconnect
 
 - [ ] Detect PCIe generation and width.
 - [ ] Record PCIe traffic/errors where exposed.
@@ -117,7 +207,7 @@ All user-facing workflows go through one thin `hub/` control plane. The CLI and 
 - [ ] Add measured PCIe/NVLink bandwidth tests.
 - [ ] Keep topology/state/capability/measured performance as separate fields.
 
-## P2 — Benchmark Suite
+## P3 — Benchmark Suite
 
 - [ ] Create reproducible graphics benchmark.
 - [ ] Create CUDA compute benchmark.
@@ -128,7 +218,7 @@ All user-facing workflows go through one thin `hub/` control plane. The CLI and 
 - [ ] Include GPU/driver/configuration/test revision in every result.
 - [ ] Add correctness checks before reporting performance improvements.
 
-## P2 — Reports
+## P3 — Reports
 
 - [ ] Implement deterministic report bundle:
   - `manifest.json`
@@ -143,7 +233,7 @@ All user-facing workflows go through one thin `hub/` control plane. The CLI and 
 - [ ] Include schema version, ISB version, generation time, environment hash and source/provenance metadata.
 - [ ] Make reports diffable between baseline and optimized states.
 
-## P2 — Lightweight Control Center
+## P3 — Lightweight Control Center
 
 - [ ] Build GUI only on top of stable Hub contracts.
 - [ ] Keep GUI and CLI free of duplicated business logic.
@@ -153,7 +243,7 @@ All user-facing workflows go through one thin `hub/` control plane. The CLI and 
 - [ ] Display unsupported/unknown features instead of hiding them.
 - [ ] Make risky operations visibly explicit and reversible.
 
-## P3 — Experimental graphics / compute research
+## P4 — Experimental graphics / compute research
 
 - [ ] Software reconstruction / neural SR.
 - [ ] Software frame interpolation.
@@ -162,7 +252,7 @@ All user-facing workflows go through one thin `hub/` control plane. The CLI and 
 - [ ] Research driver/API compatibility extensions.
 - [ ] Keep all experimental features isolated from stable Hub dependencies.
 
-## P3 — Alternative driver research
+## P4 — Alternative driver research
 
 - [ ] Continue independent KMD/UMD/HAL/GPUVM research only under `research/alternative-driver/`.
 - [ ] Never make the Hub depend on the alternative driver track.
@@ -183,4 +273,4 @@ A feature is not stable until it has:
 
 ## Recommended implementation order
 
-`P0 Hub/contracts → capability/providers → Home/status → Performance → Driver Doctor → Games → OptiScaler → Graphics → Reports/Benchmarks → GUI → experimental features`
+`#29 Foundation audit → #31 Hub API → #30 Observation contracts → #32 Capability ownership → #33 Experiments → #34 Reports → #35a Software qualification → #36 CMake/verification → #37 Documentation → test gate → #35b Real V100 qualification → feature work → research`
