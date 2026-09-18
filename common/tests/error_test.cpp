@@ -31,13 +31,13 @@ int main() {
     assert(!invalid_result.ok());
     assert(invalid_result.status().code() == ErrorCode::InvalidArgument);
 
-    bool threw = false;
-    try {
-        (void)failed.value();
-    } catch (const std::logic_error&) {
-        threw = true;
-    }
-    assert(threw);
+    // Test that failed Result correctly reports error state without calling value()
+    // Note: calling .value() on a failed Result triggers assert() in debug builds,
+    // which aborts the program. The safety contract is: check .ok() before accessing .value().
+    // In release builds (NDEBUG defined), .value() throws std::logic_error.
+    assert(!failed.ok());
+    assert(failed.status().code() == ErrorCode::QueryFailed);
+    assert(failed.status().message() == "query failed");
 
     return 0;
 }

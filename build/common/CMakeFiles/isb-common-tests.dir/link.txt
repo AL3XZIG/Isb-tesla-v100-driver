@@ -1,0 +1,1 @@
+/usr/bin/c++ "CMakeFiles/isb-common-tests.dir/tests/version_test.cpp.o" -o isb-common-tests  libisb-common.a 

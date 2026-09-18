@@ -1,0 +1,2 @@
+/usr/bin/ar qc libisb-common.a "CMakeFiles/isb-common.dir/src/version.cpp.o" "CMakeFiles/isb-common.dir/src/capability_state.cpp.o"
+/usr/bin/ranlib libisb-common.a
