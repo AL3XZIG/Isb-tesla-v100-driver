@@ -420,3 +420,22 @@ No feature should claim that it changed the GPU unless:
 4. the result has appropriate provenance.
 
 The same rule applies to graphics integrations, OptiScaler, game modifications and performance measurements.
+
+
+## Current implementation boundary
+
+The repository is intentionally in a stabilization-first state. The commands and interfaces documented here must be interpreted according to the actual provider mode:
+
+- **Mock** means deterministic synthetic fixture data, not physical V100 telemetry.
+- **Unavailable** means the required provider/runtime is absent or cannot be used; it is not a zero-valued hardware result.
+- **Real** evidence is only established when an actual provider reports the hardware state and the qualification workflow records appropriate provenance.
+
+The current Hub status operation is read-only and is suitable as the common data source for future CLI and Control Center presentation. It does not imply that tuning or mutation is implemented.
+
+The canonical dependency direction is:
+
+`Panel / CLI → Hub → Provider → installed base driver`
+
+The GUI and CLI should share Hub contracts and must not acquire provider-specific hardware logic independently.
+
+For the latest implementation/roadmap state, use `docs/TASKS.md`. For ownership rules, use `docs/ARCHITECTURE.md`. Target architecture diagrams must not be read as evidence that every planned subsystem is already implemented.
