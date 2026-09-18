@@ -67,6 +67,7 @@ public:
     /// This is read-only and performs no hardware mutation.
     std::string status_json() const;
 
+
 private:
     const Provider& provider_;
 };
