@@ -1,1 +1,0 @@
-/usr/bin/c++ -O3 -DNDEBUG "CMakeFiles/isb-nvml-provider-availability-tests.dir/tests/provider_availability_test.cpp.o" -o isb-nvml-provider-availability-tests  libisb-nvml.a ../../hub/libisb-hub.a ../../cal/libisb-cal.a ../../common/libisb-common.a 

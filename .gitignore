@@ -1,1 +1,24 @@
-Nothing should be ignored in this case, as only a source code file (`.cpp`) was modified and there are no build artifacts, dependencies, or temporary files in the changes.
+# Build trees and generated CMake output
+/build/
+/cmake-build-*/
+
+# Generated binaries and object files
+*.o
+*.obj
+*.a
+*.so
+*.dll
+*.exe
+*.out
+
+# CMake generated files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+CTestTestfile.cmake
+Makefile
+compile_commands.json
+
+# IDE/editor metadata
+.vscode/
+.idea/
