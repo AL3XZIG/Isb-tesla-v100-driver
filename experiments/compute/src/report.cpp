@@ -10,7 +10,10 @@ const char* yes_no_unknown(cal::CapabilityState state) noexcept {
     switch (state) {
     case cal::CapabilityState::Available: return "YES";
     case cal::CapabilityState::Unavailable: return "NO";
-    case cal::CapabilityState::Unknown: return "UNKNOWN";
+    case cal::CapabilityState::Unknown:
+    case cal::CapabilityState::PermissionDenied:
+    case cal::CapabilityState::Error:
+        return "UNKNOWN";
     }
     return "UNKNOWN";
 }
@@ -19,7 +22,10 @@ const char* availability(cal::CapabilityState state) noexcept {
     switch (state) {
     case cal::CapabilityState::Available: return "AVAILABLE";
     case cal::CapabilityState::Unavailable: return "UNAVAILABLE";
-    case cal::CapabilityState::Unknown: return "UNKNOWN";
+    case cal::CapabilityState::Unknown:
+    case cal::CapabilityState::PermissionDenied:
+    case cal::CapabilityState::Error:
+        return "UNKNOWN";
     }
     return "UNKNOWN";
 }
