@@ -16,7 +16,7 @@ int test_gpu_role_strings() {
     assert(std::string(to_string(GPURole::ComputeAndDisplay)) == "Compute and Display");
     
     // Test from_string conversions
-    assert(from_string("Unknown") == GPURole::Unknown);
+    assert(from_gpu_role_string("Unknown") == GPURole::Unknown);
     assert(from_string("ComputeOnly") == GPURole::ComputeOnly);
     assert(from_string("Display Only") == GPURole::DisplayOnly);
     assert(from_string("compute_and_display") == GPURole::ComputeAndDisplay);
@@ -273,6 +273,52 @@ int test_multi_gpu_separation() {
     return 0;
 }
 
+
+int test_classification_scenarios() {
+    auto manager = create_render_path_manager(true);
+
+    MultiGPUConfig v100_igpu;
+    GPUDescription v100;
+    v100.name = "Tesla V100";
+    v100.vendor = "NVIDIA";
+    v100.vendor_id = 0x10DE;
+    v100.device_id = 0x1DB6;
+    v100.role = GPURole::ComputeOnly;
+    v100.cuda_capable = true;
+    v100.vulkan_capable = true;
+    v100.is_render_target = true;
+    v100_igpu.gpus.push_back(v100);
+
+    GPUDescription igpu;
+    igpu.name = "Integrated GPU";
+    igpu.vendor = "Generic";
+    igpu.vendor_id = 0x8086;
+    igpu.role = GPURole::DisplayOnly;
+    igpu.has_display_outputs = true;
+    igpu.is_active_display_adapter = true;
+    v100_igpu.gpus.push_back(igpu);
+    v100_igpu.render_gpu_index = 0;
+    v100_igpu.display_gpu_index = 1;
+    assert(manager->analyze_config(v100_igpu).status == CapabilityState::Ready);
+
+    MultiGPUConfig only_v100;
+    only_v100.gpus.push_back(v100);
+    only_v100.render_gpu_index = 0;
+    assert(manager->analyze_config(only_v100).status == CapabilityState::Partial);
+
+    MultiGPUConfig tcc;
+    GPUDescription tcc_v100 = v100;
+    tcc_v100.driver_model = "TCC";
+    tcc_v100.is_render_target = false;
+    tcc.gpus.push_back(tcc_v100);
+    tcc.render_gpu_index = 0;
+    tcc.display_gpu_index = 0;
+    assert(manager->analyze_config(tcc).status == CapabilityState::Partial);
+
+    std::cout << "PASS: classification_scenarios\n";
+    return 0;
+}
+
 int main() {
     int failures = 0;
     
@@ -290,6 +336,7 @@ int main() {
     failures += test_app_preference_invalid_args();
     failures += test_v100_no_display_outputs();
     failures += test_multi_gpu_separation();
+    failures += test_classification_scenarios();
     
     if (failures == 0) {
         std::cout << "\n=== All tests PASSED ===\n";

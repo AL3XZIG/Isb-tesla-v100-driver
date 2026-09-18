@@ -123,6 +123,12 @@ private:
             observation.memory_utilization_percent = Observed<std::uint32_t>::reported(utilization.memory);
         }
 
+        nvmlEnableState_t display_active = NVML_FEATURE_DISABLED;
+        if (nvmlDeviceGetDisplayActive(device, &display_active) == NVML_SUCCESS) {
+            observation.display_active =
+                Observed<bool>::reported(display_active == NVML_FEATURE_ENABLED);
+        }
+
         nvmlEnableState_t persistence = NVML_FEATURE_DISABLED;
         if (nvmlDeviceGetPersistenceMode(device, &persistence) == NVML_SUCCESS) {
             observation.persistence_mode =
@@ -133,6 +139,14 @@ private:
         if (nvmlDeviceGetComputeMode(device, &compute_mode) == NVML_SUCCESS) {
             observation.compute_mode =
                 Observed<std::uint32_t>::reported(static_cast<std::uint32_t>(compute_mode));
+        }
+
+        nvmlDriverModel_t current_driver_model = NVML_DRIVER_WDDM;
+        nvmlDriverModel_t pending_driver_model = NVML_DRIVER_WDDM;
+        if (nvmlDeviceGetDriverModel(device, &current_driver_model, &pending_driver_model) == NVML_SUCCESS) {
+            const char* model = current_driver_model == NVML_DRIVER_TCC ? "TCC" :
+                                current_driver_model == NVML_DRIVER_WDDM ? "WDDM" : "UNKNOWN";
+            observation.driver_model = Observed<std::string>::reported(model);
         }
 
         nvmlPstates_t performance_state = NVML_PSTATE_UNKNOWN;

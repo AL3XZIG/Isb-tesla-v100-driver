@@ -1,6 +1,11 @@
-add_library(isb-nvml src/nvml_provider.cpp src/hub_provider.cpp)
+add_library(isb-nvml-observation src/nvml_provider.cpp)
+target_include_directories(isb-nvml-observation PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_link_libraries(isb-nvml-observation PUBLIC isb-common)
+target_compile_features(isb-nvml-observation PUBLIC cxx_std_17)
+
+add_library(isb-nvml src/hub_provider.cpp)
 target_include_directories(isb-nvml PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_link_libraries(isb-nvml PUBLIC isb-common PRIVATE isb-hub)
+target_link_libraries(isb-nvml PUBLIC isb-nvml-observation PRIVATE isb-hub)
 target_compile_features(isb-nvml PUBLIC cxx_std_17)
 
 option(ISB_ENABLE_NVML "Enable NVML integration when the SDK and library are available" ON)
@@ -21,11 +26,11 @@ endif()
 
 if(BUILD_TESTING)
     add_executable(isb-nvml-types-tests tests/types_test.cpp)
-    target_link_libraries(isb-nvml-types-tests PRIVATE isb-nvml)
+    target_link_libraries(isb-nvml-types-tests PRIVATE isb-nvml-observation)
     add_test(NAME isb-nvml-types-tests COMMAND isb-nvml-types-tests)
 
     add_executable(isb-nvml-live-observation-contract-tests tests/live_observation_contract_test.cpp)
-    target_link_libraries(isb-nvml-live-observation-contract-tests PRIVATE isb-nvml)
+    target_link_libraries(isb-nvml-live-observation-contract-tests PRIVATE isb-nvml-observation)
     add_test(NAME isb-nvml-live-observation-contract-tests COMMAND isb-nvml-live-observation-contract-tests)
 
     add_executable(isb-nvml-provider-availability-tests tests/provider_availability_test.cpp)

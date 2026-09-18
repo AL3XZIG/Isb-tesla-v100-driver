@@ -23,7 +23,7 @@ enum class GPURole {
 };
 
 const char* to_string(GPURole role) noexcept;
-GPURole from_string(const std::string& str) noexcept;
+GPURole from_gpu_role_string(const std::string& str) noexcept;
 
 /// Graphics API type
 enum class GraphicsAPI {

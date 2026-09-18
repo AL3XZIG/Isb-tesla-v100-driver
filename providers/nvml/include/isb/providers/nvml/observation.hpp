@@ -49,6 +49,12 @@ struct RawGpuObservation {
     Observed<std::uint32_t> pcie_generation;
     Observed<std::uint32_t> pcie_link_width;
 
+    /// Whether NVML reports an active display on this device.
+    Observed<bool> display_active;
+
+    /// Windows driver model when exposed by NVML (WDDM/TCC). Unknown elsewhere.
+    Observed<std::string> driver_model;
+
     Observed<std::vector<NvLinkLinkObservation>> nvlink_links;
 };
 
