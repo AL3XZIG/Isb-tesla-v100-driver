@@ -1,24 +1,62 @@
-# Build trees and generated CMake output
-/build/
-/cmake-build-*/
-
-# Generated binaries and object files
+```
+# Build artifacts
+build/
+dist/
 *.o
 *.obj
 *.a
+*.lib
 *.so
 *.dll
+*.dylib
 *.exe
+
+# Dependencies
+.venv/
+venv/
+env/
+node_modules/
+
+# C++ specific
 *.out
+*.i
+*.ii
+*.s
+*.su
+*.sln
+*.vcxproj
+*.vcproj
+*.user
+*.userosscache
+*.sdf
+*.opensdf
+*.opendb
+*.pidb
+*.svclog
 
-# CMake generated files
-CMakeCache.txt
-CMakeFiles/
-cmake_install.cmake
-CTestTestfile.cmake
-Makefile
-compile_commands.json
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
 
-# IDE/editor metadata
+# IDE
 .vscode/
 .idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Coverage
+coverage/
+htmlcov/
+.coverage
+
+# Environment
+.env
+.env.local
+*.env.*
+```
