@@ -10,6 +10,7 @@ option(ISB_CAL_ENABLE_WARNINGS "Enable strict compiler warnings for CAL" ON)
 
 add_library(isb-cal
     src/capabilities.cpp
+    src/v100.cpp
 )
 
 target_include_directories(isb-cal

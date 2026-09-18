@@ -1,4 +1,5 @@
 #include "isb/cal/capabilities.hpp"
+#include "isb/cal/v100.hpp"
 
 #include <cassert>
 #include <string>
@@ -127,6 +128,39 @@ void test_v100_feature_states() {
     assert(capabilities.hardware.mig.state == CapabilityState::Unavailable);
 }
 
+
+void test_v100_baseline_factory() {
+    const auto sxm2 = make_v100_capabilities(GpuVariant::V100_SXM2);
+    const auto pcie = make_v100_capabilities(GpuVariant::V100_PCIe);
+    const auto unknown = make_v100_capabilities(GpuVariant::Unknown);
+
+    assert(sxm2.identity.vendor == "NVIDIA");
+    assert(sxm2.identity.architecture == "Volta");
+    assert(sxm2.identity.compute_capability.has_value());
+    assert(sxm2.identity.compute_capability->major == 7);
+    assert(sxm2.identity.compute_capability->minor == 0);
+    assert(sxm2.compute.cuda_cores.has_value());
+    assert(*sxm2.compute.cuda_cores == 5120);
+    assert(sxm2.compute.tensor_cores.state == CapabilityState::Available);
+    assert(sxm2.compute.tensor_cores.generation.has_value());
+    assert(*sxm2.compute.tensor_cores.generation == 1);
+    assert(sxm2.compute.tensor_precisions.values.size() == 1);
+    assert(sxm2.compute.tensor_precisions.values.front() == TensorPrecision::FP16);
+
+    assert(sxm2.hardware.hbm2.state == CapabilityState::Available);
+    assert(sxm2.hardware.ecc.state == CapabilityState::Available);
+    assert(sxm2.hardware.rt_cores.state == CapabilityState::Unavailable);
+    assert(sxm2.hardware.optical_flow_accelerator.state == CapabilityState::Unavailable);
+    assert(sxm2.hardware.mig.state == CapabilityState::Unavailable);
+    assert(sxm2.hardware.display_outputs.state == CapabilityState::Unavailable);
+    assert(sxm2.hardware.nvlink.state == CapabilityState::Unknown);
+
+    assert(sxm2.identity.variant == GpuVariant::V100_SXM2);
+    assert(pcie.identity.variant == GpuVariant::V100_PCIe);
+    assert(unknown.identity.variant == GpuVariant::Unknown);
+    assert(unknown.identity.exact_hardware_variant.empty());
+}
+
 void test_json_serialization() {
     auto capabilities = make_v100(GpuVariant::V100_SXM2);
     capabilities.identity.model_name = "Tesla V100 \"SXM2\"";
@@ -160,6 +194,7 @@ int main() {
     test_capability_states();
     test_enum_string_fallbacks();
     test_v100_variants();
+    test_v100_baseline_factory();
     test_v100_feature_states();
     test_json_serialization();
 
