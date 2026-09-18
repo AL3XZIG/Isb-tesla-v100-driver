@@ -250,7 +250,7 @@ See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the detailed model and [`
 The target structure is organized around the hub while preserving the existing CAL, FixEngine and verification foundations:
 
 ```text
-core/                  shared state, orchestration and stable contracts
+core/                  architecture specification area; no production target
 hub/                   V100 control-plane orchestration
 cal/                   capability abstraction; no runtime probing
 capabilities/          V100/GV100 capability definitions
