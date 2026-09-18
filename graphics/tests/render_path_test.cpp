@@ -6,7 +6,7 @@
 #include <sstream>
 
 using namespace isb::graphics;
-using isb::CapabilityState;
+using isb::common::CapabilityState;
 
 int test_gpu_role_strings() {
     // Test to_string conversions
