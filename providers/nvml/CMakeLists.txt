@@ -1,6 +1,6 @@
-add_library(isb-nvml src/nvml_provider.cpp)
+add_library(isb-nvml src/nvml_provider.cpp src/hub_provider.cpp)
 target_include_directories(isb-nvml PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_link_libraries(isb-nvml PUBLIC isb-common)
+target_link_libraries(isb-nvml PUBLIC isb-common PRIVATE isb-hub)
 target_compile_features(isb-nvml PUBLIC cxx_std_17)
 
 find_path(ISB_NVML_INCLUDE_DIR NAMES nvml.h)
