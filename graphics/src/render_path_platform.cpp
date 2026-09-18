@@ -4,10 +4,20 @@
 #include <filesystem>
 #include <fstream>
 #include <utility>
+#include <vector>
 
 #ifdef _WIN32
 #include <windows.h>
 #include <dxgi.h>
+
+std::string wide_to_utf8(const wchar_t* value) {
+    if (!value) return {};
+    const int required = WideCharToMultiByte(CP_UTF8, 0, value, -1, nullptr, 0, nullptr, nullptr);
+    if (required <= 1) return {};
+    std::string out(static_cast<std::size_t>(required - 1), '\0');
+    WideCharToMultiByte(CP_UTF8, 0, value, -1, out.data(), required, nullptr, nullptr);
+    return out;
+}
 #endif
 
 namespace isb::graphics::platform {
@@ -63,7 +73,7 @@ PlatformSnapshot detect_display_adapters() {
             display.vendor_id = desc.VendorId;
             display.device_id = desc.DeviceId;
             display.active = true;
-            display.name = "DXGI adapter";
+            display.name = wide_to_utf8(desc.Description);
             snapshot.display_adapters.push_back(std::move(display));
         }
         adapter->Release();
@@ -90,6 +100,20 @@ PlatformSnapshot detect_display_adapters() {
             display_adapter.active = true;
             display_adapter.pci_bus = pci_bus_from_device_path(entry.path() / "device");
             display_adapter.name = entry.path().filename().string();
+
+            const auto device_root = entry.path() / "device";
+            auto read_hex = [](const std::filesystem::path& path) -> std::uint32_t {
+                std::ifstream input(path);
+                std::string value;
+                if (!std::getline(input, value)) return 0;
+                try {
+                    return static_cast<std::uint32_t>(std::stoul(value, nullptr, 16));
+                } catch (...) {
+                    return 0;
+                }
+            };
+            display_adapter.vendor_id = read_hex(device_root / "vendor");
+            display_adapter.device_id = read_hex(device_root / "device");
             snapshot.display_adapters.push_back(std::move(display_adapter));
         }
     }
