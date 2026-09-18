@@ -10,6 +10,15 @@ if(BUILD_TESTING)
     target_link_libraries(isb-common-tests PRIVATE isb-common)
     add_test(NAME isb-common-tests COMMAND isb-common-tests)
 
+    add_executable(isb-common-error-tests tests/error_test.cpp)
+    target_link_libraries(isb-common-error-tests PRIVATE isb-common)
+    add_test(NAME isb-common-error-tests COMMAND isb-common-error-tests)
+
+    add_executable(isb-common-error-release-tests tests/error_test.cpp)
+    target_compile_definitions(isb-common-error-release-tests PRIVATE NDEBUG)
+    target_link_libraries(isb-common-error-release-tests PRIVATE isb-common)
+    add_test(NAME isb-common-error-release-tests COMMAND isb-common-error-release-tests)
+
     add_executable(isb-common-observed-tests tests/observed_test.cpp)
     target_link_libraries(isb-common-observed-tests PRIVATE isb-common)
     add_test(NAME isb-common-observed-tests COMMAND isb-common-observed-tests)
