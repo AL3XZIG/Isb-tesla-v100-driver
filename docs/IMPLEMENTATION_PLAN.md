@@ -997,3 +997,21 @@ A feature is not called stable merely because it builds. It requires:
 ```
 
 The key principle is: **audit ownership first, make Hub the single user-control entry point, consolidate observations second, then build features. Hardware qualification starts only after the implementation and test gates.**
+
+
+## Current verified state after stabilization PRs
+
+The implementation plan is now governed by the following verified boundary:
+
+1. PR #29 established foundation ownership: implemented foundation primitives remain in `common/`; `core/` is not a production foundation target.
+2. PR #31 established Hub as the canonical Control Center backend and removed the competing ControlPlane path.
+3. PR #32 established Hub ownership of the capability snapshot while CAL remains the owner of the normalized capability schema.
+4. PR #33 added installer/qualification reporting infrastructure without replacing or installing NVIDIA drivers.
+5. PR #35 gated qualification PASS on real evidence and made UNKNOWN/insufficient evidence explicit.
+6. PR #36 added a deterministic, read-only Hub status document for CLI/frontends.
+
+### Remaining stabilization work
+
+The roadmap must not treat PR #36's status feature as completion of the CMake/verification stabilization task. Target-graph auditing, optional dependency guards, test gating, include/link isolation and clean configure/build/test remain explicit stabilization work where not already verified by CI.
+
+After that gate, the project can proceed to physical V100 qualification and then feature implementation. The GUI, tuning, FixEngine integration, game/OptiScaler automation and experimental graphics/AI features remain downstream of these gates.
