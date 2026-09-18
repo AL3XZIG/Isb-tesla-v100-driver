@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cstdint>
 #include <string>
 
 namespace isb::hub {
@@ -32,7 +33,7 @@ bool has_real_telemetry(const TelemetrySnapshot& t) {
            t.vram_total_mib.has_value();
 }
 
-bool is_v100_name(const std::string& name) {
+cal::Version vulkan_version(std::uint32_t version) noexcept {\n    // Vulkan API versions are packed as variant:3 | major:7 | minor:10 | patch:12.\n    return cal::Version{\n        static_cast<int>((version >> 22U) & 0x7FU),\n        static_cast<int>((version >> 12U) & 0x3FFU),\n        static_cast<int>(version & 0xFFFU)};\n}\n\nbool is_v100_name(const std::string& name) {
     std::string lower = name;
     std::transform(lower.begin(), lower.end(), lower.begin(),
                    [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
