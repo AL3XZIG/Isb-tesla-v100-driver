@@ -42,6 +42,12 @@ public:
 private:
     static RawGpuObservation observe_device(unsigned int index) {
         RawGpuObservation observation;
+        std::array<char, NVML_SYSTEM_DRIVER_VERSION_BUFFER_SIZE> driver_version{};
+        if (nvmlSystemGetDriverVersion(driver_version.data(),
+                                       static_cast<unsigned int>(driver_version.size())) == NVML_SUCCESS) {
+            observation.driver_version =
+                Observed<std::string>::reported(driver_version.data());
+        }
         observation.index = Observed<std::uint32_t>::reported(index);
 
         nvmlDevice_t device{};
@@ -188,6 +194,14 @@ private:
         if (!links.empty()) {
             observation.nvlink_links =
                 Observed<std::vector<NvLinkLinkObservation>>::reported(std::move(links));
+        }
+
+        unsigned int process_count = 0;
+        nvmlReturn_t process_result =
+            nvmlDeviceGetComputeRunningProcesses(device, &process_count, nullptr);
+        if (process_result == NVML_SUCCESS || process_result == NVML_ERROR_INSUFFICIENT_SIZE) {
+            observation.process_count =
+                Observed<std::uint32_t>::reported(process_count);
         }
 
         return observation;

@@ -17,6 +17,7 @@ struct NvLinkLinkObservation {
 
 /// Raw facts reported by NVML; this type intentionally contains no inference or recommendation.
 struct RawGpuObservation {
+    Observed<std::string> driver_version;
     Observed<std::uint32_t> index;
     Observed<std::string> name;
     Observed<std::string> uuid;
@@ -56,6 +57,8 @@ struct RawGpuObservation {
     Observed<std::string> driver_model;
 
     Observed<std::vector<NvLinkLinkObservation>> nvlink_links;
+    /// Number of currently running compute processes when NVML exposes it.
+    Observed<std::uint32_t> process_count;
 };
 
 } // namespace isb::providers::nvml
