@@ -9,7 +9,9 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 option(BUILD_TESTING "Build tests" ON)
 include(CTest)
 
-enable_testing()
+if(BUILD_TESTING)
+    enable_testing()
+endif()
 
 function(isb_add_component directory)
     if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${directory}/CMakeLists.txt")
