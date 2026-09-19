@@ -78,3 +78,60 @@ SCAN -> DETECT -> COMPATIBILITY -> DRY-RUN -> APPROVAL
 ```
 
 No component is complete merely because it compiles. Stable functionality requires tests, provenance, negative/unknown-path handling and verification.
+
+---
+
+## Current implementation-gap routing
+
+The following routing reflects the September 2026 source/CI audit.
+
+### Provider completion
+- NVML: real read-only path exists; management/mutation remains incomplete.
+- CUDA: provider boundary exists; complete observation/capability aggregation remains open.
+- Vulkan: provider boundary exists; complete observation/capability aggregation remains open.
+- Windows DXGI/D3D/DirectCompute: implementation remains a required roadmap item.
+- Linux platform/runtime detection: implementation remains a required roadmap item.
+
+### Hub
+- Keep Hub as the sole orchestration boundary.
+- Replace conservative/mock paths with real provider-backed operations only after read-back verification exists.
+- Complete scan, diagnose, optimize, apply, rollback, verify and report transactions.
+
+### Performance
+- Complete real telemetry.
+- Add bounded history and throttling analysis.
+- Add provider-backed tuning with rollback and verification.
+
+### FixEngine / diagnostics
+- Finish deterministic rule matching.
+- Integrate real fingerprint/IDR evidence.
+- Implement the first reproducible V100 workaround and regression case.
+
+### Graphics
+- Complete render-path detection.
+- Implement safe application-scoped routing/configuration.
+- Add end-to-end verification.
+- Keep software enhancement distinct from native V100 hardware capability.
+
+### Games / OptiScaler
+- Implement game discovery and compatibility providers.
+- Implement safe OptiScaler lifecycle management with backup/hash/rollback.
+
+### Drivers
+- Implement NVIDIA/Google release providers.
+- Implement URL parsing, compatibility resolution, downloader, verification and cache.
+- Keep installation explicit and separate from ISB installation.
+
+### Installer / Release
+- Complete production ISB packaging and upgrade/uninstall.
+- Complete Windows/Linux release artifacts, checksums, manifests and GitHub Release automation.
+
+### Control Center
+- Convert mock/contract UI into real Hub-backed views incrementally.
+- Never move provider/business logic into Qt.
+
+### Evidence / benchmarks
+- Complete deterministic reports and baseline/candidate comparison.
+- Implement reproducible CUDA/Tensor/HBM/PCIe/NVLink/graphics benchmarks.
+- Require correctness and provenance before performance claims.
+\n
