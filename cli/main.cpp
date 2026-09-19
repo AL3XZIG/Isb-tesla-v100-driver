@@ -1,4 +1,5 @@
 #include "isb/hub/hub.hpp"
+#include "cal/capabilities.hpp"
 #include "isb/graphics/upscaler_types.hpp"
 #include "isb/graphics/render_path_types.hpp"
 #include "presentation/formatter.hpp"
