@@ -1,5 +1,5 @@
 #include "isb/hub/hub.hpp"
-#include "cal/capabilities.hpp"
+#include "isb/cal/capabilities.hpp"
 #include "isb/graphics/upscaler_types.hpp"
 #include "isb/graphics/render_path_types.hpp"
 #include "presentation/formatter.hpp"
@@ -882,7 +882,7 @@ int main(int argc, char** argv) {
         }
     } else if (args[0] == "info") {
         if (json_output) {
-            std::cout << cal::to_json(hub.capabilities()) << "\n";
+            std::cout << isb::cal::to_json(hub.capabilities()) << "\n";
         } else {
             print_info(hub, fmt);
         }
