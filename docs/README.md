@@ -4,14 +4,15 @@
 
 For AI agents and new contributors, read in this order:
 
-1. **MASTER_SPEC.md** — consolidated product and technical specification from the project's accumulated requirements.
-2. **AGENT_GUIDE.md** — operational rules and architectural boundaries.
-3. **PRODUCT_REQUIREMENTS.md** — user-facing product requirements.
-4. **CURRENT_IMPLEMENTATION.md** — conservative implementation-state snapshot.
-5. **AGENT_WORKFLOW.md** — how to modify the repository safely.
-6. **DRIVER_AND_RELEASE_PIPELINE.md** — driver lifecycle and release engineering.
+1. **MASTER_SPEC.md** — consolidated product and technical specification.
+2. **MASTER_TZ_ADDENDUM.md** — verified addendum containing the accumulated requirements for graphics enhancement, OptiScaler, render path, Driver Manager, URL parser, downloader/cache, Release Builder and CI publication.
+3. **AGENT_GUIDE.md** — operational rules and architectural boundaries.
+4. **PRODUCT_REQUIREMENTS.md** — user-facing product requirements.
+5. **CURRENT_IMPLEMENTATION.md** — conservative implementation-state snapshot.
+6. **AGENT_WORKFLOW.md** — how to modify the repository safely.
+7. **DRIVER_AND_RELEASE_PIPELINE.md** — detailed driver lifecycle and release engineering.
 
-MASTER_SPEC.md is the best single document to give to a new coding agent when the agent needs the complete project context. It intentionally describes the target architecture and requirements; it does not override source code or CI when describing implementation status.
+MASTER_SPEC.md plus MASTER_TZ_ADDENDUM.md are the preferred project-context pair for a new coding agent. They describe target architecture and requirements; they do not override source code or CI when describing implementation status.
 
 ## Architecture and roadmap
 
@@ -50,13 +51,7 @@ DRIVER_AND_RELEASE_PIPELINE.md is the canonical specification for:
 - GitHub Actions build/test/package/release flow;
 - release provenance and security gates.
 
-The specification does not imply that every listed feature is already implemented. Current source code and CI remain authoritative for implementation status.
-
-## Historical material
-
-PR-specific audit documents are historical evidence. Current source, CI and current architecture documents take precedence.
-
-## Conflict rule
+## Source-of-truth rule
 
 For implementation state, prefer:
 
@@ -69,7 +64,10 @@ For implementation state, prefer:
 For product intent, prefer:
 
 1. MASTER_SPEC.md;
-2. PRODUCT_REQUIREMENTS.md;
-3. README.md.
+2. MASTER_TZ_ADDENDUM.md;
+3. PRODUCT_REQUIREMENTS.md;
+4. README.md.
 
 If documents disagree, inspect the source and update the documentation rather than guessing.
+
+The existence of a specification never proves that the corresponding feature is implemented.
