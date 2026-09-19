@@ -2,309 +2,159 @@
 
 **ISB — Intelligent Systems Bureau**
 
-Open-source **V100-focused user-space control, compatibility, optimization and diagnostics hub** built on top of an installed NVIDIA driver stack.
+Open-source V100-focused user-space control, compatibility, optimization and diagnostics platform built on top of an installed NVIDIA driver stack.
 
-> ISB does not replace the NVIDIA kernel/user-mode driver stack. It detects the real hardware and software environment, exposes V100-specific controls, manages compatibility workarounds and external integrations, verifies changes, and provides a lightweight user-facing control center.
+> ISB does not replace the NVIDIA kernel/user-mode driver stack. The installed NVIDIA/Google-compatible driver remains responsible for hardware access and native OS integration. ISB provides the user-facing control plane, V100-specific capability detection, diagnostics, optimization workflows, compatibility tooling and external-component management.
 
-## Project direction
+[Русская версия / Russian version](README_RU.md)
 
-ISB has evolved from the original **Driver Fixer** concept into a **V100 control plane / hub**.
+## What is ISB?
 
-The installed NVIDIA/Google-compatible base driver remains responsible for device initialization, native OS driver models, command submission and hardware access. ISB operates above or beside that stack and adds the missing user-facing layer:
+ISB started as a V100 Driver Fixer concept and evolved into a V100 control plane and compatibility/enhancement platform.
 
-```text
-Game / Application / Compute workload
-                    |
-                    v
-              ISB V100 Hub
-     +--------------+--------------+
-     |              |              |
-  Optimize       Games          Diagnose
-     |              |              |
- Performance   Profiles +      FixEngine
- Controls      OptiScaler     Verification
-     |              |              |
-     +--------------+--------------+
-                    |
-             Base Driver Stack
-                    |
-              Windows / Linux
-                    |
-                V100 / GV100
-```
+The goal is simple: **make Tesla V100 easier to use, tune, diagnose and get useful work out of without pretending to be a replacement NVIDIA driver.**
 
-The goal is simple: **make a Tesla V100 easier to use, tune, diagnose and get more useful work out of without pretending to be a replacement NVIDIA driver.**
+The main control path is:
 
-## User-facing feature set
+Game / Application / Compute workload → ISB V100 Hub → providers and feature modules → NVIDIA base driver → Tesla V100.
 
-### Home
+## Main features
 
-A single V100 status page:
+### Control Center / Hub
 
-- exact GPU identity and SXM2/PCIe variant;
-- driver, CUDA, NVML and graphics API status;
-- temperature, utilization, power and clocks;
-- ECC state/errors;
-- active profile and applied ISB changes;
-- detected problems and recommended actions;
-- one-click **Optimize V100** workflow.
+A single control plane for:
 
-### Performance
+- exact GPU identity and V100 variant;
+- driver/runtime/API status;
+- capabilities and provenance;
+- telemetry;
+- performance controls;
+- diagnostics;
+- games and compatibility;
+- OptiScaler;
+- reports and verification.
 
-V100-aware monitoring and tuning where the installed stack exposes the required controls:
+GUI and CLI use the same Hub contracts. GUI code must not call low-level providers directly.
 
-- GPU and HBM utilization;
-- temperature;
-- power draw and power limit;
-- SM and memory clocks;
-- PCIe traffic and link state;
-- ECC telemetry;
+### Performance and Optimize V100
+
+V100-aware monitoring and tuning where the installed driver exposes the required APIs:
+
+- utilization, temperature and power;
+- SM/HBM clocks and VRAM;
+- ECC;
+- PCIe and NVLink where available;
 - running processes;
 - persistence mode;
 - application clocks;
 - compute mode;
 - supported power/performance controls;
-- profiles: Balanced, Gaming, Compute, AI/Tensor, Maximum Performance, Low Power and Custom.
+- workload profiles.
 
-Every control follows **requested → applied → verified** and records whether it is current, persistent, temporary or requires a reset/restart.
+The high-level optimization pipeline is:
 
-ISB never claims a setting was applied when the underlying management API rejected or ignored it.
+**SCAN → DETECT → ANALYZE → PLAN → REVIEW → APPLY → VERIFY → RESULT**
 
-### Games
+Mutations follow **requested → applied → read-back → verified**. No unverified change is reported as successful.
 
-A lightweight game compatibility manager:
-
-- discover Steam/Epic/GOG/standalone installations where detectable;
-- identify executable and graphics API where possible;
-- detect DX11/DX12/Vulkan and relevant upscaler/runtime signals;
-- maintain per-game compatibility profiles;
-- detect OptiScaler applicability;
-- show compatibility as `AVAILABLE`, `UNAVAILABLE` or `UNKNOWN`;
-- support safe bulk optimization for explicitly compatible games;
-- back up every modified file and support rollback;
-- keep anti-cheat handling conservative.
-
-Safe workflow:
-
-**SCAN → DETECT → COMPATIBILITY → DRY-RUN → USER APPROVAL → INSTALL → VERIFY → LOG → ROLLBACK**
-
-Unknown compatibility must not be silently treated as supported. Online/anti-cheat games must never be modified silently.
-
-### OptiScaler Manager
-
-OptiScaler is an **external managed component**, not an ISB reimplementation.
-
-ISB should provide:
-
-- installed/version detection;
-- compatible-version selection;
-- update and rollback;
-- per-game configuration;
-- backups and hash verification;
-- installation logs;
-- compatibility state;
-- provenance and license metadata.
-
-ISB must respect OptiScaler's license/distribution requirements and must not silently download arbitrary binaries.
-
-### Driver Doctor
-
-The original Driver Fixer capability remains a core subsystem:
+### Driver Doctor / FixEngine
 
 - hardware/driver/API fingerprinting;
 - deterministic diagnosis;
-- known-issue/rule matching;
+- known-issue rules;
 - reversible workarounds;
-- FixEngine plans;
-- dry-run and explicit apply;
-- verification after changes;
-- rollback on failure;
-- deterministic diagnostic reports.
+- dry-run plans;
+- explicit apply;
+- post-change verification;
+- rollback;
+- deterministic reports.
 
-### Tensor Core Lab
+### Games
 
-V100-specific compute diagnostics and benchmarks:
+Planned V100-focused game management includes discovery, executable/API detection, compatibility profiles, per-game configuration, OptiScaler detection, safe optimization, backups and rollback.
 
-- FP16/INT8 probes where supported;
-- Tensor Core throughput;
-- HBM bandwidth;
-- CUDA compute probes;
-- baseline/candidate comparisons;
-- correctness checks before performance claims.
+Unknown compatibility remains **UNKNOWN** and is never silently treated as supported.
 
-### Thermal Guard
+### OptiScaler Manager
 
-Analysis of:
+OptiScaler remains an **external component**. ISB manages it rather than reimplementing it:
 
-- temperature;
-- thermal throttling;
-- power throttling;
-- clock drops;
-- ECC anomalies;
-- abnormal utilization/power patterns.
-
-### Interconnect
-
-Separate, capability-aware diagnostics for:
-
-- PCIe generation and width;
-- PCIe traffic/errors where exposed;
-- NVLink topology/state where present;
-- CUDA P2P capability;
-- measured interconnect bandwidth.
+- version detection and selection;
+- configuration;
+- backup and hash verification;
+- update and rollback/remove;
+- provenance and license metadata.
 
 ### Graphics Enhancement
 
-Safe per-game/user-space graphics controls where technically available:
+Software graphics features may include:
 
-- resolution scaling;
 - spatial upscaling;
+- resolution scaling;
 - sharpening;
-- dynamic resolution settings;
+- dynamic resolution;
 - frame-pacing telemetry;
-- VSync/FPS configuration where the application exposes a safe configuration path;
-- shader/cache management;
-- selected image-quality and latency options;
-- OptiScaler configuration.
+- selected image-quality/latency controls;
+- external OptiScaler integration.
 
-Experimental ISB graphics work may also investigate neural reconstruction, frame interpolation and software rendering techniques. These are **software features**, not native V100 RT/DLSS/Optical Flow hardware.
+Experimental work may investigate CUDA/Tensor neural upscaling, frame interpolation and software ray/lighting techniques. These are software alternatives, not native RTX hardware features.
 
-### V100 Benchmark
+### Diagnostics, reports and benchmarks
 
-A reproducible benchmark suite covering:
+ISB is designed to produce evidence-backed reports and reproducible benchmarks covering CUDA, Tensor Cores, HBM, graphics, PCIe/NVLink and application-level before/after measurements.
 
-- graphics;
-- CUDA compute;
-- Tensor Cores;
-- HBM bandwidth;
-- PCIe/interconnect;
-- application-level before/after measurements.
-
-Results identify the exact GPU, driver, application, configuration and test revision.
-
-### One-click report
-
-ISB can generate a deterministic report bundle containing, where available:
-
-```text
-manifest.json
-gpu.json
-driver.json
-capabilities.json
-games.json
-optiscaler.json
-performance.json
-errors.json
-logs/
-```
-
-## Optimize V100
-
-The primary high-level workflow is **Optimize V100**.
-
-It analyzes:
-
-1. hardware and exact V100 variant;
-2. OS and driver stack;
-3. exposed APIs and management interfaces;
-4. current performance/thermal state;
-5. game/application configuration;
-6. OptiScaler compatibility;
-7. applicable FixEngine rules;
-8. available performance controls.
-
-It then produces an explicit plan showing proposed changes, expected effect category, required privileges, restart/reset requirements, risks, unsupported items and verification steps.
-
-No mutation is performed without an explicit apply operation. Every applied change is logged and reversible where technically possible.
-
-## Architecture
-
-```text
-                         ISB V100 Hub
-                              |
-              +---------------+---------------+
-              |               |               |
-        Control Plane     Feature Modules   Evidence
-              |               |               |
-       core / hub / cli  games / graphics  diagnostics
-              |           performance      verification
-              |           integrations     reports
-              |           benchmarks
-              |               |
-              +---------> FixEngine <-------+
-                              |
-                       Provider / API Layer
-                 NVML / CUDA / Vulkan / DXGI
-                              |
-                       Base Driver Stack
-                              |
-                           V100/GV100
-```
-
-The GUI is a frontend to the same control-plane contracts used by the CLI. Business logic must not be duplicated between GUI and CLI.
-
-See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the detailed model and [`docs/TASKS.md`](docs/TASKS.md) for the implementation roadmap.
-
-See [`docs/PRODUCT_SPEC.md`](docs/PRODUCT_SPEC.md) for the consolidated product and technical specification covering the V100 Hub, TUNING, OPTIMIZATION, GRAPHICS, multi-GPU render/display architecture, upscaling/OptiScaler boundaries, Control Center, appearance, installer, driver lifecycle, release engineering and experimental-feature rules.
-
-## Repository structure
-
-The target structure is organized around the hub while preserving the existing CAL, FixEngine and verification foundations:
-
-```text
-core/                  architecture specification area; no production target
-hub/                   V100 control-plane orchestration
-cal/                   capability abstraction; no runtime probing
-capabilities/          V100/GV100 capability definitions
-providers/             NVML, CUDA, Vulkan, DXGI and platform providers
-fixer/                 existing deterministic FixEngine and reversible actions
-compatibility/         application/API compatibility policy and selection
-games/                 game discovery, compatibility and per-game profiles
-performance/           telemetry, tuning and V100 performance controls
-graphics/              graphics API boundaries and enhancement infrastructure
-integrations/          OptiScaler, DXVK/VKD3D and other external components
-benchmarks/            reproducible graphics/compute/Tensor/HBM/PCIe tests
-diagnostics/           IDR, fingerprints, errors and evidence
-verification/          regression and post-change verification
-reports/               deterministic report bundles
-profiles/              hardware, driver, workload and application profiles
-control-center/        optional lightweight GUI frontend
-cli/                   headless interface to the same hub contracts
-installer/              install/configure/verify/rollback workflows
-drivers/               base-driver detection and lifecycle metadata
-compute/                CUDA/DirectCompute/compute compatibility
-neural/                 V100 neural/SR/denoising research and runtime experiments
-database/               drivers, GPUs, applications and known issues
-manifests/              reproducibility manifests
-research/               experimental alternative-driver work
-third_party/            audited external references/components
-legal/                  licensing and proprietary-component policy
-tests/                  unit/compatibility/regression/hardware tests
-docs/                   architecture, tasks and protocols
-.github/                CI
-```
-
-The structure is a **target architecture**, not a requirement to create every module at once. Existing code is migrated incrementally; duplicate implementations must not be created merely to match the directory diagram.
-
-`research/alternative-driver/` remains isolated and is not required by the V100 Hub.
+Reports preserve provenance and distinguish real, mock, unavailable and unverified information.
 
 ## Capability model
 
-ISB separates three layers:
+ISB separates:
 
-1. **Hardware capability** — what the physical V100 contains.
-2. **Base-driver capability** — what the installed driver/runtime exposes on the current OS/API.
-3. **ISB capability** — what ISB adds above the base stack.
+1. Hardware capability — what the physical V100 contains.
+2. Base-driver capability — what the installed driver/runtime exposes.
+3. Observed capability — what providers actually observe.
+4. Verified capability — what evidence/tests demonstrate.
+5. ISB capability — what ISB adds above the base stack.
 
-For V100 this distinction is mandatory. GV100/SM70 has first-generation Tensor Cores and ECC HBM2, but no RT Cores, dedicated Optical Flow Accelerator or MIG. Software features must not be named as native hardware support when they are implemented through another path.
+Capability states are explicit: AVAILABLE, UNAVAILABLE, UNKNOWN, PERMISSION_DENIED and ERROR.
 
-If a particular NVIDIA/Google driver exposes DirectCompute, Vulkan extensions or another feature, ISB detects and uses that **base-driver capability**; ISB does not claim to have implemented it itself.
+**UNKNOWN is not UNAVAILABLE.**
+
+For V100, ISB must not claim native RT Cores, a dedicated Optical Flow Accelerator, MIG, DLSS hardware or other features absent from GV100/Volta. Software implementations must be labeled as software.
+
+## Driver lifecycle
+
+The planned Driver Manager covers:
+
+- NVIDIA/Google driver catalog metadata;
+- version and branch detection;
+- compatibility matching;
+- URL/artifact parsing;
+- download;
+- checksum/signature verification;
+- local cache;
+- provenance;
+- explicit user-controlled installation.
+
+ISB must not silently replace the installed driver or execute arbitrary downloaded installers.
+
+## Release Builder and Installer
+
+The project plans a reproducible release pipeline:
+
+**tag → clean checkout → configure → build → test → package → SHA256/manifest → release notes → GitHub Release**
+
+Target artifacts:
+
+- Windows x64: ZIP and EXE;
+- Linux x86_64: DEB and TAR.GZ.
+
+Generated binaries are release artifacts, not committed build outputs.
 
 ## V100 scope
 
-Primary qualification target: **Tesla V100 SXM2 16 GB**.
+Primary qualification target: **NVIDIA Tesla V100 SXM2 16 GB**.
 
-V100 PCIe and 32 GB variants are tracked separately and must be detected rather than assumed.
+Also tracked separately: V100 PCIe, V100 32 GB, multi-GPU configurations, and headless compute with a separate display GPU.
 
 Initial OS scope:
 
@@ -313,59 +163,57 @@ Initial OS scope:
 
 Legacy Windows/BSD support is separate qualification work.
 
-## What ISB cannot magically add
+## Architecture and documentation
 
-- RT Cores to V100;
-- a dedicated Optical Flow Accelerator;
-- MIG;
-- display outputs that are not physically present;
-- proprietary driver functionality that the installed stack does not expose and cannot legally/technically be substituted for;
-- arbitrary kernel-driver recovery from user space.
+The repository is organized around one Hub/control plane with shared providers, FixEngine, compatibility, graphics, performance, diagnostics, verification and reporting layers.
 
-ISB may provide software alternatives, compatibility paths or user-space compute implementations, but those must be explicitly labeled as such.
+Read these documents before making architectural changes:
+
+- [Architecture](docs/ARCHITECTURE.md)
+- [Implementation plan](docs/IMPLEMENTATION_PLAN.md)
+- [Roadmap status](docs/ROADMAP_STATUS.md)
+- [Tasks](docs/TASKS.md)
+- [Master specification](docs/MASTER_SPEC.md)
+- [Master addendum](docs/MASTER_TZ_ADDENDUM.md)
+- [Current implementation](docs/CURRENT_IMPLEMENTATION.md)
+- [Driver and release pipeline](docs/DRIVER_AND_RELEASE_PIPELINE.md)
+- [Agent guide](docs/AGENT_GUIDE.md)
+
+## Current implementation status
+
+The repository is in active implementation. Established foundations include common status/result/error contracts, V100/GV100 capability definitions, Hub/control-plane architecture, qualification/evidence gating, read-only NVML integration, telemetry/tuning/optimization contracts and deterministic mock slices, FixEngine foundations, verification infrastructure, experimental graphics/render-path foundations, OptiScaler boundaries, Control Center foundations, and driver/release architecture.
+
+The remaining work is mainly the transition from contracts, mocks and partial providers to a fully integrated real V100 stack:
+
+**M0 Build & stabilization → M1 Capability Engine → M2 real providers → M3 real telemetry → M4 tuning/Optimize V100 → M5 Driver Doctor → M6 graphics/render path → M7 Games/OptiScaler → M8 Driver Manager → M9 Release Builder/Installer → M10 Control Center → M11 benchmarks/evidence → M12 experimental graphics → physical V100 qualification.**
+
+The authoritative implementation-gap roadmap is [docs/ROADMAP_STATUS.md](docs/ROADMAP_STATUS.md) and [docs/TASKS.md](docs/TASKS.md).
+
+## What ISB does not do
+
+ISB does not magically add hardware capabilities that V100 does not physically contain. It does not replace the NVIDIA kernel driver, silently modify online/anti-cheat games, silently install arbitrary external binaries, report mock data as physical V100 evidence, or make UNKNOWN look like AVAILABLE.
+
+The independent GV100 KMD/UMD driver remains isolated under research/alternative-driver/ and is not a dependency of the main Hub.
 
 ## Development principles
 
-1. **Hub first, driver replacement later.**
-2. **Reuse existing foundations.** CAL, capability models, FixEngine and verification are shared infrastructure.
-3. **One control plane.** GUI and CLI call the same contracts.
-4. **Evidence before claims.** Probes and benchmarks record provenance and verification state.
-5. **Requested → applied → verified.** Never report an unverified configuration as successful.
-6. **Reversible by default.** Back up before mutation and provide rollback where possible.
-7. **Unknown is not available.** Unknown compatibility must remain visible.
-8. **External components stay external.** OptiScaler/DXVK/VKD3D retain their own licenses and provenance.
-9. **No silent global modification.** Especially for online/anti-cheat applications.
-10. **Keep the client lightweight.** C++ backend and a lightweight GUI; no Electron-scale runtime and no unnecessary always-on service.
-11. **V100-specific knowledge is the differentiator.** Do not build a generic GPU suite at the expense of precise V100 behavior.
-12. **Research remains isolated.** The independent KMD/UMD track never becomes an accidental dependency.
+1. Hub first.
+2. Evidence before claims.
+3. Requested → applied → verified.
+4. Unknown stays unknown.
+5. Reversible changes by default.
+6. GUI and CLI share one control plane.
+7. External components remain external.
+8. V100-specific behavior is the priority.
+9. No silent global mutation.
+10. Research code stays isolated.
 
-## Status
+## Contributing
 
-**V100 Hub architecture — implementation phase.**
+Before making architectural changes, read MASTER_SPEC.md, MASTER_TZ_ADDENDUM.md, AGENT_GUIDE.md, CURRENT_IMPLEMENTATION.md, ROADMAP_STATUS.md and TASKS.md.
 
-CAL v1, capability definitions, driver fingerprinting, FixEngine and verification are foundations. The implementation sequence is:
-
-**control plane → providers/capabilities → Home/status → Performance → Driver Doctor → Games → OptiScaler → Graphics → Reports/Benchmarks → GUI → experimental features.**
+Do not create duplicate subsystems when an existing Hub, provider, FixEngine, capability or verification contract already owns the responsibility.
 
 ## License
 
-Project licensing and third-party provenance are maintained under [`legal/`](legal/).
-
-## Current backend build
-
-The currently buildable backend is a headless Hub with a deterministic mock provider and safe unavailable-provider path. It offers inspection, capabilities, telemetry, profiles/plans, diagnostics, verification, benchmark fixture, and report generation; it does not apply hardware mutations. See [First backend build](docs/FIRST_BUILD.md).
-
-
-## Verified repository status (PR #37)
-
-This section records the current implementation boundary after the stabilization work completed so far. It is intentionally narrower than the target feature set above.
-
-- The mainline product is a V100-focused user-space Hub/control plane, not an independent NVIDIA driver.
-- `common/` remains the owner of the implemented foundation primitives such as `Status`, `Result<T>` and `ErrorCode`; `core/` currently contains specification material rather than a production target.
-- `hub/` is the canonical user-facing control plane. CLI and Control Center code must consume Hub contracts rather than provider APIs directly.
-- PR #35 stabilized qualification evidence gating: mock, unavailable and unverified results cannot be reported as real hardware PASS evidence.
-- PR #36 added the read-only deterministic Hub status surface and CLI status path. Its output preserves provider mode and synthetic provenance.
-- The default build remains C++17/CMake-based; optional provider and GUI components must remain optional.
-- The repository still has no verified physical Tesla V100 qualification result. Hardware claims remain subject to #35b.
-
-The roadmap in `docs/TASKS.md` is authoritative for what is implemented versus planned. Target-directory diagrams describe intended ownership, not a requirement that every directory already exists or is production-ready.
+Project licensing and third-party provenance are maintained under legal/.
