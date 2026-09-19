@@ -106,7 +106,7 @@ void print_help(const Formatter& fmt) {
     std::cout << fmt.kv("about", "Show version and project info") << "\n";
     
     std::cout << "\n" << fmt.line('─') << "\n";
-    std::cout << fmt.dim << "Examples:" << fmt.reset() << "\n";
+    std::cout << fmt.dim() << "Examples:" << fmt.reset() << "\n";
     std::cout << "  isb --mock status\n";
     std::cout << "  isb --mock --json capabilities\n";
     std::cout << "  isb --mock profile plan Gaming\n";
@@ -378,7 +378,7 @@ void run_monitor(const Hub& hub, const Formatter& fmt, int interval_seconds) {
     std::cout << Banner::compact(fmt);
     std::cout << fmt.section("Live Monitoring");
     std::cout << fmt.kv("Interval", std::to_string(interval_seconds) + "s") << "\n";
-    std::cout << fmt.dim << "Press Ctrl+C to stop" << fmt.reset() << "\n\n";
+    std::cout << fmt.dim() << "Press Ctrl+C to stop" << fmt.reset() << "\n\n";
     
     // Setup signal handler
     std::signal(SIGINT, signal_handler);
@@ -442,7 +442,7 @@ void run_monitor(const Hub& hub, const Formatter& fmt, int interval_seconds) {
         }
     }
     
-    std::cout << "\n" << fmt.dim << "Monitoring stopped." << fmt.reset() << "\n";
+    std::cout << "\n" << fmt.dim() << "Monitoring stopped." << fmt.reset() << "\n";
 }
 
 void print_profile_list(const Hub& hub, const Formatter& fmt) {
@@ -555,7 +555,7 @@ void print_optimize_plan(const Hub& hub, const Formatter& fmt) {
     }
     
     std::cout << "\n" << fmt.line('─') << "\n";
-    std::cout << fmt.dim << "Note: This is a read-only plan. No changes will be applied without explicit approval.\n";
+    std::cout << fmt.dim() << "Note: This is a read-only plan. No changes will be applied without explicit approval.\n";
     std::cout << "Use 'profile apply <name>' to apply changes (when backend supports mutation).\n" << fmt.reset();
     std::cout << "\n";
 }
@@ -839,7 +839,7 @@ int main(int argc, char** argv) {
             }
             
             for (const auto& b : backends) {
-                std::cout << "\n" << fmt.bold << isb::graphics::to_string(b.type) 
+                std::cout << "\n" << fmt.bold() << isb::graphics::to_string(b.type) 
                           << ": " << b.name << fmt.reset() << "\n";
                 std::cout << fmt.kv("Version", b.version) << "\n";
                 
@@ -949,7 +949,7 @@ int main(int argc, char** argv) {
         std::cout << fmt.kv("Target", "Tesla V100 SXM2 16GB") << "\n";
         std::cout << fmt.kv("Architecture", "Volta GV100") << "\n";
         std::cout << fmt.kv("Repository", "github.com/AL3XZIG/Isb-tesla-v100-driver") << "\n";
-        std::cout << "\n" << fmt.dim << "This is a user-space control plane, not a replacement NVIDIA driver.\n" << fmt.reset();
+        std::cout << "\n" << fmt.dim() << "This is a user-space control plane, not a replacement NVIDIA driver.\n" << fmt.reset();
         std::cout << "\n";
         return 0;
     } else {
