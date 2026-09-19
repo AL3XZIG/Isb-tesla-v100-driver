@@ -8,6 +8,7 @@ For AI agents and new contributors:
 2. PRODUCT_REQUIREMENTS.md — what the product should become.
 3. CURRENT_IMPLEMENTATION.md — conservative current-state snapshot.
 4. AGENT_WORKFLOW.md — how to modify the repository safely.
+5. DRIVER_AND_RELEASE_PIPELINE.md — driver discovery/download, URL parsing, cache, verification and ISB release engineering.
 
 ## Architecture and roadmap
 
@@ -25,6 +26,28 @@ For AI agents and new contributors:
 - build.md
 - FIRST_BUILD.md
 - verification-tools-v1.md
+
+## Driver and release engineering
+
+DRIVER_AND_RELEASE_PIPELINE.md is the canonical specification for:
+
+- NVIDIA and Google driver source providers;
+- driver version discovery;
+- driver URL parsing;
+- normalized driver metadata;
+- safe driver downloads;
+- checksum/signature verification;
+- local driver cache;
+- Hub/CLI/Control Center driver integration;
+- explicit installation boundaries;
+- Windows .zip/.exe packaging;
+- Linux .deb/.tar.gz packaging;
+- release manifests;
+- SHA256SUMS;
+- GitHub Actions build/test/package/release flow;
+- release provenance and security gates.
+
+The specification does not imply that every listed feature is already implemented. Current source code and CI remain authoritative for implementation status.
 
 ## Historical material
 
