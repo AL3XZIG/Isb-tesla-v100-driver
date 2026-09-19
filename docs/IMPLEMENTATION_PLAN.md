@@ -5,26 +5,25 @@
 Do not infer ownership from directory names or old specifications. The current repository must be audited before architectural migration.
 
 Confirmed baseline:
-- `core/` exists and contains `core/TASK.md`.
-- `core/TASK.md` specifies provider-neutral orchestration/runtime state and explicitly does not add production implementation by itself.
-- `common/` contains the implemented `Status`, `Result<T>` and `ErrorCode` primitives used by current code.
-- The existence of `core/TASK.md` does not prove that `core` owns foundation primitives.
+- core/ exists and contains core/TASK.md.
+- core/TASK.md specifies provider-neutral orchestration/runtime state and explicitly does not add production implementation by itself.
+- common/ contains the implemented Status, Result<T> and ErrorCode primitives used by current code.
+- The existence of core/TASK.md does not prove that core owns foundation primitives.
 - Whether the repository actually implements separate driver and user-control planes must be established from code and dependency ownership, not assumed.
 
 ### Stabilization rule
 
-The first task is an ownership audit. Do not perform a blind `common → core` migration.
+The first task is an ownership audit. Do not perform a blind common -> core migration.
 
 The intended user-facing boundary is:
 
-`Panel → Hub → Providers`
+Panel -> Hub -> Providers
 
-Hub is the user-space control plane. Do not introduce a second `ControlPlane` abstraction or an `isb-contracts` library unless a concrete wire boundary/second consumer later requires it.
+Hub is the user-space control plane. Do not introduce a second ControlPlane abstraction or an isb-contracts library unless a concrete wire boundary/second consumer later requires it.
 
-If the repository audit confirms a separate low-level driver plane, document it as a distinct plane with explicit ownership rules. Otherwise treat `core/TASK.md` as a specification that may be superseded.
+If the repository audit confirms a separate low-level driver plane, document it as a distinct plane with explicit ownership rules. Otherwise treat core/TASK.md as a specification that may be superseded.
 
-
-This plan starts from the current `main` state. It is intentionally **pre-test**: implementation and static/code review tasks come first. Do not start hardware testing or declare a feature stable until the final test gate is reached.
+This plan starts from the current main state. It is intentionally pre-test: implementation and static/code review tasks come first. Do not start hardware testing or declare a feature stable until the final test gate is reached.
 
 ## Current baseline
 
@@ -45,7 +44,6 @@ The current Control Center is still a contract/mock layer: real provider-backed 
 
 ## Non-negotiable architecture
 
-```text
 CLI / Qt Control Center
         |
         v
@@ -64,16 +62,15 @@ Telemetry   Tuning        Optimization
        Installed base driver
               |
            V100/GV100
-```
 
 Rules:
 
 1. GUI and CLI use the same Hub contracts.
 2. GUI never calls NVML/CUDA/Vulkan/DXGI directly.
 3. Hardware facts, driver/API capabilities and ISB-added capabilities are separate.
-4. `Unknown` is never silently converted to `Unavailable` or `Available`.
+4. Unknown is never silently converted to Unavailable or Available.
 5. No mutation without an explicit user-approved operation.
-6. Every mutation follows `requested -> applied -> read-back -> verified`.
+6. Every mutation follows requested -> applied -> read-back -> verified.
 7. Unsupported operations must be safe no-ops with explicit status.
 8. Provider failures must preserve error/provenance information.
 9. External components such as OptiScaler remain external and are never silently bundled.
@@ -85,32 +82,33 @@ Rules:
 
 ## 0.1 Audit target graph
 
-Review every current `CMakeLists.txt` participating in the default build.
+Review every current CMakeLists.txt participating in the default build.
 
 Required actions:
 
 - remove duplicate target names;
-- remove duplicate `add_subdirectory()` registrations;
+- remove duplicate add_subdirectory registrations;
 - ensure every linked target is defined before use;
 - ensure optional dependencies are genuinely optional;
-- ensure tests are only created when `BUILD_TESTING` is enabled;
+- ensure tests are only created when BUILD_TESTING is enabled;
 - ensure include directories are correct for a clean checkout;
 - ensure no module depends accidentally on another experimental module;
 - ensure root CMake does not silently hide a required core module.
 
 ## 0.2 Establish component classification
 
-Classification must follow the actual repository and dependency graph. Do not label `core/` as the foundation owner until #29 establishes that.
+Classification must follow the actual repository and dependency graph.
 
 Classify modules as:
 
-- **stable/core** — `common`, `cal`, `hub`, `cli`, core control-plane contracts;
-- **provider** — NVML/CUDA/Vulkan/DXGI/platform adapters;
-- **experimental** — graphics/compute/research code;
-- **frontend** — `control-center`;
-- **evidence** — diagnostics/verification/reports/benchmarks.
+- stable/core — common, cal, hub, cli, core control-plane contracts;
+- provider — NVML/CUDA/Vulkan/DXGI/platform adapters;
+- experimental — graphics/compute/research code;
+- frontend — control-center;
+- evidence — diagnostics/verification/reports/benchmarks;
+- lifecycle — drivers, installer and release tooling.
 
-Do not create duplicate implementations merely to satisfy the target directory diagram.
+Do not create duplicate implementations merely to satisfy a target directory diagram.
 
 ## 0.3 Clean public API boundaries
 
@@ -131,21 +129,21 @@ For each public header:
 
 ## 1.1 Resolve foundation ownership
 
-Audit `core/TASK.md`, production `core/` code, `common/` headers and all consumers of `Status`, `Result<T>`, `ErrorCode` and `Provenance`.
+Audit core/TASK.md, production core/ code, common/ headers and all consumers of Status, Result<T>, ErrorCode and Provenance.
 
-Choose one explicit owner per primitive. If `core/TASK.md` is obsolete, mark it superseded. Do not create a third compatibility layer.
+Choose one explicit owner per primitive. If core/TASK.md is obsolete, mark it superseded. Do not create a third compatibility layer.
 
 ## 1.2 Unify duplicated models
 
 Create or reconcile common contracts for:
 
-- `Environment`;
-- `GpuIdentity`;
-- `CapabilitySnapshot`;
-- `ErrorEvent`;
-- `Operation`;
-- `VerificationResult`;
-- `Provenance`.
+- Environment;
+- GpuIdentity;
+- CapabilitySnapshot;
+- ErrorEvent;
+- Operation;
+- VerificationResult;
+- Provenance.
 
 Before adding a new struct, search the repository for an existing equivalent and reuse or adapt it.
 
@@ -155,10 +153,10 @@ Do not maintain two incompatible representations of the same concept.
 
 Use one semantic model throughout the Hub:
 
-- `AVAILABLE`;
-- `UNAVAILABLE`;
-- `UNKNOWN`;
-- where operationally required, distinguish `PERMISSION_DENIED` and `ERROR` from capability itself.
+- AVAILABLE;
+- UNAVAILABLE;
+- UNKNOWN;
+- where operationally required, distinguish PERMISSION_DENIED and ERROR from capability itself.
 
 A permission error is not proof that hardware is unsupported.
 
@@ -183,34 +181,23 @@ Implement a common operation record containing at minimum:
 
 The model must support:
 
-`PLAN -> USER REVIEW -> APPLY -> READ BACK -> VERIFY -> RESULT`.
+PLAN -> USER REVIEW -> APPLY -> READ BACK -> VERIFY -> RESULT.
 
 ## 1.5 Complete deterministic serialization
 
 All externally persisted contracts must have deterministic serialization.
 
-Fix the current Control Center JSON helper so that JSON strings correctly escape at least:
-
-- quotation marks;
-- backslashes;
-- newline;
-- carriage return;
-- tab;
-- backspace;
-- form feed;
-- other required control characters.
+Fix the current Control Center JSON helper so that JSON strings correctly escape quotation marks, backslashes, newline, carriage return, tab, backspace, form feed and other required control characters.
 
 Prefer a single project JSON utility instead of hand-written serializers scattered through modules.
 
----
-
 ## 1.6 Consolidate the user-control entry point
 
-Audit current `control-center::ControlPlane` and all Control Center call sites, including Qt `main.cpp`, src, include and tests.
+Audit current control-center::ControlPlane and all Control Center call sites, including Qt main.cpp, src, include and tests.
 
 Target boundary:
 
-`Panel → Hub → Providers`
+Panel -> Hub -> Providers
 
 Panel must not include or link provider implementations. Hub receives providers through injection. MockProvider is used below the real Hub path.
 
@@ -222,7 +209,7 @@ This is the most important implementation phase before tuning or GUI completion.
 
 ## 2.1 Observation contract audit
 
-Search repository-wide for `Observed<T>` and equivalent wrappers. Confirm actual duplicates before creating a common abstraction. Generic observation semantics may be shared; provider-specific raw observation payloads remain provider-specific.
+Search repository-wide for Observed<T> and equivalent wrappers. Confirm actual duplicates before creating a common abstraction. Generic observation semantics may be shared; provider-specific raw observation payloads remain provider-specific.
 
 ## 2.2 NVML provider
 
@@ -318,13 +305,11 @@ Provide Linux-specific environment detection without polluting portable contract
 
 For each feature record:
 
-```text
 hardware capability
 base-driver capability
 runtime/library capability
 ISB capability
 verification status
-```
 
 Examples:
 
@@ -363,7 +348,7 @@ Record source for each observation:
 - benchmark;
 - synthetic fixture.
 
-Synthetic data must be explicitly marked `synthetic: true`.
+Synthetic data must be explicitly marked synthetic: true.
 
 ---
 
@@ -452,7 +437,6 @@ Do not invent a control because a UI element exists.
 
 Implement:
 
-```text
 READ CURRENT
   -> VALIDATE REQUEST
   -> CREATE PLAN
@@ -461,9 +445,8 @@ READ CURRENT
   -> READ BACK
   -> VERIFY
   -> NEXT STEP
-```
 
-Default failure policy for hardware tuning: **StopOnFailure**.
+Default failure policy for hardware tuning: StopOnFailure.
 
 ## 5.4 Rollback
 
@@ -488,7 +471,7 @@ Profiles remain policy templates:
 - Low Power;
 - Custom.
 
-A profile does not mean “known optimal”. It produces desired policy values only when provider evidence permits.
+A profile does not mean known optimal. It produces desired policy values only when provider evidence permits.
 
 Selecting a profile must not silently mutate hardware.
 
@@ -502,9 +485,7 @@ Do not create a second diagnostic/rule engine.
 
 Connect:
 
-```text
 fingerprint -> environment/error evidence -> FixEngine -> plan -> executor -> verification
-```
 
 ## 6.2 Preserve tri-state logic
 
@@ -545,7 +526,7 @@ Add machine-readable records for:
 - maturity;
 - provenance.
 
-No undocumented “magic” fixes.
+No undocumented magic fixes.
 
 ---
 
@@ -555,7 +536,6 @@ No undocumented “magic” fixes.
 
 Pipeline:
 
-```text
 SCAN
 DETECT
 ANALYZE
@@ -564,7 +544,6 @@ USER REVIEW
 APPLY
 VERIFY
 RESULT
-```
 
 Planner output must distinguish:
 
@@ -726,7 +705,6 @@ Priority:
 
 Implement deterministic report bundle:
 
-```text
 manifest.json
 gpu.json
 driver.json
@@ -736,7 +714,6 @@ optiscaler.json
 performance.json
 errors.json
 logs/
-```
 
 Include:
 
@@ -753,9 +730,7 @@ Include:
 
 Support diffing:
 
-```text
 baseline -> candidate -> verified result
-```
 
 Performance claims must reference reproducible evidence.
 
@@ -775,7 +750,8 @@ Minimum commands/concepts:
 - diagnose;
 - report;
 - verify;
-- provider information.
+- provider information;
+- driver list/search/info/compatible/download/verify/cache.
 
 Mutation commands must have explicit apply semantics.
 
@@ -791,10 +767,11 @@ Only start this phase after the Hub/provider contracts above are stable.
 
 Persistent narrow sidebar:
 
-1. `GPU`
-2. `TUNING`
-3. `OPTIMIZATION`
-4. `GRAPHICS`
+1. GPU
+2. TUNING
+3. OPTIMIZATION
+4. GRAPHICS
+5. DRIVERS
 
 Global compact status header:
 
@@ -823,7 +800,7 @@ Display:
 - API/runtime state;
 - current telemetry.
 
-Use `Available / Unsupported / Unknown / Permission denied / Error` consistently.
+Use Available / Unsupported / Unknown / Permission denied / Error consistently.
 
 ## TUNING page
 
@@ -831,7 +808,7 @@ Display only controls supported by current provider evidence.
 
 Use:
 
-`Requested -> Plan -> Review -> Apply -> Read Back -> Verify`.
+Requested -> Plan -> Review -> Apply -> Read Back -> Verify.
 
 ## OPTIMIZATION page
 
@@ -855,6 +832,21 @@ Show:
 Expose only capabilities actually available through the selected application/backend.
 
 Native hardware support and software compatibility paths must be visually distinct.
+
+## DRIVERS page
+
+Provide:
+
+- installed driver;
+- vendor/source;
+- branch;
+- version;
+- compatible releases;
+- release metadata;
+- download status;
+- verification status;
+- local cache;
+- explicit installation action only when an installation backend exists.
 
 ---
 
@@ -887,15 +879,140 @@ The installer must never replace or overwrite the NVIDIA base driver automatical
 
 ---
 
+# Phase 14A — Driver lifecycle and release engineering
+
+This phase adds the driver repository/downloader and ISB release builder.
+
+The detailed specification is docs/DRIVER_AND_RELEASE_PIPELINE.md.
+
+## 14A.1 Driver source providers
+
+Implement separate providers for:
+
+- NVIDIA Data Center/Tesla;
+- NVIDIA vGPU/vWS/GRID where applicable;
+- Google-provided NVIDIA GPU drivers where applicable;
+- local cache.
+
+Never merge different vendor branches into an ambiguous version namespace.
+
+## 14A.2 Driver URL parser
+
+Create a provider-independent URL parsing contract that can normalize:
+
+- direct artifact URLs;
+- release pages;
+- redirects;
+- query parameters;
+- vendor-specific release pages.
+
+Normalized metadata includes:
+
+- vendor;
+- family/branch;
+- version;
+- OS;
+- architecture;
+- package type;
+- GPU family;
+- source URL;
+- download URL;
+- release date;
+- checksum/signature;
+- provenance.
+
+Unknown metadata remains UNKNOWN.
+
+## 14A.3 Driver downloader
+
+Implement:
+
+discover -> select -> explicit confirmation -> temporary download -> checksum/signature verification -> cache -> report.
+
+Never execute a downloaded driver automatically.
+
+## 14A.4 Driver cache
+
+Cache artifacts using vendor/version/platform/package identity plus checksum/provenance.
+
+Cache corruption must be detectable and recoverable.
+
+## 14A.5 Driver installation boundary
+
+Installation is separate from download.
+
+If an installation backend is implemented, use:
+
+DETECT -> COMPATIBILITY CHECK -> SHOW PLAN/RISKS -> USER APPROVAL -> INSTALL -> RE-DETECT -> VERIFY -> REPORT.
+
+The normal ISB installer installs ISB, not the NVIDIA/Google driver.
+
+## 14A.6 Release builder
+
+Create reproducible release packaging for:
+
+Windows:
+- .zip;
+- .exe.
+
+Linux:
+- .deb;
+- .tar.gz.
+
+Naming:
+
+isb-<version>-<platform>-<arch>.<extension>
+
+## 14A.7 Release manifest and checksums
+
+Generate:
+
+- release manifest;
+- SHA256SUMS;
+- artifact metadata;
+- source commit/tag;
+- platform/architecture;
+- package format;
+- file size.
+
+## 14A.8 GitHub Actions release pipeline
+
+Target pipeline:
+
+tag vX.Y.Z
+ -> clean checkout
+ -> configure
+ -> build matrix
+ -> tests
+ -> package matrix
+ -> checksum
+ -> manifest
+ -> release notes
+ -> GitHub Release
+ -> upload artifacts
+
+Publication is blocked by any required build/test/package/manifest failure.
+
+GitHub Actions provides workflow artifacts for build/test outputs and supports release automation around semantic tags.
+
+## 14A.9 Release security
+
+Use least-privilege permissions, preserve provenance, avoid privileged execution of untrusted PR code, and keep third-party driver binaries outside the ISB repository unless redistribution is legally permitted.
+
+---
+
 # Phase 15 — Architecture and documentation synchronization
 
 Before code freeze:
-- document verified `core`/ `common` ownership;
+
+- document verified core/common ownership;
 - document whether multiple architectural planes are actually implemented;
-- document `Panel → Hub → Providers`;
+- document Panel -> Hub -> Providers;
 - document Hub as the only user-space control plane;
+- document DriverRepository and release boundaries;
 - mark superseded specifications;
-- synchronize README, TASKS, IMPLEMENTATION_PLAN and GUIDE.
+- synchronize README, TASKS, IMPLEMENTATION_PLAN and GUIDE;
+- keep DRIVER_AND_RELEASE_PIPELINE.md synchronized with source/CI.
 
 # Phase 16 — Pre-test code freeze
 
@@ -911,7 +1028,9 @@ Before any hardware qualification:
 - ensure experimental code cannot silently execute in stable paths;
 - ensure no operation reports success without read-back/verification;
 - ensure report schema is versioned;
-- ensure CMake options are documented.
+- ensure CMake options are documented;
+- ensure driver parser/downloader has deterministic tests;
+- ensure release packaging can reproduce artifact names and checksums.
 
 Only after this phase is complete may the project enter the test phase.
 
@@ -921,18 +1040,14 @@ Only after this phase is complete may the project enter the test phase.
 
 ## Clean build
 
-```bash
 rm -rf build
 cmake -S . -B build -DBUILD_TESTING=ON
 cmake --build build --parallel
 ctest --test-dir build --output-on-failure
-```
 
 ## Static hygiene
 
-```bash
 git diff --check
-```
 
 If available, additionally run the project's configured compiler warnings/static analysis.
 
@@ -954,6 +1069,19 @@ Record:
 - verification results;
 - report bundle.
 
+## Release qualification
+
+Before publishing an ISB release, verify:
+
+- all release artifacts exist;
+- package names match the manifest;
+- SHA256SUMS matches every artifact;
+- manifest commit/tag matches the release;
+- Windows packages are valid;
+- Linux packages are valid;
+- release notes identify known limitations;
+- failed package jobs cannot publish a partial release.
+
 ## Stability rule
 
 A feature is not called stable merely because it builds. It requires:
@@ -973,7 +1101,6 @@ A feature is not called stable merely because it builds. It requires:
 
 # Recommended execution order
 
-```text
 0  Build/CMake integrity + #29 foundation/architecture audit
 1  #31 Hub canonical control API
 2  #30 Observation contract consolidation
@@ -990,20 +1117,28 @@ A feature is not called stable merely because it builds. It requires:
 13 CLI completion
 14 Qt Control Center
 15 Installer/deployment
-16 #37 Architecture/docs synchronization
-17 Pre-test code freeze
-18 TEST GATE
-19 Real V100 qualification
-```
+16 Driver lifecycle: providers/parser/downloader/cache
+17 Release Builder: package matrix/checksums/manifest
+18 GitHub Actions release publication
+19 #37 Architecture/docs synchronization
+20 Pre-test code freeze
+21 TEST GATE
+22 Real V100 qualification
+23 First production ISB release
 
-The key principle is: **audit ownership first, make Hub the single user-control entry point, consolidate observations second, then build features. Hardware qualification starts only after the implementation and test gates.**
+The key principle is: audit ownership first, make Hub the single user-control entry point, consolidate observations second, then build features. Driver lifecycle and release engineering are part of the product architecture, but neither may silently replace the installed base NVIDIA/Google driver. Hardware qualification starts only after the implementation and test gates.
 
+## Driver and release documentation
+
+For detailed driver lifecycle, URL parsing, provider separation, download/cache verification, packaging and GitHub release requirements, see:
+
+docs/DRIVER_AND_RELEASE_PIPELINE.md
 
 ## Current verified state after stabilization PRs
 
 The implementation plan is now governed by the following verified boundary:
 
-1. PR #29 established foundation ownership: implemented foundation primitives remain in `common/`; `core/` is not a production foundation target.
+1. PR #29 established foundation ownership: implemented foundation primitives remain in common/; core/ is not a production foundation target.
 2. PR #31 established Hub as the canonical Control Center backend and removed the competing ControlPlane path.
 3. PR #32 established Hub ownership of the capability snapshot while CAL remains the owner of the normalized capability schema.
 4. PR #33 added installer/qualification reporting infrastructure without replacing or installing NVIDIA drivers.
@@ -1014,4 +1149,4 @@ The implementation plan is now governed by the following verified boundary:
 
 The roadmap must not treat PR #36's status feature as completion of the CMake/verification stabilization task. Target-graph auditing, optional dependency guards, test gating, include/link isolation and clean configure/build/test remain explicit stabilization work where not already verified by CI.
 
-After that gate, the project can proceed to physical V100 qualification and then feature implementation. The GUI, tuning, FixEngine integration, game/OptiScaler automation and experimental graphics/AI features remain downstream of these gates.
+After that gate, the project can proceed to physical V100 qualification and then feature implementation. The GUI, tuning, FixEngine integration, game/OptiScaler automation, driver lifecycle, release automation and experimental graphics/AI features remain downstream of these gates.
