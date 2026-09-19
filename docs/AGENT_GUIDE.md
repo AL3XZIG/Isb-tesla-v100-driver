@@ -25,14 +25,17 @@ ISB is not allowed to pretend that functionality supplied by the installed NVIDI
 Recommended reading order:
 
 1. README.md
-2. docs/AGENT_GUIDE.md
-3. docs/PRODUCT_REQUIREMENTS.md
-4. docs/CURRENT_IMPLEMENTATION.md
-5. docs/ARCHITECTURE.md
-6. docs/IMPLEMENTATION_PLAN.md
-7. docs/TASKS.md
-8. docs/COMPONENT_TASKS.md
-9. target module source and tests
+2. docs/MASTER_SPEC.md
+3. docs/AGENT_GUIDE.md
+4. docs/PRODUCT_REQUIREMENTS.md
+5. docs/CURRENT_IMPLEMENTATION.md
+6. docs/ARCHITECTURE.md
+7. docs/IMPLEMENTATION_PLAN.md
+8. docs/TASKS.md
+9. docs/COMPONENT_TASKS.md
+10. target module source and tests
+
+MASTER_SPEC.md is the consolidated product/technical context. It describes intended behavior; source code, CI and CURRENT_IMPLEMENTATION.md remain authoritative for what is actually implemented.
 
 Never infer implementation from a directory name alone.
 
