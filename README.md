@@ -245,6 +245,8 @@ The GUI is a frontend to the same control-plane contracts used by the CLI. Busin
 
 See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the detailed model and [`docs/TASKS.md`](docs/TASKS.md) for the implementation roadmap.
 
+See [`docs/PRODUCT_SPEC.md`](docs/PRODUCT_SPEC.md) for the consolidated product and technical specification covering the V100 Hub, TUNING, OPTIMIZATION, GRAPHICS, multi-GPU render/display architecture, upscaling/OptiScaler boundaries, Control Center, appearance, installer, driver lifecycle, release engineering and experimental-feature rules.
+
 ## Repository structure
 
 The target structure is organized around the hub while preserving the existing CAL, FixEngine and verification foundations:
