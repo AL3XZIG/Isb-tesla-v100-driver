@@ -281,3 +281,161 @@ A feature is not stable until it has:
 ## Documentation synchronization record
 
 PR #37 synchronizes the primary architecture/status documents with the verified repository state after PRs #29–#36. In particular, PR #36 is recorded as the deterministic read-only Hub status feature, while the roadmap's CMake/verification stabilization checklist remains an independent gate.
+
+---
+
+# Implementation Gap Roadmap — September 2026
+
+This section records gaps found by comparing the current source tree/provider implementations with the documented product architecture. It is a roadmap, not a claim that the listed features are already implemented.
+
+## G0 — Stabilization and qualification gate
+
+- [ ] Clean configure/build/test from a fresh checkout.
+- [ ] Verify optional provider and test guards.
+- [ ] Add architecture/dependency CI checks.
+- [ ] Keep CURRENT_IMPLEMENTATION.md synchronized with source and CI.
+- [ ] Complete first physical V100 qualification.
+
+## G1 — Real provider aggregation
+
+- [ ] Complete CUDA observation and capability extraction.
+- [ ] Complete Vulkan observation and capability extraction.
+- [ ] Implement Windows DXGI/D3D/DirectCompute observation.
+- [ ] Implement Linux driver/platform observation.
+- [ ] Reconcile NVML, CUDA, Vulkan and OS observations into one Hub capability snapshot.
+- [ ] Detect exact V100 variant: SXM2/PCIe and 16/32 GB where reliable.
+- [ ] Preserve provenance for every fact.
+- [ ] Keep UNKNOWN distinct from UNAVAILABLE, UNSUPPORTED, PERMISSION_DENIED and ERROR.
+
+## G2 — Real telemetry
+
+- [ ] Complete provider-backed telemetry snapshot.
+- [ ] Add bounded time-series history.
+- [ ] Add thermal/power throttling analysis.
+- [ ] Add ECC/NVLink/PCIe/process observations where exposed.
+- [ ] Add deterministic telemetry report export.
+- [ ] Add baseline/candidate telemetry comparison.
+
+## G3 — FixEngine / Driver Doctor
+
+- [ ] Finish deterministic rule matcher.
+- [ ] Preserve TRUE/FALSE/UNKNOWN predicate semantics.
+- [ ] Integrate GPU/OS/driver/API fingerprinting.
+- [ ] Integrate IDR evidence into diagnosis.
+- [ ] Add machine-readable compatibility/issue records.
+- [ ] Reproduce the first real V100 driver/API problem.
+- [ ] Implement one reversible user-space/configuration workaround.
+- [ ] Verify before/after and rollback.
+- [ ] Add the case to regression tests.
+
+## G4 — Real tuning and Optimize V100
+
+- [ ] Add provider-backed control descriptors.
+- [ ] Implement read -> validate -> plan -> approval -> apply -> read-back -> verify.
+- [ ] Implement rollback for reversible controls.
+- [ ] Implement verified persistence/power/clocks/compute controls where supported.
+- [ ] Complete profile application through Hub.
+- [ ] Complete Optimize V100 planner and result reporting.
+- [ ] Refuse mutation when capability/provider state is UNKNOWN.
+- [ ] Never report APPLY_SUCCESS without VERIFY_SUCCESS.
+
+## G5 — Render path
+
+- [ ] Complete multi-GPU role reconciliation.
+- [ ] Complete Windows DXGI/WDDM evidence.
+- [ ] Complete Linux PRIME/Vulkan routing planning.
+- [ ] Implement safe application-scoped configuration.
+- [ ] Add configuration rollback.
+- [ ] Add end-to-end application render verification.
+- [ ] Keep TCC/WDDM transitions explicit and user-controlled.
+
+## G6 — Games and OptiScaler
+
+- [ ] Implement Steam/Epic/GOG/standalone discovery providers.
+- [ ] Detect executable and graphics API.
+- [ ] Store per-game profiles.
+- [ ] Detect anti-cheat as PRESENT/ABSENT/UNKNOWN.
+- [ ] Integrate compatibility database.
+- [ ] Implement dry-run/apply/verify/rollback game workflow.
+- [ ] Detect installed OptiScaler version/provenance.
+- [ ] Implement verified OptiScaler install/update/remove/rollback.
+- [ ] Back up and hash files before mutation.
+- [ ] Add compatible-version selection.
+- [ ] Keep OptiScaler external and license-audited.
+
+## G7 — Driver Manager
+
+- [ ] Implement NVIDIA release provider.
+- [ ] Implement Google release provider.
+- [ ] Implement URL/release-page parser.
+- [ ] Normalize provider, branch, version, date, OS, architecture and package type.
+- [ ] Resolve V100 compatibility using exact environment evidence.
+- [ ] Implement safe downloader.
+- [ ] Verify SHA-256/signatures when available.
+- [ ] Implement content-addressed/local cache.
+- [ ] Preserve source/download/provenance metadata.
+- [ ] Add CLI driver commands.
+- [ ] Add Control Center Drivers page.
+- [ ] Add explicit installation backend only after technical/legal validation.
+- [ ] Never silently replace the active base driver.
+
+## G8 — Release Builder and production installer
+
+- [ ] Implement reproducible release build script.
+- [ ] Build Windows .zip.
+- [ ] Build Windows installer .exe.
+- [ ] Build Linux .deb.
+- [ ] Build Linux .tar.gz.
+- [ ] Generate SHA256SUMS.
+- [ ] Generate versioned release manifest.
+- [ ] Add GitHub Actions build matrix.
+- [ ] Gate publication on build/test/package/verification success.
+- [ ] Publish GitHub Releases from tags.
+- [ ] Add artifact provenance/integrity checks.
+- [ ] Complete production ISB installer.
+- [ ] Add upgrade/uninstall/rollback.
+- [ ] Keep third-party driver installation separate from ISB installation.
+
+## G9 — Control Center completion
+
+- [ ] Replace mock-only Home/status data with real Hub-backed data where providers exist.
+- [ ] Complete telemetry view.
+- [ ] Complete tuning view.
+- [ ] Complete Optimize V100 workflow.
+- [ ] Complete Games view.
+- [ ] Complete Graphics/render-path view.
+- [ ] Complete Drivers view.
+- [ ] Complete diagnostics/reports/tools view.
+- [ ] Ensure every mutating UI operation uses Hub transaction semantics.
+- [ ] Ensure GUI never directly calls providers.
+
+## G10 — Benchmark and evidence suite
+
+- [ ] CUDA compute benchmark.
+- [ ] Tensor Core benchmark.
+- [ ] HBM bandwidth benchmark.
+- [ ] PCIe benchmark.
+- [ ] NVLink benchmark where present.
+- [ ] Graphics/frame-time benchmark.
+- [ ] Application before/after benchmark.
+- [ ] Correctness gate before performance claims.
+- [ ] Record GPU, driver, configuration, workload and revision in every result.
+
+## G11 — Experimental V100 graphics/AI
+
+- [ ] Neural super-resolution/reconstruction.
+- [ ] Frame interpolation.
+- [ ] CUDA software ray tracing/ray marching.
+- [ ] SSR/SSAO/SSGI.
+- [ ] Voxel lighting.
+- [ ] Experimental Windows API interception boundaries.
+- [ ] Keep experimental components isolated from stable Hub dependencies.
+- [ ] Never label software reconstruction as native DLSS or RT hardware.
+
+## G12 — Research-only alternative driver
+
+- [ ] Continue KMD/UMD/HAL/GPUVM research under research/alternative-driver/.
+- [ ] Keep binary-analysis/reverse-engineering evidence separate.
+- [ ] Record provenance, hardware, OS, experiment and reproduction status.
+- [ ] Never make this research track a dependency of the production Hub.
+\n
