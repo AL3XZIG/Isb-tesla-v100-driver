@@ -10,6 +10,8 @@
 #include <QScrollArea>
 #include <QFrame>
 #include <QSpacerItem>
+
+#include <optional>
 #include "isb/common/capability_state.hpp"
 
 namespace isb::control_center {
@@ -41,6 +43,13 @@ QWidget* createSection(const QString& title) {
 
 QVBoxLayout* getSectionLayout(QWidget* section) {
     return qobject_cast<QVBoxLayout*>(section->layout());
+}
+
+QString formatOptionalInt(const std::optional<int>& value, const QString& suffix = {}) {
+    if (!value.has_value()) {
+        return "Unknown";
+    }
+    return QString::number(*value) + suffix;
 }
 
 void addFormRow(QLayout* layout, const QString& label, const QString& value) {
@@ -614,9 +623,9 @@ void MainWindow::updateHeader() {
     QString headerText = QString("MODE: %1  |  GPU: %2  |  TEMP: %3°C  |  UTIL: %4%  |  POWER: %5W")
         .arg(QString::fromStdString(hub::to_string(env.mode)))
         .arg(QString::fromStdString(caps.identity.exact_hardware_variant))
-        .arg(telemetry.temperature_c != 0 ? QString::number(telemetry.temperature_c) : "Unknown")
-        .arg(telemetry.gpu_utilization_percent != 0 || telemetry.synthetic ? QString::number(telemetry.gpu_utilization_percent) : "Unknown")
-        .arg(telemetry.power_w != 0 || telemetry.synthetic ? QString::number(telemetry.power_w) : "Unknown");
+        .arg(formatOptionalInt(telemetry.temperature_c, "°C"))
+        .arg(formatOptionalInt(telemetry.gpu_utilization_percent, "%"))
+        .arg(formatOptionalInt(telemetry.power_w, "W"));
     
     headerLabel_->setText(headerText);
     
@@ -653,35 +662,27 @@ void MainWindow::updateGPUPage() {
     displayOutputsLabel_->setText(formatCapabilityState(caps.hardware.display_outputs.state));
     opticalFlowLabel_->setText(formatCapabilityState(caps.hardware.optical_flow_accelerator.state));
     
-    temperatureLabel_->setText(telemetry.temperature_c != 0 || telemetry.synthetic 
-        ? QString("%1°C").arg(telemetry.temperature_c) : "Unknown");
-    gpuUtilLabel_->setText(telemetry.gpu_utilization_percent != 0 || telemetry.synthetic 
-        ? QString("%1%").arg(telemetry.gpu_utilization_percent) : "Unknown");
-    memoryUtilLabel_->setText(telemetry.memory_utilization_percent != 0 || telemetry.synthetic 
-        ? QString("%1%").arg(telemetry.memory_utilization_percent) : "Unknown");
+    temperatureLabel_->setText(formatOptionalInt(telemetry.temperature_c, "°C"));
+    gpuUtilLabel_->setText(formatOptionalInt(telemetry.gpu_utilization_percent, "%"));
+    memoryUtilLabel_->setText(formatOptionalInt(telemetry.memory_utilization_percent, "%"));
     
-    if (telemetry.power_limit_w != 0 || telemetry.synthetic) {
-        powerLabel_->setText(QString("%1 W").arg(telemetry.power_w));
-        powerLimitLabel_->setText(QString("%1 W").arg(telemetry.power_limit_w));
+    if (telemetry.power_limit_w.has_value()) {
+        powerLabel_->setText(formatOptionalInt(telemetry.power_w, " W"));
+        powerLimitLabel_->setText(formatOptionalInt(telemetry.power_limit_w, " W"));
     } else {
         powerLabel_->setText("Unknown");
         powerLimitLabel_->setText("Unknown");
     }
     
-    gpuClockLabel_->setText(telemetry.gpu_clock_mhz != 0 || telemetry.synthetic 
-        ? QString("%1 MHz").arg(telemetry.gpu_clock_mhz) : "Unknown");
-    memoryClockLabel_->setText(telemetry.memory_clock_mhz != 0 || telemetry.synthetic 
-        ? QString("%1 MHz").arg(telemetry.memory_clock_mhz) : "Unknown");
+    gpuClockLabel_->setText(formatOptionalInt(telemetry.gpu_clock_mhz, " MHz"));
+    memoryClockLabel_->setText(formatOptionalInt(telemetry.memory_clock_mhz, " MHz"));
     
-    vramUsedLabel_->setText(telemetry.vram_used_mib != 0 || telemetry.synthetic 
-        ? QString("%1 MiB").arg(telemetry.vram_used_mib) : "Unknown");
-    vramTotalLabel_->setText(telemetry.vram_total_mib != 0 || telemetry.synthetic 
-        ? QString("%1 MiB").arg(telemetry.vram_total_mib) : "Unknown");
+    vramUsedLabel_->setText(formatOptionalInt(telemetry.vram_used_mib, " MiB"));
+    vramTotalLabel_->setText(formatOptionalInt(telemetry.vram_total_mib, " MiB"));
     
     perfStateLabel_->setText(formatValueOrUnknown(telemetry.performance_state));
     pcieLabel_->setText(formatValueOrUnknown(telemetry.pcie));
-    processCountLabel_->setText(telemetry.process_count != 0 || telemetry.synthetic 
-        ? QString::number(telemetry.process_count) : "Unknown");
+    processCountLabel_->setText(formatOptionalInt(telemetry.process_count));
 }
 
 void MainWindow::updateTuningPage() {
