@@ -105,7 +105,7 @@ void print_help(const Formatter& fmt) {
     std::cout << fmt.kv("report <dir>", "Generate report to directory") << "\n";
     std::cout << fmt.kv("about", "Show version and project info") << "\n";
     
-    std::cout << "\n" << fmt.line('─') << "\n";
+    std::cout << "\n" << fmt.line("─") << "\n";
     std::cout << fmt.dim() << "Examples:" << fmt.reset() << "\n";
     std::cout << "  isb --mock status\n";
     std::cout << "  isb --mock --json capabilities\n";
@@ -554,7 +554,7 @@ void print_optimize_plan(const Hub& hub, const Formatter& fmt) {
         }
     }
     
-    std::cout << "\n" << fmt.line('─') << "\n";
+    std::cout << "\n" << fmt.line("─") << "\n";
     std::cout << fmt.dim() << "Note: This is a read-only plan. No changes will be applied without explicit approval.\n";
     std::cout << "Use 'profile apply <name>' to apply changes (when backend supports mutation).\n" << fmt.reset();
     std::cout << "\n";
