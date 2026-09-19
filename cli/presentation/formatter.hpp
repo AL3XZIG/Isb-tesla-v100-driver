@@ -103,8 +103,11 @@ public:
     /// Format memory size (MiB/GiB)
     std::string memory(int mib) const;
     
-    /// Create horizontal line
+    /// Create horizontal line from a single-byte character
     std::string line(char c = '-', std::size_t length = 60) const;
+
+    /// Create horizontal line from a UTF-8 string token
+    std::string line(const std::string& token, std::size_t length = 60) const;
     
     /// Center text
     std::string center(const std::string& text, std::size_t width = 60) const;
