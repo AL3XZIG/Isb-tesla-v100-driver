@@ -236,6 +236,17 @@ std::string Formatter::line(char c, std::size_t length) const {
     return std::string(length, c);
 }
 
+std::string Formatter::line(const std::string& token, std::size_t length) const {
+    if (token.empty() || length == 0) return {};
+
+    std::string result;
+    result.reserve(token.size() * length);
+    for (std::size_t i = 0; i < length; ++i) {
+        result += token;
+    }
+    return result;
+}
+
 std::string Formatter::center(const std::string& text, std::size_t width) const {
     if (text.length() >= width) {
         return text;
