@@ -113,7 +113,6 @@ public:
     std::string ansi_color(Color color) const;
     
     /// Reset formatting
-    std::ostream& reset(std::ostream& os) const;
     std::string reset() const;
     
     /// Bold accessor
