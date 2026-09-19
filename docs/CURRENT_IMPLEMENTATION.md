@@ -16,7 +16,8 @@ Documented stabilization work established:
 - CAL as owner of normalized capability schema;
 - providers as owners of raw runtime observations;
 - Hub as owner of user-facing orchestration and capability projection;
-- CLI and GUI as Hub clients.
+- CLI and GUI as Hub clients;
+- driver lifecycle and release tooling as separate product subsystems above the installed base driver.
 
 Do not introduce competing ownership without an explicit architecture change.
 
@@ -36,7 +37,8 @@ Core concepts include:
 - rollback;
 - verify;
 - benchmark;
-- report.
+- report;
+- driver discovery/download/verification.
 
 The mutation path is intentionally conservative until real providers can apply and read back settings.
 
@@ -48,11 +50,39 @@ Intended providers include:
 - CUDA;
 - Vulkan;
 - Windows DXGI/D3D;
-- Linux platform/runtime detection.
+- Linux platform/runtime detection;
+- NVIDIA driver source provider;
+- Google driver source provider;
+- local driver cache.
 
 Optional providers must remain optional.
 
 Unavailable/unknown/error states must be explicit.
+
+## Driver lifecycle boundary
+
+The project now documents a dedicated driver lifecycle subsystem.
+
+Its responsibilities are:
+
+- discover NVIDIA and Google driver releases;
+- parse driver URLs and release pages;
+- normalize version/vendor/OS/package/GPU metadata;
+- download selected artifacts;
+- verify checksums/signatures where available;
+- maintain a local cache;
+- expose driver information through Hub/CLI/Control Center;
+- optionally support explicit installation workflows when a real installation backend exists.
+
+This subsystem does not replace the installed NVIDIA/Google driver.
+
+Download and installation are separate operations.
+
+The detailed specification is:
+
+docs/DRIVER_AND_RELEASE_PIPELINE.md
+
+Important implementation-state rule: the specification is not proof that every provider, parser, downloader or installer is already production-complete. Source code and CI must be checked before marking an individual feature implemented.
 
 ## Control Center
 
@@ -68,6 +98,37 @@ The intended GUI is:
 - plan/review/apply/verify based.
 
 Where a backend feature is not real, the UI must not pretend it is.
+
+The planned GUI also contains a Drivers section for installed-driver information, release discovery, download/verification and cache management.
+
+## Release engineering
+
+ISB has a documented release-builder direction.
+
+Target release artifacts:
+
+Windows:
+- .zip;
+- .exe.
+
+Linux:
+- .deb;
+- .tar.gz.
+
+The release pipeline is intended to:
+
+- build from a tagged commit;
+- run tests;
+- package each platform;
+- generate SHA256SUMS;
+- generate a release manifest;
+- publish GitHub Releases;
+- upload artifacts;
+- block publication when required stages fail.
+
+The detailed specification is in docs/DRIVER_AND_RELEASE_PIPELINE.md.
+
+As with the driver lifecycle subsystem, release specification is not itself evidence that the full packaging/release automation is already implemented.
 
 ## Graphics/render path
 
@@ -128,6 +189,8 @@ Do not call these stable merely because a UI/interface/mock exists:
 - universal Vulkan/D3D compatibility;
 - full game patching;
 - complete OptiScaler deployment automation;
+- complete driver discovery/download automation;
+- complete release packaging/publication automation;
 - native DLSS;
 - native frame generation;
 - RT hardware;
@@ -138,7 +201,7 @@ Do not call these stable merely because a UI/interface/mock exists:
 
 The repository documentation records stabilization work around foundation ownership, Hub canonicalization, capability ownership, qualification evidence gating, deterministic status, installer/qualification reporting and later GUI/graphics/OptiScaler work.
 
-Exact merged PR contents must be checked before claiming completion.
+The driver lifecycle and release engineering specifications have now been added as dedicated documentation. Exact implementation status of each provider, parser, downloader, package target and release workflow must still be established from source and CI.
 
 ## Next-step rule
 
@@ -151,4 +214,6 @@ For every task:
 5. finish capability/verification boundaries;
 6. add mutation only when the provider can read back state;
 7. keep GUI thin;
-8. update this document when implementation status changes.
+8. treat driver discovery/download as a separate provider-backed lifecycle;
+9. treat release packaging/publication as CI infrastructure;
+10. update this document when implementation status changes.
