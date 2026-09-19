@@ -1,44 +1,38 @@
 ```
-# Compiled and build artifacts
+# CMake build directories
+build-m0/
+
+# Compiled object files
 *.o
 *.obj
+*.d
+
+# Executables
 *.exe
-*.dll
-*.so
-*.a
 *.out
 
-# Dependencies
-node_modules/
-venv/
-.venv/
-__pycache__/
-.mypy_cache/
-.pytest_cache/
-target/
-.gradle/
+# CMake specific files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+CTestTestfile.cmake
+DartConfiguration.tcl
 
-# Build systems
-build/
-dist/
-*.pyc
+# Testing artifacts
+Testing/
 
-# Editors
-.vscode/
-.idea/
+# Temporary files
+*.tmp
 *.swp
 *.swo
 
-# Logs and temp files
+# Logs
 *.log
-*.tmp
 
-# System files
-.DS_Store
-Thumbs.db
-.env
-.env.local
-*.env.*
+# IDE files
+.vscode/
+.idea/
 
 # Coverage
 coverage/

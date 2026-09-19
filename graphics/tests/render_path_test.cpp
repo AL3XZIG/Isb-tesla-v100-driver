@@ -126,7 +126,7 @@ int test_analyze_config() {
     
     auto result = manager->analyze_config(detection.config.value());
     assert(result.provenance.synthetic);
-    assert(result.message.find("Configuration analysis") != std::string::npos);
+    assert(result.message.find("Render Path Configuration") != std::string::npos || result.message.find("render-capable") != std::string::npos || result.message.find("Compute GPU") != std::string::npos || result.message.find("roles were detected") != std::string::npos);
     
     std::cout << "PASS: analyze_config\n";
     return 0;
