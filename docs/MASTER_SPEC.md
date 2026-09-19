@@ -58,6 +58,26 @@ At minimum, hardware evidence should record:
 - relevant API/runtime versions;
 - test configuration.
 
+
+### 2.4 Verified V100 SXM2 32 GB baseline
+
+For the Tesla V100 SXM2 32 GB qualification target, the project should record the following baseline from NVIDIA's V100 documentation:
+
+- Volta / GV100 architecture;
+- 5,120 CUDA cores;
+- 640 first-generation Tensor Cores;
+- 32 GB HBM2;
+- approximately 900 GB/s HBM2 bandwidth;
+- 15.7 TFLOPS FP32;
+- 7.8 TFLOPS FP64;
+- 125 TFLOPS Tensor performance;
+- up to 300 W maximum power consumption for the SXM2 variant;
+- NVLink interconnect, with 300 GB/s bidirectional interconnect bandwidth for the V100 NVLink configuration.
+
+These are **hardware/reference specifications**, not application benchmark results. Exact observed clocks, power limits and active NVLink links must come from the installed module, firmware, base driver and runtime evidence.
+
+The SXM2 module is a server accelerator with no display outputs. In a workstation configuration using an SXM2-to-PCIe adapter, PCIe host connectivity and NVLink topology must be treated as separate observations; the presence of NVLink capability does not prove that an adapter exposes or connects an active NVLink fabric.
+
 ### 2.3 Explicitly out of scope
 
 Unless the project owner changes the policy:
@@ -1401,3 +1421,20 @@ When documents conflict with source, do not guess. Inspect the code, update the 
 - `docs/UPSTREAM_INTEGRATION.md` — external integration/provenance rules.
 
 This document is the consolidated specification so that an AI agent can understand the complete intended ISB V100 product without relying on scattered task descriptions alone.
+### 19.1 V100 software upscaling / reconstruction boundary
+
+V100 graphics enhancement must distinguish hardware capability from software compatibility.
+
+The V100's Tensor Cores and CUDA compute resources can be used by software reconstruction/upscaling implementations, but this does **not** make the V100 an RTX/DLSS hardware device. ISB may therefore manage external or software upscaling paths such as FSR, XeSS and OptiScaler when the particular game, API, integration and external component support them.
+
+For ISB capability reporting:
+
+- FSR/XeSS/OptiScaler support is an **external/application/software compatibility capability**, not a V100 hardware feature;
+- availability must be detected per game/API/integration rather than assumed globally;
+- native DLSS hardware must remain unavailable on V100;
+- native RT cores and dedicated Optical Flow hardware must remain unavailable;
+- successful software upscaling must be reported separately from native NVIDIA hardware acceleration.
+
+The project must not turn a third-party database or a GPU specification site's "supports FSR/XeSS" label into proof that every game supports the technology. Game-specific verification remains authoritative.
+
+
