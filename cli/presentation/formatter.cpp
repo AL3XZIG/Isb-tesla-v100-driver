@@ -236,6 +236,19 @@ std::string Formatter::line(char c, std::size_t length) const {
     return std::string(length, c);
 }
 
+std::string Formatter::line(const std::string& token, std::size_t length) const {
+    if (token.empty() || length == 0) {
+        return {};
+    }
+
+    std::string result;
+    result.reserve(token.size() * length);
+    for (std::size_t i = 0; i < length; ++i) {
+        result += token;
+    }
+    return result;
+}
+
 std::string Formatter::center(const std::string& text, std::size_t width) const {
     if (text.length() >= width) {
         return text;
@@ -312,8 +325,8 @@ std::string Table::render(const Formatter& fmt) const {
     
     // Separator
     for (std::size_t i = 0; i < headers_.size(); ++i) {
-        if (i > 0) oss << "─┼─";
-        oss << std::string(col_widths_[i], '─');
+        if (i > 0) oss << "-+-";
+        oss << std::string(col_widths_[i], '-');
     }
     oss << "\n";
     
@@ -349,8 +362,8 @@ std::string Progress::render(const Formatter& fmt) const {
     const std::size_t empty = bar_width - filled;
     
     oss << "[";
-    oss << fmt.ansi_color(Color::BrightGreen) << std::string(filled, '█') << fmt.ansi_color(Color::Reset);
-    oss << fmt.ansi_color(Color::Dim) << std::string(empty, '░') << fmt.ansi_color(Color::Reset);
+    oss << fmt.ansi_color(Color::BrightGreen) << fmt.line("█", filled) << fmt.ansi_color(Color::Reset);
+    oss << fmt.ansi_color(Color::Dim) << fmt.line("░", empty) << fmt.ansi_color(Color::Reset);
     oss << "] ";
     
     int percent = total_ > 0 ? (current_ * 100) / total_ : 0;
