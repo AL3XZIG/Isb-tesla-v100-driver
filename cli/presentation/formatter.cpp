@@ -1,6 +1,14 @@
 #include "formatter.hpp"
+#include <algorithm>
+#include <cstdio>
 #include <iostream>
-#include <cstring>
+#include <utility>
+
+#ifdef _WIN32
+#include <io.h>
+#else
+#include <unistd.h>
+#endif
 
 namespace isb::cli::presentation {
 
@@ -337,7 +345,7 @@ std::string Progress::render(const Formatter& fmt) const {
     std::ostringstream oss;
     
     const std::size_t bar_width = 30;
-    const std::size_t filled = (current_ * bar_width) / total_;
+    const std::size_t filled = total_ > 0 ? (current_ * bar_width) / total_ : 0;
     const std::size_t empty = bar_width - filled;
     
     oss << "[";
