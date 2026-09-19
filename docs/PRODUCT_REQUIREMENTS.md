@@ -126,6 +126,80 @@ Provide:
 
 FixEngine remains the single authoritative workaround/rule engine.
 
+## Driver Manager
+
+ISB includes a driver lifecycle management direction layered above the installed NVIDIA/Google base driver.
+
+The product must distinguish:
+
+- installed driver;
+- available driver releases;
+- vendor/source;
+- driver branch;
+- version;
+- OS/architecture;
+- package type;
+- compatibility state;
+- download state;
+- verification state.
+
+Initial driver sources:
+
+- NVIDIA Data Center/Tesla releases;
+- NVIDIA vGPU/vWS/GRID releases where applicable;
+- Google-provided NVIDIA GPU driver sources where applicable.
+
+NVIDIA publishes Data Center driver release information and documented releases explicitly list Tesla V100 support on relevant versions. [See NVIDIA Data Center driver documentation.]
+
+### Driver URL parser
+
+ISB should parse official release pages and direct download URLs into normalized metadata.
+
+The parser should preserve:
+
+- original URL;
+- final download URL;
+- vendor;
+- branch/family;
+- version;
+- release date;
+- OS;
+- architecture;
+- package type;
+- GPU family;
+- checksum/signature information;
+- provenance.
+
+Unknown metadata must remain Unknown.
+
+### Driver download
+
+The user can explicitly select and download a driver artifact.
+
+Download must be separated from installation:
+
+- download;
+- verify;
+- cache;
+- inspect;
+- install only through a separate explicit workflow.
+
+ISB must not silently replace the installed NVIDIA/Google driver.
+
+### Driver cache
+
+Downloaded artifacts should be kept in a local provenance-aware cache with:
+
+- version;
+- vendor;
+- package identity;
+- SHA-256;
+- source URL;
+- download timestamp;
+- verification status.
+
+Full driver lifecycle details are specified in docs/DRIVER_AND_RELEASE_PIPELINE.md.
+
 ## Games
 
 Discover Steam/Epic/GOG/standalone games where reliable.
@@ -187,6 +261,8 @@ Experimental:
 
 The UI must distinguish native hardware, base-driver feature, external compatibility layer, ISB software and experimental functionality.
 
+V100-specific restrictions remain explicit: ISB must not claim native RT cores, native DLSS hardware, or hardware optical-flow acceleration where the hardware does not provide them. Software graphics enhancement is a separate capability class.
+
 ## Render path
 
 V100 may be headless and used as a compute/render GPU while another GPU or iGPU provides display output.
@@ -197,6 +273,46 @@ Windows and Linux are first-class targets.
 
 Universal routing must never be assumed.
 
+## Release Builder
+
+ISB itself requires a reproducible release builder.
+
+For tagged releases, CI should:
+
+1. configure;
+2. build;
+3. test;
+4. package;
+5. generate checksums;
+6. generate a release manifest;
+7. publish a GitHub Release;
+8. upload all successful artifacts.
+
+Initial release formats:
+
+### Windows
+
+- .zip;
+- .exe.
+
+### Linux
+
+- .deb;
+- .tar.gz.
+
+Example artifact naming:
+
+isb-<version>-<platform>-<arch>.<extension>
+
+Every release should also contain:
+
+- SHA256SUMS;
+- machine-readable release manifest;
+- release notes;
+- source commit/tag information.
+
+A failed build, test, packaging step, checksum generation or manifest generation must block publication.
+
 ## Tools
 
 Tools should include:
@@ -204,6 +320,10 @@ Tools should include:
 ### Driver Doctor
 
 Diagnostics and FixEngine.
+
+### Driver Manager
+
+Driver discovery, version search, URL parsing, download, verification and cache management.
 
 ### Benchmark
 
@@ -231,7 +351,13 @@ Do not turn the product into an Electron-like desktop environment.
 
 Basic inspection, telemetry, diagnostics, profiles and local reports should work without Internet when local dependencies are available.
 
-Network access should be explicit for downloads and updates.
+Network access should be explicit for:
+
+- driver discovery;
+- driver downloads;
+- OptiScaler downloads;
+- application/game metadata updates;
+- ISB updates.
 
 Where licenses permit, external dependencies may be packaged or cached with clear provenance.
 
@@ -247,7 +373,7 @@ Do not build:
 - silent global game patching;
 - anti-cheat bypass;
 - fake native DLSS/RT claims;
-- proprietary NVIDIA binary redistribution without legal basis.
+- proprietary NVIDIA/Google binary redistribution without legal basis.
 
 Independent driver research may continue under research/alternative-driver.
 
@@ -259,9 +385,12 @@ The desired end state is a lightweight, real V100 Control Center that:
 - understands the current driver/runtime environment;
 - safely manages supported controls;
 - diagnoses compatibility problems;
+- manages driver discovery and verified downloads;
 - manages game/application profiles;
 - integrates OptiScaler safely;
 - supports render-path configuration where technically possible;
 - provides useful graphics enhancement paths;
+- builds reproducible Windows/Linux releases;
+- publishes verified release artifacts automatically;
 - produces evidence-backed reports;
 - clearly separates stable, experimental, mock and unavailable functionality.
