@@ -2,13 +2,16 @@
 
 ## Start here
 
-For AI agents and new contributors:
+For AI agents and new contributors, read in this order:
 
-1. AGENT_GUIDE.md — project intent, rules and architectural boundaries.
-2. PRODUCT_REQUIREMENTS.md — what the product should become.
-3. CURRENT_IMPLEMENTATION.md — conservative current-state snapshot.
-4. AGENT_WORKFLOW.md — how to modify the repository safely.
-5. DRIVER_AND_RELEASE_PIPELINE.md — driver discovery/download, URL parsing, cache, verification and ISB release engineering.
+1. **MASTER_SPEC.md** — consolidated product and technical specification from the project's accumulated requirements.
+2. **AGENT_GUIDE.md** — operational rules and architectural boundaries.
+3. **PRODUCT_REQUIREMENTS.md** — user-facing product requirements.
+4. **CURRENT_IMPLEMENTATION.md** — conservative implementation-state snapshot.
+5. **AGENT_WORKFLOW.md** — how to modify the repository safely.
+6. **DRIVER_AND_RELEASE_PIPELINE.md** — driver lifecycle and release engineering.
+
+MASTER_SPEC.md is the best single document to give to a new coding agent when the agent needs the complete project context. It intentionally describes the target architecture and requirements; it does not override source code or CI when describing implementation status.
 
 ## Architecture and roadmap
 
@@ -63,6 +66,10 @@ For implementation state, prefer:
 4. TASKS.md / IMPLEMENTATION_PLAN.md;
 5. historical documents.
 
-For product intent, prefer PRODUCT_REQUIREMENTS.md and README.md.
+For product intent, prefer:
+
+1. MASTER_SPEC.md;
+2. PRODUCT_REQUIREMENTS.md;
+3. README.md.
 
 If documents disagree, inspect the source and update the documentation rather than guessing.
