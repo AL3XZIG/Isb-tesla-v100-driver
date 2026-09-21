@@ -57,7 +57,7 @@ What physically exists on GV100: Volta/SM70, Tensor Cores, HBM2 and ECC. V100 ha
 
 ### Base-driver capability
 
-What the installed NVIDIA/Google-compatible driver/runtime exposes on the current OS and API: CUDA, NVML, Vulkan, OpenGL, Direct3D/DXGI, DirectCompute and driver-specific paths.
+What the installed NVIDIA Linux driver/runtime exposes on the current host/API: CUDA, NVML, Vulkan, OpenGL, Linux DRM/PRIME and driver-specific paths.
 
 A base-driver feature is not automatically an ISB feature.
 
@@ -140,7 +140,7 @@ Agents must distinguish rendering GPU, display GPU, compute GPU, application-sel
 
 Automatic render-path configuration is desirable where the OS and driver expose a documented, safe mechanism.
 
-On Windows investigate real DXGI/WDDM/Graphics Settings and documented driver mechanisms. On Linux investigate PRIME render offload, Vulkan device selection, X11/Wayland routing and documented environment variables.
+On Linux investigate PRIME render offload, Vulkan device selection, OpenGL vendor selection, X11/Wayland routing, DRM state and documented environment variables.
 
 Do not invent registry keys or claim universal GPU routing without evidence.
 
