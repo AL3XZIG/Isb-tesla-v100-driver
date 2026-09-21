@@ -1,24 +1,55 @@
-# ISB Installer and Qualification
+# ISB Linux Installer and Qualification
 
-Linux: ./installer/install.sh
+## Installer
 
-The Linux installer installs build prerequisites on Debian/Ubuntu when apt-get is available, builds ISB, runs CTest, and installs isb to the user-local bin directory. It never installs or replaces the NVIDIA driver.
+Run:
 
-Windows: powershell -ExecutionPolicy Bypass -File installer/windows/install.ps1
+```bash
+./installer/install.sh
+```
 
-The Windows bootstrap expects CMake and a C++17 toolchain and does not install NVIDIA drivers.
+The Linux installer:
 
-Qualification: tools/qualification/run.sh
+- checks prerequisites;
+- builds ISB;
+- runs CTest;
+- installs `isb`;
+- initializes Linux configuration;
+- never silently installs or replaces the NVIDIA base driver.
 
-The runner stores raw output under reports/runs/<UTC timestamp>/logs/ and writes machine-readable environment, capabilities, telemetry, diagnosis, verification, benchmark, summary, and manifest files. A failing probe remains visible in the report. Mock output is never treated as real V100 evidence.
+Supported initial target: **Linux x86-64**.
 
+## Render configuration
+
+The intended V100 topology is:
+
+- iGPU/secondary dGPU — display;
+- Tesla V100 — render + compute.
+
+Render routing is application-scoped where possible. ISB must verify the actual Vulkan/OpenGL device rather than assuming that configuration succeeded.
+
+## Qualification
+
+Run:
+
+```bash
+tools/qualification/run.sh
+```
+
+The runner stores raw output under `reports/runs/<UTC timestamp>/logs/` and writes machine-readable environment, capabilities, telemetry, diagnosis, verification, benchmark, summary and manifest files.
+
+A failing probe remains visible in the report. Mock output is never treated as real V100 evidence.
 
 ## Qualification result semantics
 
-The qualification runner distinguishes execution from hardware evidence:
-
-- `PASS` means the command succeeded, the run is using a real provider, and the result does not contain an explicit unverified/synthetic state.
-- `UNKNOWN` means the command ran but hardware evidence is unavailable, synthetic, or not verified. Unknown results are never promoted to PASS.
+- `PASS` means the command succeeded, the run uses a real provider, and the result has no explicit unverified/synthetic state.
+- `UNKNOWN` means the command ran but hardware evidence is unavailable, synthetic or unverified. Unknown is never promoted to PASS.
 - `FAIL` means the qualification command itself failed.
 
-Exit codes are `0` for a fully real passing qualification, `1` when at least one case fails, and `2` when evidence is unavailable or remains unknown. The report records `qualification_mode` and the PASS/FAIL/UNKNOWN counts.
+Exit codes:
+
+- `0` — fully real passing qualification;
+- `1` — at least one case failed;
+- `2` — evidence is unavailable or remains unknown.
+
+The report records `qualification_mode` and PASS/FAIL/UNKNOWN counts.
