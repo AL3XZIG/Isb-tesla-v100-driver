@@ -32,7 +32,7 @@ The product is one lightweight control plane with two frontends:
       +-----------+-----------+
                   |
            Provider Layer
-     NVML / CUDA / Vulkan / DXGI
+     NVML / CUDA / Vulkan / OpenGL / Linux DRM / PRIME
                   |
           Base Driver Stack
                   |
@@ -51,7 +51,7 @@ The GUI must not contain a second implementation of the business logic. The CLI 
 6. Every claimed improvement requires measurement and provenance.
 7. External components remain replaceable and license-audited.
 8. The GUI never duplicates hub logic.
-9. V100-specific behavior is preferred over an unnecessarily generic GPU abstraction.
+9. V100-specific Linux behavior is preferred over an unnecessarily generic GPU abstraction.
 10. The alternative-driver research track remains isolated.
 
 ## 4. Capability layers
@@ -321,8 +321,8 @@ Likely providers include:
 - NVML;
 - CUDA;
 - Vulkan;
-- DXGI/D3D;
-- Windows platform APIs;
+- OpenGL;
+- Linux platform APIs;
 - Linux platform APIs.
 
 Providers report unavailable/unknown states instead of manufacturing capabilities.
