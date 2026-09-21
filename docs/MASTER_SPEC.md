@@ -122,8 +122,8 @@ Examples:
 - NVML management;
 - Vulkan;
 - OpenGL;
-- Direct3D/DXGI;
-- DirectCompute;
+- OpenGL;
+- Linux DRM/PRIME/offload;
 - driver-specific graphics paths.
 
 A base-driver feature is not automatically an ISB-owned feature.
@@ -316,7 +316,7 @@ Every important capability should identify its source, for example:
 - NVML;
 - CUDA;
 - Vulkan;
-- DXGI/D3D;
+- Linux DRM/Vulkan/OpenGL;
 - ISB;
 - external integration;
 - experimental;
@@ -333,10 +333,10 @@ Expected provider families include:
 - NVML;
 - CUDA;
 - Vulkan;
-- Windows DXGI/D3D;
+- Linux graphics stack;
 - Linux platform/runtime detection;
 - NVIDIA driver source;
-- Google driver source;
+
 - local driver cache.
 
 Providers must:
@@ -579,7 +579,7 @@ DISCOVER → SELECT → DOWNLOAD → VERIFY → CACHE
                                   VERIFY
 ```
 
-ISB must never silently replace the installed NVIDIA/Google driver.
+ISB must never silently replace the installed NVIDIA Linux driver.
 
 Proprietary NVIDIA/Google binaries are external inputs and are not redistributed without a documented legal basis.
 
@@ -1374,7 +1374,7 @@ Full Control Center-quality terminal UX.
 Full Hub-backed GUI.
 
 ### Stage 14 — Installer/release
-Windows/Linux packaging and verified GitHub Releases.
+Linux packaging and verified GitHub Releases.
 
 ### Stage 15 — Pre-test freeze
 No new product features; stabilize.
