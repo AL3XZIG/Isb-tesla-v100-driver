@@ -114,7 +114,7 @@ Until the stabilization sequence is complete, do not add new GUI features, tunin
 - [ ] Detect exact V100 variant: SXM2 / PCIe / 16 GB / 32 GB where possible.
 - [ ] Separate hardware capability from base-driver/API capability and ISB-added capability.
 - [ ] Implement read-only providers for NVIDIA/NVML, CUDA and relevant graphics APIs.
-- [ ] Add Windows DXGI/D3D capability probing without assuming DirectCompute availability.
+- [ ] Complete Linux graphics/API capability probing without assuming unsupported APIs.
 - [ ] Add Vulkan capability probing and provenance.
 - [ ] Record driver/package/version/API provenance for every observed capability.
 - [ ] Add capability-aware feature gating for Tensor Cores, ECC, RT Cores, Optical Flow, MIG, NVLink and display/output assumptions.
@@ -300,7 +300,7 @@ This section records gaps found by comparing the current source tree/provider im
 
 - [ ] Complete CUDA observation and capability extraction.
 - [ ] Complete Vulkan observation and capability extraction.
-- [ ] Implement Windows DXGI/D3D/DirectCompute observation.
+- [ ] Implement Linux DRM/Vulkan/OpenGL/PRIME observation.
 - [ ] Implement Linux driver/platform observation.
 - [ ] Reconcile NVML, CUDA, Vulkan and OS observations into one Hub capability snapshot.
 - [ ] Detect exact V100 variant: SXM2/PCIe and 16/32 GB where reliable.
@@ -342,12 +342,10 @@ This section records gaps found by comparing the current source tree/provider im
 ## G5 — Render path
 
 - [ ] Complete multi-GPU role reconciliation.
-- [ ] Complete Windows DXGI/WDDM evidence.
 - [ ] Complete Linux PRIME/Vulkan routing planning.
 - [ ] Implement safe application-scoped configuration.
 - [ ] Add configuration rollback.
 - [ ] Add end-to-end application render verification.
-- [ ] Keep TCC/WDDM transitions explicit and user-controlled.
 
 ## G6 — Games and OptiScaler
 
@@ -382,8 +380,6 @@ This section records gaps found by comparing the current source tree/provider im
 ## G8 — Release Builder and production installer
 
 - [ ] Implement reproducible release build script.
-- [ ] Build Windows .zip.
-- [ ] Build Windows installer .exe.
 - [ ] Build Linux .deb.
 - [ ] Build Linux .tar.gz.
 - [ ] Generate SHA256SUMS.
@@ -428,7 +424,6 @@ This section records gaps found by comparing the current source tree/provider im
 - [ ] CUDA software ray tracing/ray marching.
 - [ ] SSR/SSAO/SSGI.
 - [ ] Voxel lighting.
-- [ ] Experimental Windows API interception boundaries.
 - [ ] Keep experimental components isolated from stable Hub dependencies.
 - [ ] Never label software reconstruction as native DLSS or RT hardware.
 
