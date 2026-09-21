@@ -94,8 +94,8 @@ Features exposed by the installed NVIDIA/Google-compatible stack on the current 
 - NVML;
 - Vulkan;
 - OpenGL;
-- Direct3D/DXGI;
-- DirectCompute;
+- OpenGL;
+- Linux DRM/PRIME/offload;
 - driver-specific render/offload mechanisms;
 - management controls.
 
@@ -172,9 +172,9 @@ CUDA provider supplies runtime/capability observation and later compute function
 
 Vulkan provider supplies graphics capability detection and provenance.
 
-### Windows
+### Linux
 
-Windows platform probing may use DXGI/D3D and driver-model information.
+Linux platform probing uses DRM/session state, Vulkan/OpenGL device correlation and PRIME/offload mechanisms.
 
 The V100 must not be treated as a display adapter simply because it is a GPU.
 
@@ -355,7 +355,7 @@ Detect:
 - Vulkan;
 - OpenGL;
 - DirectX;
-- Windows driver model;
+- Linux DRM/session state;
 - Linux DRM/PRIME;
 - X11/Wayland/Xwayland where relevant.
 
@@ -374,7 +374,7 @@ Linux examples may use NVIDIA PRIME/Vulkan environment variables, but they are e
 
 ISB must not automatically:
 
-- switch TCC ↔ WDDM;
+- switch global display/render ownership;
 - disable a display adapter;
 - replace the base driver;
 - alter driver signing;
@@ -673,7 +673,7 @@ Downloaded drivers must never execute automatically.
 
 ## 22. Release engineering
 
-Windows artifacts:
+Linux artifacts:
 
 - .zip;
 - .exe.
