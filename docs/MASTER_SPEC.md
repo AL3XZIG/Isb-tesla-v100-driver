@@ -256,7 +256,7 @@ Conceptual operations:
 - driver download;
 - cache management.
 
-The Hub coordinates modules and providers. It must not become a dumping ground for raw NVML/CUDA/Vulkan/DXGI implementation.
+The Hub coordinates modules and providers. It must not become a dumping ground for raw NVML/CUDA/Vulkan/Linux platform implementation.
 
 ### 6.1 Transaction model
 
@@ -708,14 +708,14 @@ The system must distinguish:
 
 A render-path plan may configure routing only through documented/supported mechanisms.
 
-### Windows
+### Linux
 
 Investigate and use real:
 
-- WDDM;
-- DXGI;
+- DRM;
+- PRIME Render Offload;
 - D3D;
-- Windows Graphics Settings;
+- Vulkan/OpenGL;
 - supported driver mechanisms.
 
 Do not invent registry keys or claim universal routing.
@@ -942,7 +942,7 @@ Terminal compatibility:
 - Linux terminal;
 - SSH;
 - tmux;
-- Windows Terminal;
+- 
 - PowerShell;
 - cmd where practical.
 
