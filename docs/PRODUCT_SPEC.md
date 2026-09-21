@@ -30,10 +30,11 @@ Variants must be detected rather than assumed:
 - V100 PCIe 16 GB;
 - V100 PCIe 32 GB.
 
-Initial OS scope:
+Initial and supported OS scope:
 
-- Windows 10/11 x64;
-- Linux x86-64.
+- **Linux x86-64 only**.
+
+Windows and BSD are outside the supported product scope.
 
 The project is V100-focused and should not become a generic GPU suite unless a feature is directly required by the V100 product.
 
@@ -52,7 +53,7 @@ User
 → ISB Hub
 → Capability / Telemetry / Operations
 → Provider and Adapter Layer
-→ NVML / CUDA / Vulkan / DXGI / platform APIs
+→ NVML / CUDA / Vulkan / OpenGL / Linux DRM / PRIME
 → Base Driver Stack
 → V100 / GV100
 
@@ -360,13 +361,12 @@ Detect:
 
 ### Render-path planning
 
-Possible mechanisms:
+Possible Linux mechanisms:
 
-- Windows GPU preference/render selection where supported;
-- Linux PRIME Render Offload;
+- PRIME Render Offload;
 - Vulkan device selection;
-- per-application configuration;
-- manual configuration.
+- OpenGL vendor selection;
+- per-application environment/configuration.
 
 Linux examples may use NVIDIA PRIME/Vulkan environment variables, but they are examples only. Applicability must be detected.
 
