@@ -1095,14 +1095,7 @@ Useful mock scenarios include:
 
 ISB requires reproducible release engineering.
 
-### Windows
-
-Initial artifacts:
-
-- `.zip`;
-- `.exe`.
-
-### Linux
+### Linux x86-64
 
 Initial artifacts:
 
