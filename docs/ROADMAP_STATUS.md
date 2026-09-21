@@ -85,7 +85,7 @@ Source and CI remain authoritative. Current repository evidence shows:
 - [ ] Implement persistent application-scoped Linux configuration where safe.
 - [ ] Add rollback for render-path configuration.
 - [ ] Add end-to-end application render verification.
-- [ ] Keep TCC/WDDM changes explicit and user-controlled.
+- [ ] Keep Linux display/render ownership changes explicit and user-controlled.
 
 ### P2 — Game Manager
 
