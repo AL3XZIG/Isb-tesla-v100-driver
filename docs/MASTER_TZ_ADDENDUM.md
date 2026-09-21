@@ -21,7 +21,7 @@ ISB is a user-space V100 Control Center and compatibility/optimization platform.
 
 Canonical path:
 
-User -> CLI/Qt Control Center -> Hub -> Providers/Integrations -> installed NVIDIA/Google base driver -> V100
+User -> CLI/Qt Control Center -> Hub -> Providers/Integrations -> installed NVIDIA Linux base driver -> V100
 
 ISB is not the base NVIDIA driver.
 
@@ -212,7 +212,7 @@ Detection should correlate:
 
 - NVML;
 - Vulkan;
-- DXGI on Windows;
+- Linux DRM/session state;
 - DRM/session state on Linux.
 
 Linux may plan application-scoped offload using documented mechanisms such as:
@@ -233,8 +233,7 @@ Driver Manager is a first-class lifecycle subsystem.
 
 Providers:
 
-- NVIDIA;
-- Google;
+- NVIDIA Linux/Data Center;
 - local cache.
 
 Responsibilities:
@@ -242,7 +241,7 @@ Responsibilities:
 - detect installed driver;
 - discover releases;
 - list versions;
-- filter by provider/branch/OS/architecture/GPU;
+- filter by provider/branch/Linux distribution/architecture/GPU;
 - parse release URLs;
 - parse direct artifact URLs;
 - normalize metadata;
@@ -458,7 +457,7 @@ Pages should cover:
 
 The GUI calls Hub only.
 
-It must not call NVML/CUDA/Vulkan/DXGI directly.
+It must not call NVML/CUDA/Vulkan/Linux platform providers directly.
 
 The Drivers page provides:
 
@@ -516,10 +515,6 @@ Pipeline:
 TAG -> CLEAN CHECKOUT -> CONFIGURE -> BUILD -> TEST -> PACKAGE -> SHA256 -> MANIFEST -> RELEASE NOTES -> GITHUB RELEASE -> UPLOAD
 
 Initial artifacts:
-
-Windows x64:
-- .zip;
-- .exe.
 
 Linux x86_64:
 - .deb;
