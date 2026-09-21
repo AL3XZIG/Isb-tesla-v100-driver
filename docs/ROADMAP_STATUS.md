@@ -41,9 +41,9 @@ Source and CI remain authoritative. Current repository evidence shows:
 - [ ] Exact V100 variant detection: SXM2 / PCIe / 16 GB / 32 GB.
 - [ ] Complete CUDA provider observations.
 - [ ] Complete Vulkan provider observations.
-- [ ] Add Windows DXGI/D3D/DirectCompute observation path.
-- [ ] Add Linux environment/driver/platform observation path.
-- [ ] Aggregate NVML + CUDA + Vulkan + DXGI/Linux observations in Hub.
+- [ ] Complete Linux environment/driver/platform observation path.
+- [ ] Complete Linux DRM/PRIME/Vulkan/OpenGL observations.
+- [ ] Aggregate NVML + CUDA + Vulkan + Linux observations in Hub.
 - [ ] Preserve provenance and UNKNOWN/PERMISSION_DENIED/ERROR semantics.
 - [ ] Build a deterministic capability reconciliation engine.
 
@@ -80,9 +80,9 @@ Source and CI remain authoritative. Current repository evidence shows:
 ### P2 — Graphics and render path
 
 - [ ] Complete multi-GPU role reconciliation.
-- [ ] Complete Windows DXGI/WDDM evidence path.
-- [ ] Complete Linux PRIME/Vulkan routing plan.
-- [ ] Implement persistent application-scoped configuration where safe.
+- [ ] Complete Linux DRM/PRIME/Vulkan render-path evidence.
+- [ ] Complete Linux multi-GPU role reconciliation.
+- [ ] Implement persistent application-scoped Linux configuration where safe.
 - [ ] Add rollback for render-path configuration.
 - [ ] Add end-to-end application render verification.
 - [ ] Keep TCC/WDDM changes explicit and user-controlled.
@@ -122,8 +122,7 @@ Source and CI remain authoritative. Current repository evidence shows:
 
 ### P2 — Driver Manager
 
-- [ ] NVIDIA release provider.
-- [ ] Google release provider.
+- [ ] NVIDIA Linux/Data Center release provider.
 - [ ] Provider/branch/version/OS/package normalization.
 - [ ] URL/release-page parser.
 - [ ] V100 compatibility resolver.
@@ -136,13 +135,11 @@ Source and CI remain authoritative. Current repository evidence shows:
 - [ ] Explicit installation backend only after technical/legal validation.
 - [ ] Never silently replace the active base driver.
 
-Current external driver support must be represented as provider/version/OS-specific evidence, not as one universal version. NVIDIA documentation currently lists Volta/V100 last driver support as R580, with current R580 releases including Linux 580.178.04 and Windows 582.78. NVIDIA vGPU documentation lists V100 variants on vGPU release branch 19 with maintenance support through July 2028.
+Current external driver support must be represented as provider/version/Linux-package-specific evidence, not as one universal version. The Linux driver path must be validated against the exact V100 variant and required runtime/API capabilities before being marked compatible.
 
 ### P2 — Release Builder
 
 - [ ] Reproducible release build script.
-- [ ] Windows x64 .zip.
-- [ ] Windows installer .exe.
 - [ ] Linux x86_64 .deb.
 - [ ] Linux .tar.gz.
 - [ ] SHA256SUMS.
@@ -164,7 +161,7 @@ Current external driver support must be represented as provider/version/OS-speci
 - [ ] Upgrade path.
 - [ ] Uninstall path.
 - [ ] Rollback after failed installation/configuration.
-- [ ] Windows and Linux packaging integration.
+- [ ] Linux packaging integration.
 - [ ] Driver installation remains a separate explicit workflow.
 
 ### P2 — Reports / Diagnostics
@@ -212,7 +209,6 @@ Current external driver support must be represented as provider/version/OS-speci
 - [ ] SSR/SSAO/SSGI.
 - [ ] Voxel lighting.
 - [ ] Additional graphics compatibility layers.
-- [ ] Experimental Windows interception boundaries.
 - [ ] Keep experimental code isolated from stable Hub dependencies.
 
 ### Research-only
@@ -224,7 +220,6 @@ Current external driver support must be represented as provider/version/OS-speci
 ## Current blockers
 
 1. Physical V100 hardware is required to close hardware qualification.
-2. The base driver/API combination must be tested before claiming Windows graphics/DirectCompute behavior.
 3. Mutation must remain disabled until providers can apply and read back real state.
 4. External component deployment requires provenance/licensing and artifact verification.
 5. Release publication requires reproducible packaging and CI gates.
@@ -232,14 +227,14 @@ Current external driver support must be represented as provider/version/OS-speci
 ## Milestone order
 
 M0 stabilization gate
--> M1 real read-only V100 observation
+-> M1 Linux real read-only V100 observation
 -> M2 capability reconciliation + telemetry
 -> M3 FixEngine + first real workaround
 -> M4 real tuning + Optimize V100
--> M5 render path + graphics compatibility
+-> M5 Linux render path + graphics compatibility
 -> M6 Game/OptiScaler manager
--> M7 Driver Manager
--> M8 Release Builder + production installer
+-> M7 Linux Driver Manager
+-> M8 Linux Release Builder + production installer
 -> M9 completed Control Center
 -> M10 benchmark/qualification release
 -> M11 experimental neural/graphics features
