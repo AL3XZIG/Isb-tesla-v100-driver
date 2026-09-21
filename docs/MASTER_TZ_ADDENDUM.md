@@ -221,9 +221,9 @@ Linux may plan application-scoped offload using documented mechanisms such as:
 - __GLX_VENDOR_LIBRARY_NAME=nvidia;
 - __VK_LAYER_NV_optimus=NVIDIA_only.
 
-Windows must use real DXGI/D3D/WDDM evidence.
+Windows is outside the supported product scope.
 
-ISB must not silently change TCC/WDDM.
+ISB must not silently change Linux display/render ownership.
 
 Current render-path implementation must refuse unsupported host mutation rather than pretending configuration succeeded.
 
@@ -684,7 +684,7 @@ The complete product must be able to:
 - download and verify selected driver artifacts;
 - maintain a provenance-aware cache;
 - keep driver download separate from installation;
-- build Windows ZIP/EXE;
+- build Linux DEB/TAR.GZ;
 - build Linux DEB/TAR.GZ;
 - generate SHA256SUMS;
 - generate a release manifest;
