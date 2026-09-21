@@ -66,7 +66,7 @@ Telemetry   Tuning        Optimization
 Rules:
 
 1. GUI and CLI use the same Hub contracts.
-2. GUI never calls NVML/CUDA/Vulkan/DXGI directly.
+2. GUI never calls NVML/CUDA/Vulkan/Linux platform providers directly.
 3. Hardware facts, driver/API capabilities and ISB-added capabilities are separate.
 4. Unknown is never silently converted to Unavailable or Available.
 5. No mutation without an explicit user-approved operation.
@@ -102,7 +102,7 @@ Classification must follow the actual repository and dependency graph.
 Classify modules as:
 
 - stable/core — common, cal, hub, cli, core control-plane contracts;
-- provider — NVML/CUDA/Vulkan/DXGI/platform adapters;
+- provider — NVML/CUDA/Vulkan/Linux platform adapters;
 - experimental — graphics/compute/research code;
 - frontend — control-center;
 - evidence — diagnostics/verification/reports/benchmarks;
@@ -343,7 +343,7 @@ Record source for each observation:
 - NVML;
 - CUDA;
 - Vulkan;
-- DXGI/D3D;
+- Linux DRM/OpenGL;
 - OS;
 - configuration;
 - benchmark;
@@ -855,7 +855,7 @@ Provide:
 
 After the backend and GUI are functional, implement deployment.
 
-## Windows
+## Linux
 
 Provide:
 
@@ -952,7 +952,7 @@ The normal ISB installer installs ISB, not the NVIDIA/Google driver.
 
 Create reproducible release packaging for:
 
-Windows:
+Linux:
 - .zip;
 - .exe.
 
@@ -1078,7 +1078,7 @@ Before publishing an ISB release, verify:
 - package names match the manifest;
 - SHA256SUMS matches every artifact;
 - manifest commit/tag matches the release;
-- Windows packages are valid;
+- Linux packages are valid;
 - Linux packages are valid;
 - release notes identify known limitations;
 - failed package jobs cannot publish a partial release.
