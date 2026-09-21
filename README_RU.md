@@ -1,6 +1,8 @@
-# ISB V100 Hub — русская версия
+# ISB V100 Hub — Linux — русская версия
 
 **ISB — Intelligent Systems Bureau**
+
+**Направление платформы: только Linux x86-64.** Поддерживаемый продукт — пользовательский стек ISB для Tesla V100: управление, совместимость, оптимизация, диагностика и графический routing поверх Linux-драйвера NVIDIA.
 
 Открытая платформа пользовательского уровня для **Tesla V100**, предназначенная для управления, совместимости, оптимизации и диагностики поверх установленного стека драйверов NVIDIA.
 
@@ -18,7 +20,9 @@
 
 Основной путь выглядит так:
 
-Игра / приложение / вычислительная задача → ISB V100 Hub → providers и функциональные модули → базовый драйвер NVIDIA → Tesla V100.
+Игра / приложение / вычислительная задача → ISB V100 Hub → Linux providers и функциональные модули → базовый Linux-драйвер NVIDIA → Tesla V100.
+
+Целевая multi-GPU схема: **Tesla V100 используется как compute/render GPU, а iGPU или вторичная dGPU — как display GPU**. ISB должен автоматически выбирать V100 для конкретного приложения там, где Linux graphics stack предоставляет необходимый механизм.
 
 ## Основные возможности
 
@@ -147,15 +151,15 @@ ISB разделяет:
 
 Планируемый Driver Manager отвечает за жизненный цикл установленного базового драйвера:
 
-- metadata каталога NVIDIA/Google;
+- metadata каталога Linux-драйверов NVIDIA/Data Center;
 - определение версии и ветки;
-- compatibility matching;
+- V100 compatibility matching;
 - URL/artifact parser;
 - download;
 - checksum/signature verification;
 - local cache;
 - provenance;
-- явную установку по действию пользователя.
+- явную установку/конфигурацию по действию пользователя.
 
 ISB не должен молча заменять установленный драйвер или запускать произвольные скачанные installers.
 
@@ -167,7 +171,6 @@ ISB не должен молча заменять установленный д�
 
 Целевые артефакты:
 
-- Windows x64: ZIP и EXE;
 - Linux x86_64: DEB и TAR.GZ.
 
 Сгенерированные бинарники являются release artifacts и не должны коммититься в основной исходный код.
@@ -180,12 +183,11 @@ ISB не должен молча заменять установленный д�
 
 Отдельно отслеживаются V100 PCIe, V100 32 GB, multi-GPU конфигурации и headless compute с отдельной GPU для вывода изображения.
 
-Начальный диапазон ОС:
+Поддерживаемая платформа:
 
-- Windows 10/11 x64;
-- Linux x86-64.
+- **Linux x86-64**.
 
-Legacy Windows/BSD — отдельная квалификация.
+Windows, BSD и другие ОС исключены из поддерживаемого продукта. Старые platform-specific материалы могут оставаться только как исторические или research-материалы.
 
 ## Архитектура и документация
 
@@ -209,7 +211,7 @@ Legacy Windows/BSD — отдельная квалификация.
 
 Основная оставшаяся работа — переход от контрактов, mock-реализаций и частичных providers к полноценно интегрированному реальному стеку V100:
 
-**M0 Build & stabilization → M1 Capability Engine → M2 real providers → M3 real telemetry → M4 tuning/Optimize V100 → M5 Driver Doctor → M6 graphics/render path → M7 Games/OptiScaler → M8 Driver Manager → M9 Release Builder/Installer → M10 Control Center → M11 benchmarks/evidence → M12 experimental graphics → физическая квалификация на V100.**
+**M0 Build & stabilization → M1 Capability Engine → M2 Linux real providers → M3 real telemetry → M4 tuning/Optimize V100 → M5 Driver Doctor → M6 Linux graphics/render path → M7 Games/OptiScaler → M8 Linux Driver Manager → M9 Linux Release Builder/Installer → M10 Control Center → M11 benchmarks/evidence → M12 experimental graphics → физическая квалификация на V100.**
 
 Актуальная карта implementation gaps находится в [docs/ROADMAP_STATUS.md](docs/ROADMAP_STATUS.md) и [docs/TASKS.md](docs/TASKS.md).
 
