@@ -128,7 +128,7 @@ FixEngine remains the single authoritative workaround/rule engine.
 
 ## Driver Manager
 
-ISB includes a driver lifecycle management direction layered above the installed NVIDIA/Google base driver.
+ISB includes a Linux NVIDIA driver lifecycle management direction layered above the installed NVIDIA base driver.
 
 The product must distinguish:
 
@@ -147,7 +147,7 @@ Initial driver sources:
 
 - NVIDIA Data Center/Tesla releases;
 - NVIDIA vGPU/vWS/GRID releases where applicable;
-- Google-provided NVIDIA GPU driver sources where applicable.
+
 
 NVIDIA publishes Data Center driver release information and documented releases explicitly list Tesla V100 support on relevant versions. [See NVIDIA Data Center driver documentation.]
 
@@ -184,7 +184,7 @@ Download must be separated from installation:
 - inspect;
 - install only through a separate explicit workflow.
 
-ISB must not silently replace the installed NVIDIA/Google driver.
+ISB must not silently replace the installed NVIDIA Linux driver.
 
 ### Driver cache
 
@@ -269,7 +269,7 @@ V100 may be headless and used as a compute/render GPU while another GPU or iGPU 
 
 The product should detect adapters and provide a safe render-path plan where the current OS and driver support it.
 
-Windows and Linux are first-class targets.
+**Linux x86-64 is the only supported target.** Windows and BSD are outside the supported product scope.
 
 Universal routing must never be assumed.
 
@@ -289,11 +289,6 @@ For tagged releases, CI should:
 8. upload all successful artifacts.
 
 Initial release formats:
-
-### Windows
-
-- .zip;
-- .exe.
 
 ### Linux
 
@@ -390,7 +385,7 @@ The desired end state is a lightweight, real V100 Control Center that:
 - integrates OptiScaler safely;
 - supports render-path configuration where technically possible;
 - provides useful graphics enhancement paths;
-- builds reproducible Windows/Linux releases;
+- builds reproducible Linux releases;
 - publishes verified release artifacts automatically;
 - produces evidence-backed reports;
 - clearly separates stable, experimental, mock and unavailable functionality.
