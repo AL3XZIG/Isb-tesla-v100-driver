@@ -57,7 +57,7 @@ Telemetry   Tuning        Optimization
               |
         Provider Layer
               |
-   NVML / CUDA / Vulkan / DXGI
+   NVML / CUDA / Vulkan / OpenGL / Linux platform
               |
        Installed base driver
               |
@@ -275,19 +275,20 @@ Implement read-only Vulkan probing where available:
 
 No Vulkan feature may be claimed from V100 hardware alone.
 
-## 2.6 Windows graphics provider
+## 2.6 Linux graphics provider
 
-Implement a platform boundary for Windows:
+Implement the Linux platform boundary:
 
-- DXGI adapter identity;
-- D3D feature information where safely available;
-- DirectCompute availability where actually exposed;
+- DRM device identity;
+- display/render device information;
+- Vulkan/OpenGL device correlation;
+- PRIME/offload environment;
 - driver version/provider information;
-- adapter memory information where exposed.
+- device memory information where exposed.
 
 Never hard-code a particular NVIDIA/Google driver version as universally compatible.
 
-## 2.7 Linux provider boundary
+## 2.7 Linux environment/provider boundary
 
 Provide Linux-specific environment detection without polluting portable contracts:
 
