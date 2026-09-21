@@ -89,7 +89,7 @@ The following routing reflects the September 2026 source/CI audit.
 - NVML: real read-only path exists; management/mutation remains incomplete.
 - CUDA: provider boundary exists; complete observation/capability aggregation remains open.
 - Vulkan: provider boundary exists; complete observation/capability aggregation remains open.
-- Windows DXGI/D3D/DirectCompute: implementation remains a required roadmap item.
+- Linux DRM/Vulkan/OpenGL/PRIME: implementation remains a required roadmap item.
 - Linux platform/runtime detection: implementation remains a required roadmap item.
 
 ### Hub
@@ -124,7 +124,7 @@ The following routing reflects the September 2026 source/CI audit.
 
 ### Installer / Release
 - Complete production ISB packaging and upgrade/uninstall.
-- Complete Windows/Linux release artifacts, checksums, manifests and GitHub Release automation.
+- Complete Linux release artifacts, checksums, manifests and GitHub Release automation.
 
 ### Control Center
 - Convert mock/contract UI into real Hub-backed views incrementally.
