@@ -1,112 +1,137 @@
 # ISB Support Matrix
 
-## 1. Support model
+## 1. Product support policy
 
-ISB separates **OS support** from **hardware support**. A hardware backend is not tied to a single operating system, and an OS integration does not imply support for every GPU family.
+ISB is a **Linux x86-64-only V100 product**. The project no longer treats Windows or BSD as supported runtime targets.
 
-Support is expressed as an independent matrix:
+Support is expressed as:
 
-- **OS tier** describes the maturity of the platform integration.
-- **Hardware tier** describes the maturity of the GPU backend.
-- A feature is production-ready only when both dimensions are validated.
+- **OS/platform support** — maturity of the Linux integration;
+- **hardware support** — maturity of the V100 backend;
+- **feature evidence** — whether a capability is actually observed and verified on the installed Linux driver/runtime.
 
-## 2. Operating-system tiers
+A feature is production-ready only when the relevant Linux platform, V100 hardware variant and provider path have been validated.
 
-| Tier | Platform | Priority | Intended role | Status target |
+## 2. Operating-system scope
+
+| Tier | Platform | Priority | Intended role | Status |
 |---|---|---:|---|---|
-| O1 | Windows 10/11 x64 | P0 | Gaming, professional graphics, compute | Production target |
-| O1 | Linux x86-64 | P0 | Development, AI, rendering, server | Production target |
-| O2 | Windows 7 x64 | P2 | Legacy compatibility | Legacy/experimental |
-| O2 | Windows 8.1 x64 | P2 | Legacy compatibility | Legacy/experimental |
-| O3 | FreeBSD x86-64 | P3 | Community/server | Experimental |
-| O4 | OpenBSD / NetBSD / other Unix-like | P4 | Research/community | Experimental |
+| O1 | Linux x86-64 | P0 | Gaming, rendering, CUDA/AI, diagnostics, server/workstation | Primary target |
 
-ARM64 is a future architecture target and is not part of the initial production matrix.
+Not in the supported product matrix:
 
-## 3. Hardware tiers
+- Windows 10/11 and legacy Windows;
+- FreeBSD/OpenBSD/NetBSD;
+- other Unix-like systems;
+- ARM64.
 
-| Tier | GPU family | Initial target | Notes |
-|---|---|---|---|
-| H1 | GV100 / Tesla V100 16 GB | P0 | First physical validation target |
-| H2 | GV100 / Tesla V100 32 GB | P1/P2 | Same architectural family; capacity and board topology must be detected |
-| Future | GP104 / P104 / CMP and other validated devices | TBD | Added only after a separate HAL/provider validation |
+Old platform-specific code and documentation may remain only as historical or research material and must not be presented as supported runtime functionality.
 
-V100 SXM2 and V100 PCIe remain separate variants even when they share the same GV100 architecture.
+## 3. Hardware scope
 
-## 4. Platform architecture
+| Tier | GPU | Priority | Notes |
+|---|---|---:|---|
+| H1 | Tesla V100 SXM2 16 GB / GV100 | P0 | First physical qualification target |
+| H2 | Tesla V100 SXM2 32 GB / GV100 | P1 | Same architecture; detect capacity/topology |
+| H2 | Tesla V100 PCIe 16/32 GB / GV100 | P1/P2 | Separate board/thermal/topology qualification |
 
-The common ISB stack is OS- and hardware-neutral above the platform boundaries:
+The product remains V100-focused. Other GPU families are not product targets.
+
+## 4. Intended Linux topology
+
+The primary multi-GPU topology is:
 
 ```text
-Applications / Control Plane
-            |
-         ISB API
-            |
-       ISB Core/Runtime
-            |
-     +------+------+
-     |             |
- GPU HAL      OS Abstraction
-     |             |
-     |      +------+------+------+
-     |      |             |      |
-     |    Linux        Windows   BSD
-     |     DRM          WDDM     BSD GPU API
-     |                  /   \
-     |                 KMD   UMD
-     |                  |
-     +------------------+
-            |
-      Hardware backend
-            |
-       GV100 / future GPU
+             Linux display server
+              / Wayland/X11
+                    |
+          +---------+---------+
+          |                   |
+      Display GPU          Tesla V100
+      iGPU / dGPU        Compute + Render
+          |                   |
+       outputs          Vulkan/OpenGL/CUDA
 ```
 
-The diagram is conceptual. WDDM is not a thin wrapper around HAL: Windows graphics support requires a kernel-mode driver (KMD) and user-mode driver (UMD) integrated with the Windows graphics stack. Linux graphics integration uses DRM/KMS and kernel/user-space interfaces. BSD support is a separate backend.
+A V100 without physical display connectors is expected.
 
-## 5. Windows packaging
+ISB must distinguish:
 
-The Windows product is distributed as an installer executable, but the installed driver is a package rather than a single executable binary.
+- **Display GPU** — owns physical display/presentation;
+- **Render GPU** — performs graphics rendering;
+- **Compute GPU** — performs CUDA/compute work.
 
-A release may contain:
+The common target is:
 
-- installer/bootstrapper `.exe`;
-- kernel driver `.sys`;
-- user-mode driver/runtime `.dll` files;
-- INF installation metadata;
-- catalog/signature `.cat` files;
-- ISB Runtime and control utilities;
-- configuration and diagnostics resources.
+**Display GPU = iGPU/secondary dGPU; Render/Compute GPU = V100.**
 
-The installer may embed these files into one self-contained `.exe` and extract/install them transactionally. This does **not** mean Windows loads the whole driver from one `.exe`.
+## 5. Linux graphics stack
 
-Kernel-mode Windows components require appropriate code signing for normal deployment. Installation must be explicit, privilege-aware, auditable, reversible, and able to roll back on failure.
+The supported graphics paths are:
 
-## 6. Linux packaging
+- Vulkan;
+- OpenGL;
+- Linux DRM device discovery;
+- NVIDIA PRIME Render Offload where applicable;
+- Vulkan device selection;
+- X11/Xwayland/Wayland integration where actually observed.
 
-Linux uses a native package/installer model. The final distribution may provide a single installer command or self-extracting package, but kernel modules, shared libraries, firmware/resources, udev rules, and configuration remain separate installed components where required by the target distribution.
+ISB must verify the selected Vulkan/OpenGL device rather than assuming that the V100 is the renderer.
 
-## 7. Stability policy
+## 6. Linux compute stack
 
-A platform is not marked production-ready merely because the code compiles or the installer succeeds.
+The supported compute paths are:
 
-Production promotion requires, at minimum:
+- CUDA;
+- NVML;
+- CUDA-aware application/runtime integration;
+- V100 Tensor Core workloads where supported by the installed software stack.
 
-1. deterministic device discovery;
-2. clean attach/detach and failure paths;
-3. memory isolation and bounds checking;
-4. command submission and synchronization validation;
-5. GPU reset/recovery testing;
-6. suspend/resume testing where applicable;
-7. multi-process and multi-GPU testing where supported;
-8. stress testing and long-duration workloads;
-9. installer rollback/uninstall validation;
-10. reproducible diagnostics and crash/failure reporting.
+DirectCompute/DXGI/WDDM are not part of the Linux product.
 
-Windows and Linux therefore share the same ISB Core contracts but have independent kernel/OS stability qualification.
+## 7. Driver support model
 
-## 8. Compatibility rule
+The base driver remains an external NVIDIA component.
 
-A combination such as `Windows 11 x64 + V100 SXM2 16 GB` is a concrete support target. `Windows 11 x64 + future GP104` is not supported merely because both dimensions exist in the matrix.
+ISB records:
 
-Every OS × hardware combination must pass its own validation gate before being advertised as supported.
+- vendor;
+- branch;
+- version;
+- OS;
+- architecture;
+- package type;
+- V100 compatibility evidence;
+- CUDA/runtime/API observations;
+- provenance.
+
+Driver installation is a separate explicit operation. ISB must not silently replace the active NVIDIA driver.
+
+## 8. Qualification policy
+
+Linux/V100 production qualification requires, at minimum:
+
+1. deterministic V100 discovery;
+2. exact SXM2/PCIe and memory-size identification where observable;
+3. NVML observation;
+4. CUDA observation;
+5. Vulkan enumeration;
+6. OpenGL observation where available;
+7. multi-GPU role detection;
+8. application-scoped V100 render routing;
+9. telemetry and diagnostics;
+10. install/upgrade/uninstall/rollback validation;
+11. long-duration workloads;
+12. reproducible evidence reports.
+
+A capability remains **UNKNOWN** until the relevant Linux provider or verification test establishes it.
+
+## 9. Compatibility rule
+
+Compatibility is specific to:
+
+**Linux x86-64 + V100 variant + installed NVIDIA driver + runtime/API path + application.**
+
+No single driver version is assumed to be universally compatible.
+
+The repository must prefer observed/provider-backed evidence over hard-coded claims.

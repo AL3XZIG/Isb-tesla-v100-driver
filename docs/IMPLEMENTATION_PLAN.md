@@ -57,7 +57,7 @@ Telemetry   Tuning        Optimization
               |
         Provider Layer
               |
-   NVML / CUDA / Vulkan / DXGI
+   NVML / CUDA / Vulkan / OpenGL / Linux platform
               |
        Installed base driver
               |
@@ -66,7 +66,7 @@ Telemetry   Tuning        Optimization
 Rules:
 
 1. GUI and CLI use the same Hub contracts.
-2. GUI never calls NVML/CUDA/Vulkan/DXGI directly.
+2. GUI never calls NVML/CUDA/Vulkan/Linux platform providers directly.
 3. Hardware facts, driver/API capabilities and ISB-added capabilities are separate.
 4. Unknown is never silently converted to Unavailable or Available.
 5. No mutation without an explicit user-approved operation.
@@ -102,7 +102,7 @@ Classification must follow the actual repository and dependency graph.
 Classify modules as:
 
 - stable/core — common, cal, hub, cli, core control-plane contracts;
-- provider — NVML/CUDA/Vulkan/DXGI/platform adapters;
+- provider — NVML/CUDA/Vulkan/Linux platform adapters;
 - experimental — graphics/compute/research code;
 - frontend — control-center;
 - evidence — diagnostics/verification/reports/benchmarks;
@@ -275,19 +275,20 @@ Implement read-only Vulkan probing where available:
 
 No Vulkan feature may be claimed from V100 hardware alone.
 
-## 2.6 Windows graphics provider
+## 2.6 Linux graphics provider
 
-Implement a platform boundary for Windows:
+Implement the Linux platform boundary:
 
-- DXGI adapter identity;
-- D3D feature information where safely available;
-- DirectCompute availability where actually exposed;
+- DRM device identity;
+- display/render device information;
+- Vulkan/OpenGL device correlation;
+- PRIME/offload environment;
 - driver version/provider information;
-- adapter memory information where exposed.
+- device memory information where exposed.
 
 Never hard-code a particular NVIDIA/Google driver version as universally compatible.
 
-## 2.7 Linux provider boundary
+## 2.7 Linux environment/provider boundary
 
 Provide Linux-specific environment detection without polluting portable contracts:
 
@@ -342,7 +343,7 @@ Record source for each observation:
 - NVML;
 - CUDA;
 - Vulkan;
-- DXGI/D3D;
+- Linux DRM/OpenGL;
 - OS;
 - configuration;
 - benchmark;
@@ -854,7 +855,7 @@ Provide:
 
 After the backend and GUI are functional, implement deployment.
 
-## Windows
+## Linux
 
 Provide:
 
@@ -951,7 +952,7 @@ The normal ISB installer installs ISB, not the NVIDIA/Google driver.
 
 Create reproducible release packaging for:
 
-Windows:
+Linux:
 - .zip;
 - .exe.
 
@@ -1077,7 +1078,7 @@ Before publishing an ISB release, verify:
 - package names match the manifest;
 - SHA256SUMS matches every artifact;
 - manifest commit/tag matches the release;
-- Windows packages are valid;
+- Linux packages are valid;
 - Linux packages are valid;
 - release notes identify known limitations;
 - failed package jobs cannot publish a partial release.

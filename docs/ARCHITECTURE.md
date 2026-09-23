@@ -32,7 +32,7 @@ The product is one lightweight control plane with two frontends:
       +-----------+-----------+
                   |
            Provider Layer
-     NVML / CUDA / Vulkan / DXGI
+     NVML / CUDA / Vulkan / OpenGL / Linux DRM / PRIME
                   |
           Base Driver Stack
                   |
@@ -51,7 +51,7 @@ The GUI must not contain a second implementation of the business logic. The CLI 
 6. Every claimed improvement requires measurement and provenance.
 7. External components remain replaceable and license-audited.
 8. The GUI never duplicates hub logic.
-9. V100-specific behavior is preferred over an unnecessarily generic GPU abstraction.
+9. V100-specific Linux behavior is preferred over an unnecessarily generic GPU abstraction.
 10. The alternative-driver research track remains isolated.
 
 ## 4. Capability layers
@@ -82,8 +82,8 @@ Examples:
 - NVML management controls;
 - Vulkan extensions;
 - OpenGL;
-- Direct3D/DXGI;
-- DirectCompute;
+- OpenGL;
+- Linux DRM/PRIME/offload;
 - driver-specific feature paths.
 
 A capability exposed by a particular NVIDIA/Google package is recorded as a **base-driver capability** with provenance. ISB does not claim ownership of that implementation.
@@ -321,8 +321,8 @@ Likely providers include:
 - NVML;
 - CUDA;
 - Vulkan;
-- DXGI/D3D;
-- Windows platform APIs;
+- OpenGL;
+- Linux platform APIs;
 - Linux platform APIs.
 
 Providers report unavailable/unknown states instead of manufacturing capabilities.
@@ -347,7 +347,7 @@ profiles/               declarative hardware/driver/app/workload profiles
 control-center/         lightweight GUI frontend
 cli/                    headless frontend
 installer/              installation/configuration/rollback
-compute/                CUDA/DirectCompute compatibility and compute features
+compute/                CUDA compatibility and compute features
 graphics/               graphics compatibility infrastructure
 neural/                 V100 neural feature experiments
 database/               known drivers, applications and issues
@@ -434,7 +434,7 @@ The following points are established from the repository audit and merged stabil
 - **Foundation:** `common/` owns the implemented `Status`, `Result<T>` and `ErrorCode` primitives. `core/TASK.md` is a specification for provider-neutral orchestration; there is currently no production `core` target establishing a competing foundation owner.
 - **Capability model:** CAL owns the provider-neutral capability schema. Providers establish observations. Hub owns the user-facing capability snapshot and provenance boundary.
 - **Control plane:** `hub/` is the canonical user-facing orchestration layer. There is no second production `ControlPlane` contract.
-- **Frontends:** CLI and optional Qt Control Center are consumers of Hub contracts. They must not call NVML/CUDA/Vulkan/DXGI directly or duplicate business logic.
+- **Frontends:** CLI and optional Qt Control Center are consumers of Hub contracts. They must not call NVML/CUDA/Vulkan/Linux platform providers directly or duplicate business logic.
 - **Qualification:** qualification results are evidence-gated. Synthetic/mock and unavailable-provider states are not equivalent to physical V100 evidence.
 - **Mutation:** the current provider path is intentionally read-only. A successful-looking command execution is not by itself proof that hardware state changed.
 

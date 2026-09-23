@@ -1,6 +1,8 @@
-# ISB V100 Hub
+# ISB V100 Hub — Linux
 
 **ISB — Intelligent Systems Bureau**
+
+**Platform direction: Linux x86-64 only.** The supported product target is a Linux user-space V100 control, compatibility, optimization and diagnostics stack.
 
 Open-source V100-focused user-space control, compatibility, optimization and diagnostics platform built on top of an installed NVIDIA driver stack.
 
@@ -16,7 +18,9 @@ The goal is simple: **make Tesla V100 easier to use, tune, diagnose and get usef
 
 The main control path is:
 
-Game / Application / Compute workload → ISB V100 Hub → providers and feature modules → NVIDIA base driver → Tesla V100.
+Game / Application / Compute workload → ISB V100 Hub → Linux providers and feature modules → NVIDIA Linux base driver → Tesla V100.
+
+The intended multi-GPU topology is **Tesla V100 as compute/render GPU + iGPU or secondary dGPU as display GPU**. ISB automates application-scoped render selection where the Linux graphics stack exposes the required path.
 
 ## Main features
 
@@ -125,15 +129,15 @@ For V100, ISB must not claim native RT Cores, a dedicated Optical Flow Accelerat
 
 The planned Driver Manager covers:
 
-- NVIDIA/Google driver catalog metadata;
+- NVIDIA Linux/Data Center driver catalog metadata;
 - version and branch detection;
-- compatibility matching;
+- V100 compatibility matching;
 - URL/artifact parsing;
 - download;
 - checksum/signature verification;
 - local cache;
 - provenance;
-- explicit user-controlled installation.
+- explicit user-controlled installation/configuration.
 
 ISB must not silently replace the installed driver or execute arbitrary downloaded installers.
 
@@ -145,7 +149,6 @@ The project plans a reproducible release pipeline:
 
 Target artifacts:
 
-- Windows x64: ZIP and EXE;
 - Linux x86_64: DEB and TAR.GZ.
 
 Generated binaries are release artifacts, not committed build outputs.
@@ -156,12 +159,11 @@ Primary qualification target: **NVIDIA Tesla V100 SXM2 16 GB**.
 
 Also tracked separately: V100 PCIe, V100 32 GB, multi-GPU configurations, and headless compute with a separate display GPU.
 
-Initial OS scope:
+Supported platform target:
 
-- Windows 10/11 x64;
-- Linux x86-64.
+- **Linux x86-64**.
 
-Legacy Windows/BSD support is separate qualification work.
+Windows, BSD and other operating systems are outside the supported product scope. Old platform code/specifications may remain only as historical or research material.
 
 ## Architecture and documentation
 
@@ -185,7 +187,7 @@ The repository is in active implementation. Established foundations include comm
 
 The remaining work is mainly the transition from contracts, mocks and partial providers to a fully integrated real V100 stack:
 
-**M0 Build & stabilization → M1 Capability Engine → M2 real providers → M3 real telemetry → M4 tuning/Optimize V100 → M5 Driver Doctor → M6 graphics/render path → M7 Games/OptiScaler → M8 Driver Manager → M9 Release Builder/Installer → M10 Control Center → M11 benchmarks/evidence → M12 experimental graphics → physical V100 qualification.**
+**M0 Build & stabilization → M1 Capability Engine → M2 Linux real providers → M3 real telemetry → M4 tuning/Optimize V100 → M5 Driver Doctor → M6 Linux graphics/render path → M7 Games/OptiScaler → M8 Linux Driver Manager → M9 Linux Release Builder/Installer → M10 Control Center → M11 benchmarks/evidence → M12 experimental graphics → physical V100 qualification.**
 
 The authoritative implementation-gap roadmap is [docs/ROADMAP_STATUS.md](docs/ROADMAP_STATUS.md) and [docs/TASKS.md](docs/TASKS.md).
 
