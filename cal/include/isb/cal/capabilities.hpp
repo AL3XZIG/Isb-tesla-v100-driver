@@ -60,6 +60,14 @@ struct GpuIdentity {
     GpuVariant variant = GpuVariant::Unknown;
     std::string exact_hardware_variant;
     std::string model_name;
+    /// VRAM/HBM capacity in mebibytes, only when a provider reliably reported it.
+    std::optional<std::uint64_t> memory_mib;
+    /// PCI BDF string (domain:bus:device.function) when discovered.
+    std::string pci_bus_id;
+    /// GPU UUID when discovered (NVML/CUDA/DRM).
+    std::string uuid;
+    /// Streaming multiprocessor count when discovered via CUDA device API.
+    std::optional<std::uint32_t> sm_count;
 };
 
 /// Compute capabilities plus runtime/toolchain observations.
@@ -71,6 +79,13 @@ struct GpuIdentity {
 struct ComputeCapabilities {
     CapabilityState cuda_state = CapabilityState::Unknown;
     std::optional<Version> cuda_version;
+    /// CUDA Driver API version as reported by cuDriverGetVersion /
+    /// nvmlSystemGetDriverVersion. Kept separate from the Runtime API version:
+    /// the two APIs have distinct version numbers and must never be merged
+    /// into one pseudo-version.
+    std::optional<Version> cuda_driver_api_version;
+    /// CUDA Runtime API version as reported by cudaRuntimeGetVersion.
+    std::optional<Version> cuda_runtime_api_version;
     std::optional<ComputeCapability> compute_capability;
     std::optional<std::uint32_t> cuda_cores;
     TensorCores tensor_cores;
