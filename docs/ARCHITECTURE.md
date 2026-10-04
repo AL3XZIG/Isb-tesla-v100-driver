@@ -443,3 +443,43 @@ The following points are established from the repository audit and merged stabil
 Older specifications that describe a complete independent driver, a separate control-plane API, or ownership of foundation primitives by `core/` are superseded where they conflict with this verified boundary. They remain historical/reference material unless explicitly updated.
 
 The target repository tree is architectural guidance. Existing code should be moved only when the corresponding ownership and dependency boundary is implemented and tested.
+
+
+## 21. Driver Patch Research Layer
+
+`research/patches/` is an isolated research boundary for investigating software restrictions in the installed NVIDIA driver stack.
+
+It does not replace the base driver and is not a normal Hub runtime dependency.
+
+The research model is:
+
+```text
+driver fingerprint
+      |
+patch profile
+      |
+precondition verification
+      |
+dry-run
+      |
+explicit approval
+      |
+backup -> apply -> read-back -> verify
+                       |
+                    rollback
+```
+
+Patch profiles must be version/architecture/GPU aware and must verify expected bytes or signatures before any future mutation. Unknown driver versions, hashes or layouts fail closed.
+
+Research results distinguish:
+
+- **UNLOCK** — existing capability exposed by software;
+- **EMULATION** — software implementation of a missing hardware feature;
+- **IMPOSSIBLE** — practical hardware limitation;
+- **UNKNOWN** — insufficient evidence.
+
+The research layer must never infer hardware capability from a successful device-ID or capability-flag change alone.
+
+Forceware-382.69 is an engineering reference for reproducible patch manifests, exact input verification, source/binary verification and fail-closed behavior. ISB independently implements these concepts and does not copy NVIDIA-derived binaries, firmware or proprietary source.
+
+See `docs/DRIVER_PATCH_RESEARCH.md`.
