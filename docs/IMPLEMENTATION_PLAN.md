@@ -1151,3 +1151,52 @@ The implementation plan is now governed by the following verified boundary:
 The roadmap must not treat PR #36's status feature as completion of the CMake/verification stabilization task. Target-graph auditing, optional dependency guards, test gating, include/link isolation and clean configure/build/test remain explicit stabilization work where not already verified by CI.
 
 After that gate, the project can proceed to physical V100 qualification and then feature implementation. The GUI, tuning, FixEngine integration, game/OptiScaler automation, driver lifecycle, release automation and experimental graphics/AI features remain downstream of these gates.
+
+
+# Phase 18 — Driver Patch Research Layer
+
+This is a research track, not a replacement NVIDIA driver and not a prerequisite for the stable Hub.
+
+## 18.1 Research boundary
+
+- [x] Define `research/patches/` as the isolated ownership boundary.
+- [x] Document the Forceware-382.69 engineering reference and provenance rules.
+- [x] Define UNLOCK / EMULATION / IMPOSSIBLE / UNKNOWN classifications.
+- [x] Define fail-closed precondition requirements.
+
+## 18.2 Scanner and fingerprinting
+
+- [ ] Fingerprint installed NVIDIA userspace components.
+- [ ] Record driver version/branch, architecture and detected GPU.
+- [ ] Hash relevant files without modifying them.
+- [ ] Detect candidate signatures/feature gates.
+- [ ] Produce deterministic research reports.
+
+## 18.3 Declarative patch profiles
+
+- [ ] Design a version-aware patch manifest.
+- [ ] Support exact file hashes and expected-byte/signature guards.
+- [ ] Support explicit prerequisites and postconditions.
+- [ ] Reject unknown versions/layouts by default.
+
+## 18.4 Verification and rollback
+
+- [ ] Implement dry-run analysis first.
+- [ ] Add backup metadata before any future mutation.
+- [ ] Add post-change hash/runtime verification.
+- [ ] Add rollback for reversible experiments.
+- [ ] Add regression fixtures for positive, negative and UNKNOWN cases.
+
+## 18.5 V100 unlock research
+
+Investigate restrictions in this order:
+
+Hardware → device acceptance → capability detection → capability advertisement → API exposure → userspace implementation → kernel implementation → hardware execution.
+
+No device-ID or feature-flag change may be treated as proof of functional hardware support.
+
+## 18.6 Implementation rule
+
+The initial implementation must be scanner/verifier/dry-run only. Actual proprietary-driver mutation requires a separately reviewed implementation, explicit user approval, backup, rollback and evidence. Stable Hub paths must not depend on this research track.
+
+Reference: `docs/DRIVER_PATCH_RESEARCH.md`.
