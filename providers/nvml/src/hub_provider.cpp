@@ -1,5 +1,7 @@
 #include "isb/providers/nvml/hub_provider.hpp"
 
+#include "isb/performance/throttling.hpp"
+
 #include <string>
 #include <utility>
 
@@ -24,6 +26,7 @@ hub::TelemetrySnapshot telemetry_from(const RawGpuObservation& o) {
     hub::TelemetrySnapshot t;
     t.synthetic = false;
     t.provenance = {"nvml", "read-only NVML observation", false};
+    t.timestamp = performance::current_timestamp();
 
     if (const auto* value = get(o.temperature_celsius)) t.temperature_c = static_cast<int>(*value);
     if (const auto* value = get(o.gpu_utilization_percent)) t.gpu_utilization_percent = static_cast<int>(*value);
@@ -81,6 +84,17 @@ cal::GpuCapabilities capabilities_from(const RawGpuObservation& o) {
     return c;
 }
 
+hub::TelemetrySnapshot unavailable_telemetry(const std::string& reason) {
+    hub::TelemetrySnapshot t;
+    t.provenance = {"nvml", reason, false};
+    t.driver = "unknown";
+    t.performance_state = "unknown";
+    t.ecc = "unknown";
+    t.pcie = "unknown";
+    t.nvlink = "unknown";
+    return t;
+}
+
 } // namespace
 
 hub::Environment HubProvider::environment() const {
@@ -118,26 +132,13 @@ cal::GpuCapabilities HubProvider::capabilities() const {
 hub::TelemetrySnapshot HubProvider::telemetry() const {
     auto provider = make_nvml_provider();
     if (!provider) {
-        hub::TelemetrySnapshot t;
-        t.provenance = {"nvml", "NVML provider unavailable", false};
-        t.driver = "unknown";
-        t.performance_state = "unknown";
-        t.ecc = "unknown";
-        t.pcie = "unknown";
-        t.nvlink = "unknown";
-        return t;
+        return unavailable_telemetry("NVML provider unavailable");
     }
 
     auto result = provider->observe();
     if (!result.ok() || result.value().empty()) {
-        hub::TelemetrySnapshot t;
-        t.provenance = {"nvml", result.ok() ? "no NVIDIA GPU reported" : result.status().message(), false};
-        t.driver = "unknown";
-        t.performance_state = "unknown";
-        t.ecc = "unknown";
-        t.pcie = "unknown";
-        t.nvlink = "unknown";
-        return t;
+        return unavailable_telemetry(result.ok() ? "no NVIDIA GPU reported"
+                                                 : result.status().message());
     }
     return telemetry_from(result.value().front());
 }
@@ -153,6 +154,44 @@ std::vector<hub::Control> HubProvider::controls() const {
         {"compute_mode", hub::ControlState::Unsupported,
          "NVML integration is read-only in this phase"},
     };
+}
+
+performance::PerformanceTelemetry HubProvider::performance_telemetry() const {
+    performance::PerformanceTelemetry telemetry;
+    auto provider = make_nvml_provider();
+    if (!provider) {
+        telemetry.base = unavailable_telemetry("NVML provider unavailable");
+        return telemetry;
+    }
+    auto result = provider->observe();
+    if (!result.ok() || result.value().empty()) {
+        telemetry.base = unavailable_telemetry(result.ok() ? "no NVIDIA GPU reported"
+                                                           : result.status().message());
+        return telemetry;
+    }
+    const RawGpuObservation& o = result.value().front();
+    telemetry.base = telemetry_from(o);
+
+    if (const auto* bits = get(o.throttle_reasons)) {
+        telemetry.throttle = performance::throttle_state_from_nvml_bits(
+            1U, static_cast<std::uint32_t>(*bits));
+    }
+    if (const auto* corrected = get(o.ecc_corrected_errors)) {
+        telemetry.ecc_errors_observed = true;
+        telemetry.ecc_corrected_errors = *corrected;
+        if (const auto* uncorrected = get(o.ecc_uncorrected_errors)) {
+            telemetry.ecc_uncorrected_errors = *uncorrected;
+        }
+    } else if (const auto* uncorrected = get(o.ecc_uncorrected_errors)) {
+        telemetry.ecc_errors_observed = true;
+        telemetry.ecc_uncorrected_errors = *uncorrected;
+    }
+    if (const auto* tx = get(o.pcie_tx_bytes)) {
+        telemetry.pcie_traffic_observed = true;
+        telemetry.pcie_tx_bytes = *tx;
+        if (const auto* rx = get(o.pcie_rx_bytes)) telemetry.pcie_rx_bytes = *rx;
+    }
+    return telemetry;
 }
 
 } // namespace isb::providers::nvml
