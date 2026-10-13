@@ -179,6 +179,27 @@ private:
             observation.ecc_uncorrected_errors = Observed<std::uint64_t>::reported(ecc);
         }
 
+        unsigned int pcie_counter = 0;
+        if (nvmlDeviceGetPcieThroughput(device, NVML_PCIE_UTIL_TX_BYTES, &pcie_counter) ==
+            NVML_SUCCESS) {
+            // The counter is KiB transferred since the last sample window;
+            // record it exactly as reported without extrapolating a rate.
+            observation.pcie_tx_bytes = Observed<std::uint64_t>::reported(
+                static_cast<std::uint64_t>(pcie_counter) * 1024ULL);
+        }
+        pcie_counter = 0;
+        if (nvmlDeviceGetPcieThroughput(device, NVML_PCIE_UTIL_RX_BYTES, &pcie_counter) ==
+            NVML_SUCCESS) {
+            observation.pcie_rx_bytes = Observed<std::uint64_t>::reported(
+                static_cast<std::uint64_t>(pcie_counter) * 1024ULL);
+        }
+
+        unsigned long long throttle_bits = 0;
+        if (nvmlDeviceGetCurrentClocksThrottleReasons(device, &throttle_bits) ==
+            NVML_SUCCESS) {
+            observation.throttle_reasons = Observed<std::uint64_t>::reported(throttle_bits);
+        }
+
         std::vector<NvLinkLinkObservation> links;
         links.reserve(NVML_NVLINK_MAX_LINKS);
         for (unsigned int link = 0; link < NVML_NVLINK_MAX_LINKS; ++link) {

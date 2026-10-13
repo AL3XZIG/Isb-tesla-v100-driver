@@ -49,6 +49,14 @@ struct RawGpuObservation {
 
     Observed<std::uint32_t> pcie_generation;
     Observed<std::uint32_t> pcie_link_width;
+    /// PCIe throughput counters in bytes since driver load, where exposed.
+    Observed<std::uint64_t> pcie_tx_bytes;
+    Observed<std::uint64_t> pcie_rx_bytes;
+
+    /// Current clocks-throttle reason bitmask from NVML
+    /// (nvmlDeviceGetCurrentClocksThrottleReasons). Absent when the query
+    /// fails or is unsupported — never defaulted to "no throttling".
+    Observed<std::uint64_t> throttle_reasons;
 
     /// Whether NVML reports an active display on this device.
     Observed<bool> display_active;
