@@ -67,5 +67,33 @@ std::string json(const TelemetrySnapshot&t){
     return o.str();
 } std::string json(const OperationPlan&p){std::ostringstream o;o<<"{\"id\":"<<q(p.id)<<",\"dry_run\":"<<(p.dry_run?"true":"false")<<",\"operations\":[] ,\"unknown\":[";for(size_t i=0;i<p.unknown.size();++i){if(i)o<<',';o<<q(p.unknown[i]);}o<<"]}";return o.str();} std::string json(const BenchmarkResult&b){return std::string("{\"name\":")+q(b.name)+",\"version\":"+q(b.version)+",\"synthetic\":"+(b.synthetic?"true":"false")+",\"correctness_verified\":"+(b.correctness_verified?"true":"false")+",\"result\":"+q(b.result)+"}";} std::string json(const VerificationResult&v){return std::string("{\"verified\":")+(v.verified?"true":"false")+",\"code\":"+q(v.code)+",\"message\":"+q(v.message)+"}";}
 std::string Hub::status_json()const{const auto e=environment();const auto c=capability_snapshot();const auto t=telemetry();std::ostringstream o;o<<"{\"schema_version\":\"1\",\"mode\":"<<q(to_string(e.mode))<<",\"environment\":"<<json(e)<<",\"capabilities\":"<<cal::to_json(c.capabilities)<<",\"telemetry\":"<<json(t)<<",\"provenance\":{\"provider\":"<<q(c.provenance.provider)<<",\"synthetic\":"<<(c.provenance.synthetic?"true":"false")<<"}}";return o.str();}
-ReportBundle Hub::report(const std::string&d)const{fs::create_directories(fs::path(d)/"logs");std::ofstream(d+"/gpu.json")<<cal::to_json(capabilities());std::ofstream(d+"/capabilities.json")<<cal::to_json(capabilities());std::ofstream(d+"/driver.json")<<json(environment());std::ofstream(d+"/performance.json")<<json(telemetry());std::ofstream(d+"/games.json")<<"[]\n";std::ofstream(d+"/optiscaler.json")<<"{\"state\":\"unknown\",\"reason\":\"external component not detected\"}\n";std::ofstream(d+"/errors.json")<<"[]\n";const auto synthetic=environment().provenance.synthetic;std::string m=std::string("{\"schema_version\":\"1\",\"isb_version\":\"0.1\",\"synthetic\":")+(synthetic?"true":"false")+",\"environment_hash\":\"deterministic-mock-v1\"}\n";std::ofstream(d+"/manifest.json")<<m;return {d,m};}
+namespace {
+// Write a report artifact safely: never follow a pre-existing symlink at the
+// destination and never clobber an existing non-regular file (CWE-59).
+// Returns false when the write failed or was refused for safety reasons.
+bool write_report_file(const fs::path& path, const std::string& content) {
+    std::error_code ec;
+    // Reject the write outright when a symlink already sits at the target path.
+    if (fs::is_symlink(path, ec)) return false;
+    if (fs::exists(path, ec) && !fs::is_regular_file(path, ec)) return false;
+    std::ofstream out(path, std::ios::out | std::ios::trunc);
+    if (!out.is_open()) return false;
+    out << content;
+    out.flush();
+    return out.good();
+}
+} // namespace
+ReportBundle Hub::report(const std::string&d)const{
+if (d.empty()) return {};
+try { fs::create_directories(fs::path(d)/"logs"); } catch (const fs::filesystem_error&) { return {d,{}}; }
+write_report_file(fs::path(d)/"gpu.json",cal::to_json(capabilities()));
+write_report_file(fs::path(d)/"capabilities.json",cal::to_json(capabilities()));
+write_report_file(fs::path(d)/"driver.json",json(environment()));
+write_report_file(fs::path(d)/"performance.json",json(telemetry()));
+write_report_file(fs::path(d)/"games.json","[]\n");
+write_report_file(fs::path(d)/"optiscaler.json","{\"state\":\"unknown\",\"reason\":\"external component not detected\"}\n");
+write_report_file(fs::path(d)/"errors.json","[]\n");
+const auto synthetic=environment().provenance.synthetic;std::string m=std::string("{\"schema_version\":\"1\",\"isb_version\":\"0.1\",\"synthetic\":")+(synthetic?"true":"false")+",\"environment_hash\":\"deterministic-mock-v1\"}\n";
+const bool manifest_written=write_report_file(fs::path(d)/"manifest.json",m);
+return {d,manifest_written?m:std::string{}};}
 }

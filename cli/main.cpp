@@ -10,6 +10,9 @@
 #include <vector>
 #include <csignal>
 #include <atomic>
+#include <cerrno>
+#include <climits>
+#include <cstdlib>
 #include <thread>
 #include <chrono>
 
@@ -770,7 +773,18 @@ int main(int argc, char** argv) {
             }
         }
         else if (x == "--interval" && i + 1 < argc) {
-            monitor_interval = std::stoi(argv[++i]);
+            // Untrusted input: parse defensively. std::stoi throws on garbage
+            // or out-of-range values and would terminate the process (DoS).
+            const char* raw = argv[++i];
+            char* end = nullptr;
+            errno = 0;
+            const long parsed = std::strtol(raw, &end, 10);
+            if (errno != 0 || end == raw || *end != '\0' || parsed < 1 || parsed > 3600) {
+                std::cerr << "invalid --interval value: '" << raw
+                          << "' (expected an integer between 1 and 3600)\n";
+                return 2;
+            }
+            monitor_interval = static_cast<int>(parsed);
         }
         else args.push_back(x);
     }
