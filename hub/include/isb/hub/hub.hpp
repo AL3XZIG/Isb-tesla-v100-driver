@@ -44,6 +44,9 @@ struct TelemetrySnapshot {
     std::optional<int> vram_used_mib;
     std::optional<int> vram_total_mib;
     std::string performance_state;
+    /// Throttling observation as reported by the provider: "throttling",
+    /// "none" or "unknown". Unknown is never collapsed into "none".
+    std::string throttling_hint = "unknown";
     std::string ecc;
     std::string pcie;
     std::string nvlink;

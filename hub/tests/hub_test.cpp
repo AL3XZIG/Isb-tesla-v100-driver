@@ -21,6 +21,35 @@ int main() {
 
     auto plan = h.optimize_plan();
     assert(plan.operations.empty() && !plan.unknown.empty());
+    assert(plan.dry_run);
+    // Mock telemetry is synthetic: the optimize plan must disclose it.
+    assert([&] {
+        for (const auto& r : plan.risks)
+            if (r.find("synthetic") != std::string::npos) return true;
+        return false;
+    }());
+
+    // Throttling evidence from a provider must surface as an optimize risk,
+    // never as an automatically proposed mutation.
+    struct ThrottledProvider final : MockProvider {
+        TelemetrySnapshot telemetry() const override {
+            auto t = MockProvider::telemetry();
+            t.throttling_hint = "throttling";
+            return t;
+        }
+    };
+    ThrottledProvider throttled;
+    Hub ht(throttled);
+    auto tplan = ht.optimize_plan();
+    assert(tplan.operations.empty());
+    bool throttle_risk = false;
+    for (const auto& r : tplan.risks)
+        if (r.find("Throttling") != std::string::npos) throttle_risk = true;
+    assert(throttle_risk);
+
+    // Telemetry JSON exposes the throttling observation explicitly.
+    assert(json(ht.telemetry()).find("\"throttling\":\"throttling\"") != std::string::npos);
+    assert(json(h.telemetry()).find("\"throttling\":\"unknown\"") != std::string::npos);
 
     auto no = h.apply(plan, false);
     assert(!no.mutated && !no.verification.verified);
