@@ -39,6 +39,13 @@ hub::TelemetrySnapshot telemetry_from(const RawGpuObservation& o) {
     if (const auto* value = get(o.memory_used_bytes)) t.vram_used_mib = static_cast<int>(*value / (1024ULL * 1024ULL));
     if (const auto* value = get(o.memory_total_bytes)) t.vram_total_mib = static_cast<int>(*value / (1024ULL * 1024ULL));
     if (const auto* value = get(o.performance_state)) t.performance_state = "P" + std::to_string(*value);
+    // Throttling hint stays "unknown" unless NVML actually answered the query;
+    // a failed query is never collapsed into "none".
+    if (has(o.throttle_reasons)) {
+        const auto throttle = performance::throttle_state_from_nvml_bits(
+            1U, static_cast<std::uint32_t>(*get(o.throttle_reasons)));
+        t.throttling_hint = throttle.throttling ? "throttling" : "none";
+    }
     if (has(o.ecc_enabled)) t.ecc = *get(o.ecc_enabled) ? "enabled" : "disabled";
     if (const auto* value = get(o.pcie_generation)) {
         t.pcie = "Gen" + std::to_string(*value);
