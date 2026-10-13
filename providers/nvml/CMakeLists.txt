@@ -5,7 +5,7 @@ target_compile_features(isb-nvml-observation PUBLIC cxx_std_17)
 
 add_library(isb-nvml src/hub_provider.cpp)
 target_include_directories(isb-nvml PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_link_libraries(isb-nvml PUBLIC isb-nvml-observation PRIVATE isb-hub)
+target_link_libraries(isb-nvml PUBLIC isb-nvml-observation isb-performance PRIVATE isb-hub)
 target_compile_features(isb-nvml PUBLIC cxx_std_17)
 
 option(ISB_ENABLE_NVML "Enable NVML integration when the SDK and library are available" ON)

@@ -29,6 +29,7 @@ isb_add_component(providers/cuda)
 # Graphics upscaling/render-path layer.
 isb_add_component(graphics)
 
+isb_add_component(performance)
 isb_add_component(hub)
 isb_add_component(cli)
 isb_add_component(control-center)

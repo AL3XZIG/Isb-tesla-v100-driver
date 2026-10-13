@@ -1,5 +1,6 @@
 #include "isb/providers/nvml/hub_provider.hpp"
 
+#include "isb/performance/telemetry.hpp"
 #include "isb/performance/throttling.hpp"
 
 #include <string>
