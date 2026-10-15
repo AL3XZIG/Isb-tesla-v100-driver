@@ -1,5 +1,7 @@
 #include "isb/performance/throttling.hpp"
 
+#include "isb/common/json_writer.hpp"
+
 #include <sstream>
 
 namespace isb::performance {
@@ -17,13 +19,11 @@ const char* reason_name(ThrottleReason reason) noexcept {
     return "none";
 }
 
+// Delegates to the shared RFC 8259-safe escaper (isb::common::json_writer);
+// the previous local copy passed tabs/newlines through raw and produced
+// invalid JSON for strings containing control characters.
 std::string q(const std::string& s) {
-    std::string r = "\"";
-    for (const char c : s) {
-        if (c == '"' || c == '\\') r += '\\';
-        r += c;
-    }
-    return r + "\"";
+    return isb::common::quoted_json_string(s);
 }
 
 } // namespace

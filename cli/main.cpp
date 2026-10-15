@@ -1,5 +1,6 @@
 #include "isb/hub/hub.hpp"
 #include "isb/cal/capabilities.hpp"
+#include "isb/common/json_writer.hpp"
 #include "isb/graphics/upscaler_types.hpp"
 #include "isb/graphics/render_path_types.hpp"
 #include "presentation/formatter.hpp"
@@ -28,16 +29,11 @@ void signal_handler(int) {
     g_monitoring_active.store(false);
 }
 
-std::string json_escape(const std::string& value) {
-    std::string out;
-    for (char ch : value) {
-        if (ch == '"' || ch == '\\') out += '\\';
-        if (ch == '\n') out += "\\n";
-        else if (ch == '\r') out += "\\r";
-        else out += ch;
-    }
-    return out;
-}
+// JSON string escaping is centralized in isb::common::json_writer (RFC 8259:
+// \", \\, \b, \f, \n, \r, \t and \u00xx for other control bytes). The old
+// local copy here handled only quotes/backslash/CR/LF and produced broken
+// JSON for tabs and control characters coming from providers.
+using isb::common::json_escape;
 
 void print_render_detection(const isb::graphics::RenderPathResult& result, const Formatter& fmt) {
     if (result.config) {
