@@ -27,10 +27,12 @@ endif()
 if(BUILD_TESTING)
     add_executable(isb-nvml-types-tests tests/types_test.cpp)
     target_link_libraries(isb-nvml-types-tests PRIVATE isb-nvml-observation)
+    isb_configure_test_target(isb-nvml-types-tests)
     add_test(NAME isb-nvml-types-tests COMMAND isb-nvml-types-tests)
 
     add_executable(isb-nvml-live-observation-contract-tests tests/live_observation_contract_test.cpp)
     target_link_libraries(isb-nvml-live-observation-contract-tests PRIVATE isb-nvml-observation)
+    isb_configure_test_target(isb-nvml-live-observation-contract-tests)
     add_test(NAME isb-nvml-live-observation-contract-tests COMMAND isb-nvml-live-observation-contract-tests)
 
     add_executable(isb-nvml-provider-availability-tests tests/provider_availability_test.cpp)
@@ -38,5 +40,6 @@ if(BUILD_TESTING)
     target_include_directories(isb-nvml-provider-availability-tests PRIVATE
         ${PROJECT_SOURCE_DIR}/hub/include
         ${PROJECT_SOURCE_DIR}/cal/include)
+    isb_configure_test_target(isb-nvml-provider-availability-tests)
     add_test(NAME isb-nvml-provider-availability-tests COMMAND isb-nvml-provider-availability-tests)
 endif()

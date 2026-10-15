@@ -38,10 +38,12 @@ include(CTest)
 if(BUILD_TESTING)
     add_executable(upscaler-tests tests/upscaler_test.cpp)
     target_link_libraries(upscaler-tests PRIVATE isb-graphics-upscaler)
+    isb_configure_test_target(upscaler-tests)
     add_test(NAME upscaler-tests COMMAND upscaler-tests)
     
     add_executable(render-path-tests tests/render_path_test.cpp)
     target_link_libraries(render-path-tests PRIVATE isb-graphics-upscaler)
+    isb_configure_test_target(render-path-tests)
     add_test(NAME render-path-tests COMMAND render-path-tests)
 endif()
 
