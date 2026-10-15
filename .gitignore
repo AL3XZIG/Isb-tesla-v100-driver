@@ -1,2 +1,14 @@
-# Build artifacts
 build/
+dist/
+*.o
+*.obj
+*.a
+*.so
+*.dll
+*.exe
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+*.log
+*.tmp

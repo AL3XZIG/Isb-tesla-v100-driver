@@ -9,6 +9,9 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 option(BUILD_TESTING "Build tests" ON)
 include(CTest)
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/common/cmake")
+include(IsbTesting)
+
 if(BUILD_TESTING)
     enable_testing()
 endif()

@@ -3,9 +3,11 @@
 #include <filesystem>
 #include <string>
 
+using namespace isb::hub;
+
 int main() {
-    isb::hub::MockProvider mock;
-    isb::hub::Hub h(mock);
+    MockProvider mock;
+    Hub h(mock);
 
     auto t = h.telemetry();
     assert(t.synthetic && t.temperature_c == 42);
@@ -30,15 +32,22 @@ int main() {
     }());
 
     // Throttling evidence from a provider must surface as an optimize risk,
-    // never as an automatically proposed mutation.
-    struct ThrottledProvider final : MockProvider {
+    // never as an automatically proposed mutation. MockProvider is final, so
+    // compose it instead of deriving from it.
+    struct ThrottledProvider final : Provider {
+        explicit ThrottledProvider(const MockProvider& base) : base_(base) {}
+        Environment environment() const override { return base_.environment(); }
+        isb::cal::GpuCapabilities capabilities() const override { return base_.capabilities(); }
         TelemetrySnapshot telemetry() const override {
-            auto t = MockProvider::telemetry();
+            auto t = base_.telemetry();
             t.throttling_hint = "throttling";
             return t;
         }
+        std::vector<Control> controls() const override { return base_.controls(); }
+
+        const MockProvider& base_;
     };
-    ThrottledProvider throttled;
+    ThrottledProvider throttled{mock};
     Hub ht(throttled);
     auto tplan = ht.optimize_plan();
     assert(tplan.operations.empty());
@@ -63,8 +72,8 @@ int main() {
     assert(std::filesystem::exists(report.directory + "/manifest.json"));
     std::filesystem::remove_all(report.directory);
 
-    isb::hub::UnavailableProvider unavailable;
-    isb::hub::Hub u(unavailable);
+    UnavailableProvider unavailable;
+    Hub u(unavailable);
     auto unavailable_status = u.status_json();
     assert(unavailable_status.find("\"mode\":\"unavailable\"") != std::string::npos);
     assert(unavailable_status.find("\"driver\":\"unknown\"") != std::string::npos);
