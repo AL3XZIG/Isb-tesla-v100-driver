@@ -31,6 +31,7 @@ if(BUILD_TESTING)
     add_test(NAME cli-tests COMMAND cli-tests)
 
     add_executable(isb-cli-provider-selection-tests tests/provider_selection_test.cpp)
+    target_include_directories(isb-cli-provider-selection-tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
     target_link_libraries(isb-cli-provider-selection-tests PRIVATE isb-hub-runtime)
     isb_configure_test_target(isb-cli-provider-selection-tests)
     add_test(NAME isb-cli-provider-selection-tests COMMAND isb-cli-provider-selection-tests)
