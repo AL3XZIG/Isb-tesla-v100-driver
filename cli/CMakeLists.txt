@@ -19,9 +19,9 @@ else()
     target_compile_options(isb-cli-presentation PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 
-# Main CLI executable
+# Main CLI executable. Runtime aggregation is the default; mock is explicit.
 add_executable(isb main.cpp)
-target_link_libraries(isb PRIVATE isb-hub isb-graphics-upscaler isb-cli-presentation)
+target_link_libraries(isb PRIVATE isb-hub-runtime isb-graphics-upscaler isb-cli-presentation)
 target_compile_features(isb PRIVATE cxx_std_17)
 
 if(BUILD_TESTING)
@@ -29,4 +29,10 @@ if(BUILD_TESTING)
     target_link_libraries(cli-tests PRIVATE isb-cli-presentation isb-hub)
     isb_configure_test_target(cli-tests)
     add_test(NAME cli-tests COMMAND cli-tests)
+
+    add_executable(isb-cli-provider-selection-tests tests/provider_selection_test.cpp)
+    target_include_directories(isb-cli-provider-selection-tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+    target_link_libraries(isb-cli-provider-selection-tests PRIVATE isb-hub-runtime)
+    isb_configure_test_target(isb-cli-provider-selection-tests)
+    add_test(NAME isb-cli-provider-selection-tests COMMAND isb-cli-provider-selection-tests)
 endif()

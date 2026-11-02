@@ -2,6 +2,7 @@
 
 #include "isb/performance/telemetry.hpp"
 #include "isb/performance/throttling.hpp"
+#include "isb/providers/nvml/identity.hpp"
 
 #include <string>
 #include <utility>
@@ -39,8 +40,6 @@ hub::TelemetrySnapshot telemetry_from(const RawGpuObservation& o) {
     if (const auto* value = get(o.memory_used_bytes)) t.vram_used_mib = static_cast<int>(*value / (1024ULL * 1024ULL));
     if (const auto* value = get(o.memory_total_bytes)) t.vram_total_mib = static_cast<int>(*value / (1024ULL * 1024ULL));
     if (const auto* value = get(o.performance_state)) t.performance_state = "P" + std::to_string(*value);
-    // Throttling hint stays "unknown" unless NVML actually answered the query;
-    // a failed query is never collapsed into "none".
     if (has(o.throttle_reasons)) {
         const auto throttle = performance::throttle_state_from_nvml_bits(
             1U, static_cast<std::uint32_t>(*get(o.throttle_reasons)));
@@ -73,15 +72,14 @@ cal::GpuCapabilities capabilities_from(const RawGpuObservation& o) {
     if (const auto* name = get(o.name)) {
         c.identity.model_name = *name;
         c.identity.exact_hardware_variant = *name;
-        if (name->find("Tesla V100-SXM2") != std::string::npos ||
-            name->find("Tesla V100 SXM2") != std::string::npos) {
-            c.identity.variant = cal::GpuVariant::V100_SXM2;
-        } else if (name->find("Tesla V100") != std::string::npos) {
-            c.identity.variant = cal::GpuVariant::Unknown;
+        if (is_tesla_v100_model(*name)) {
+            c.identity.architecture = "Volta";
+            c.compute.compute_capability = cal::ComputeCapability{7, 0};
+            if (name->find("SXM2") != std::string::npos) {
+                c.identity.variant = cal::GpuVariant::V100_SXM2;
+            }
         }
     }
-    c.identity.architecture = "Volta";
-    c.compute.compute_capability = cal::ComputeCapability{7, 0};
 
     if (has(o.ecc_enabled)) {
         c.hardware.ecc.state = cal::CapabilityState::Available;
@@ -135,6 +133,14 @@ cal::GpuCapabilities HubProvider::capabilities() const {
     auto result = provider->observe();
     if (!result.ok() || result.value().empty()) return {};
     return capabilities_from(result.value().front());
+}
+
+std::vector<RawGpuObservation> HubProvider::observe_devices() const {
+    auto provider = make_nvml_provider();
+    if (!provider) return {};
+    auto result = provider->observe();
+    if (!result.ok()) return {};
+    return result.value();
 }
 
 hub::TelemetrySnapshot HubProvider::telemetry() const {
