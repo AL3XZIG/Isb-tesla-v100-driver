@@ -1,11 +1,14 @@
 #pragma once
 
 #include "isb/hub/hub.hpp"
-#include "isb/providers/nvml/nvml_provider.hpp"
+#include "isb/performance/throttling.hpp"
+#include "isb/providers/nvml/provider.hpp"
 #include <vector>
 
 namespace isb::providers::nvml {
 
+/// Adapts read-only NVML observations to the Hub Provider contract.
+/// This class performs no hardware mutation.
 class HubProvider final : public hub::Provider {
 public:
     hub::Environment environment() const override;

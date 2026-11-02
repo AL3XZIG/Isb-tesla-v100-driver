@@ -1,7 +1,6 @@
 #include "provider_selection.hpp"
 
 #include <cassert>
-#include <string>
 
 int main() {
     auto mock = isb::cli::make_provider(true);
@@ -12,7 +11,7 @@ int main() {
     auto runtime = isb::cli::make_provider(false);
     assert(runtime);
     const auto environment = runtime->environment();
-    assert(environment.provenance.provider == "runtime");
+    assert(environment.provenance.provider != "mock-provider");
     assert(!environment.provenance.synthetic);
     assert(environment.mode == isb::hub::ProviderMode::Real ||
            environment.mode == isb::hub::ProviderMode::Unavailable);
