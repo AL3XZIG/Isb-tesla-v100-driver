@@ -19,9 +19,9 @@ else()
     target_compile_options(isb-cli-presentation PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 
-# Main CLI executable
+# Main CLI executable. Runtime aggregation is the default; mock mode is explicit.
 add_executable(isb main.cpp)
-target_link_libraries(isb PRIVATE isb-hub isb-graphics-upscaler isb-cli-presentation)
+target_link_libraries(isb PRIVATE isb-hub-runtime isb-graphics-upscaler isb-cli-presentation)
 target_compile_features(isb PRIVATE cxx_std_17)
 
 if(BUILD_TESTING)
