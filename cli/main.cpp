@@ -4,29 +4,40 @@
 #include "isb/graphics/render_path_types.hpp"
 #include "presentation/formatter.hpp"
 #include "provider_selection.hpp"
-
 #include <algorithm>
-#include <atomic>
-#include <cerrno>
-#include <chrono>
-#include <csignal>
-#include <cstdlib>
-#include <exception>
 #include <iostream>
 #include <memory>
 #include <string>
-#include <thread>
 #include <vector>
+#include <csignal>
+#include <atomic>
+#include <cerrno>
+#include <climits>
+#include <cstdlib>
+#include <thread>
+#include <chrono>
 
 using namespace isb::hub;
 using namespace isb::cli::presentation;
 
 namespace {
 
+// Global flag for graceful shutdown during monitoring
 std::atomic<bool> g_monitoring_active{false};
 
 void signal_handler(int) {
     g_monitoring_active.store(false);
+}
+
+std::string json_escape(const std::string& value) {
+    std::string out;
+    for (char ch : value) {
+        if (ch == '"' || ch == '\\') out += '\\';
+        if (ch == '\n') out += "\\n";
+        else if (ch == '\r') out += "\\r";
+        else out += ch;
+    }
+    return out;
 }
 
 void print_render_detection(const isb::graphics::RenderPathResult& result, const Formatter& fmt) {
@@ -152,37 +163,38 @@ void print_status(const Hub& hub, const Formatter& fmt) {
 void print_info(const Hub& hub, const Formatter& fmt) {
     const auto env = hub.environment();
     const auto caps = hub.capability_snapshot();
-    const auto& c = caps.capabilities;
     std::cout << Banner::compact(fmt) << fmt.section("Hardware");
-    std::cout << fmt.kv("Vendor", c.identity.vendor) << "\n";
-    std::cout << fmt.kv("Model", c.identity.model_name) << "\n";
-    std::cout << fmt.kv("Architecture", c.identity.architecture) << "\n";
-    std::cout << fmt.kv("Variant", isb::cal::to_string(c.identity.variant)) << "\n";
-    std::cout << fmt.kv("Hardware Details", c.identity.exact_hardware_variant) << "\n";
-    if (c.identity.compute_capability) {
-        std::cout << fmt.kv("Compute Capability", std::to_string(c.identity.compute_capability->major) + "." +
-            std::to_string(c.identity.compute_capability->minor)) << "\n";
+    const auto& identity = caps.capabilities.identity;
+    std::cout << fmt.kv("Vendor", identity.vendor) << "\n" << fmt.kv("Model", identity.model_name) << "\n";
+    std::cout << fmt.kv("Architecture", identity.architecture) << "\n";
+    std::cout << fmt.kv("Variant", isb::cal::to_string(identity.variant)) << "\n";
+    std::cout << fmt.kv("Hardware Details", identity.exact_hardware_variant) << "\n";
+    if (identity.compute_capability) {
+        std::cout << fmt.kv("Compute Capability", std::to_string(identity.compute_capability->major) + "." +
+            std::to_string(identity.compute_capability->minor)) << "\n";
     }
     std::cout << fmt.subsection("Features");
     auto feature = [&](const char* name, const char* state) {
         std::cout << fmt.kv(name, format_capability_state(state, fmt)) << "\n";
     };
-    feature("Tensor Cores", isb::cal::to_string(c.hardware.tensor_cores.state));
-    feature("HBM2", isb::cal::to_string(c.hardware.hbm2.state));
-    feature("ECC", isb::cal::to_string(c.hardware.ecc.state));
-    feature("RT Cores", isb::cal::to_string(c.hardware.rt_cores.state));
-    feature("NVLink", isb::cal::to_string(c.hardware.nvlink.state));
-    feature("MIG", isb::cal::to_string(c.hardware.mig.state));
-    feature("Display Outputs", isb::cal::to_string(c.hardware.display_outputs.state));
-    std::cout << fmt.section("Driver & Runtime");
-    std::cout << fmt.kv("OS", env.os) << "\n" << fmt.kv("Driver Version", env.driver_version) << "\n";
+    feature("Tensor Cores", isb::cal::to_string(caps.capabilities.hardware.tensor_cores.state));
+    feature("HBM2", isb::cal::to_string(caps.capabilities.hardware.hbm2.state));
+    feature("ECC", isb::cal::to_string(caps.capabilities.hardware.ecc.state));
+    feature("RT Cores", isb::cal::to_string(caps.capabilities.hardware.rt_cores.state));
+    feature("NVLink", isb::cal::to_string(caps.capabilities.hardware.nvlink.state));
+    feature("MIG", isb::cal::to_string(caps.capabilities.hardware.mig.state));
+    feature("Display Outputs", isb::cal::to_string(caps.capabilities.hardware.display_outputs.state));
+    std::cout << fmt.section("Driver & Runtime") << fmt.kv("OS", env.os) << "\n";
+    std::cout << fmt.kv("Driver Version", env.driver_version) << "\n";
     std::cout << fmt.kv("Provider Mode", format_provider_mode(to_string(env.mode), fmt)) << "\n";
-    if (c.compute.cuda_version)
-        std::cout << fmt.kv("CUDA Version", std::to_string(c.compute.cuda_version->major) + "." +
-            std::to_string(c.compute.cuda_version->minor)) << "\n";
-    if (c.graphics.vulkan_api_version)
-        std::cout << fmt.kv("Vulkan API", std::to_string(c.graphics.vulkan_api_version->major) + "." +
-            std::to_string(c.graphics.vulkan_api_version->minor)) << "\n";
+    if (caps.capabilities.compute.cuda_version) {
+        auto v = caps.capabilities.compute.cuda_version.value();
+        std::cout << fmt.kv("CUDA Version", std::to_string(v.major) + "." + std::to_string(v.minor)) << "\n";
+    }
+    if (caps.capabilities.graphics.vulkan_api_version) {
+        auto v = caps.capabilities.graphics.vulkan_api_version.value();
+        std::cout << fmt.kv("Vulkan API", std::to_string(v.major) + "." + std::to_string(v.minor)) << "\n";
+    }
     std::cout << fmt.section("ISB Hub") << fmt.kv("Provenance", caps.provenance.provider) << "\n";
     std::cout << fmt.kv("Synthetic", caps.provenance.synthetic ? "Yes (Mock)" : "No") << "\n";
     if (!caps.provenance.detail.empty()) std::cout << fmt.kv("Detail", caps.provenance.detail) << "\n";
@@ -190,216 +202,243 @@ void print_info(const Hub& hub, const Formatter& fmt) {
 }
 
 void print_capabilities(const Hub& hub, const Formatter& fmt) {
-    const auto c = hub.capabilities();
+    const auto caps = hub.capability_snapshot();
     std::cout << Banner::compact(fmt) << fmt.section("GPU Capabilities");
     Table table({"Capability", "State", "Details"});
-    table.add_row({"CUDA", isb::cal::to_string(c.compute.cuda_state), ""});
-    if (c.compute.compute_capability) {
-        table.add_row({"Compute Capability", "Available", std::to_string(c.compute.compute_capability->major) +
-            "." + std::to_string(c.compute.compute_capability->minor)});
+    table.add_row({"CUDA", isb::cal::to_string(caps.capabilities.compute.cuda_state), ""});
+    if (caps.capabilities.compute.compute_capability) {
+        auto cc = caps.capabilities.compute.compute_capability.value();
+        table.add_row({"Compute Capability", "Available", std::to_string(cc.major) + "." + std::to_string(cc.minor)});
     }
-    if (c.compute.tensor_cores.generation) {
-        table.add_row({"Tensor Cores", isb::cal::to_string(c.compute.tensor_cores.state),
-            "Gen " + std::to_string(*c.compute.tensor_cores.generation)});
+    if (caps.capabilities.compute.tensor_cores.generation) {
+        table.add_row({"Tensor Cores", isb::cal::to_string(caps.capabilities.compute.tensor_cores.state),
+            "Gen " + std::to_string(caps.capabilities.compute.tensor_cores.generation.value())});
     }
-    table.add_row({"Vulkan", isb::cal::to_string(c.graphics.vulkan_state), ""});
-    table.add_row({"OpenGL", isb::cal::to_string(c.graphics.opengl_state), ""});
-    table.add_row({"HBM2", isb::cal::to_string(c.hardware.hbm2.state), ""});
-    table.add_row({"ECC", isb::cal::to_string(c.hardware.ecc.state), ""});
-    table.add_row({"NVLink", isb::cal::to_string(c.hardware.nvlink.state), ""});
-    table.add_row({"RT Cores", isb::cal::to_string(c.hardware.rt_cores.state), "Not present on V100"});
-    table.add_row({"Optical Flow", isb::cal::to_string(c.hardware.optical_flow_accelerator.state), "Not present on V100"});
-    table.add_row({"MIG", isb::cal::to_string(c.hardware.mig.state), "Not supported on V100"});
-    table.add_row({"Display Outputs", isb::cal::to_string(c.hardware.display_outputs.state), "V100 has no display outputs"});
+    table.add_row({"Vulkan", isb::cal::to_string(caps.capabilities.graphics.vulkan_state), ""});
+    table.add_row({"OpenGL", isb::cal::to_string(caps.capabilities.graphics.opengl_state), ""});
+    table.add_row({"HBM2", isb::cal::to_string(caps.capabilities.hardware.hbm2.state), ""});
+    table.add_row({"ECC", isb::cal::to_string(caps.capabilities.hardware.ecc.state), ""});
+    table.add_row({"NVLink", isb::cal::to_string(caps.capabilities.hardware.nvlink.state), ""});
+    table.add_row({"RT Cores", isb::cal::to_string(caps.capabilities.hardware.rt_cores.state), "Not present on V100"});
+    table.add_row({"Optical Flow", isb::cal::to_string(caps.capabilities.hardware.optical_flow_accelerator.state), "Not present on V100"});
+    table.add_row({"MIG", isb::cal::to_string(caps.capabilities.hardware.mig.state), "Not supported on V100"});
+    table.add_row({"Display Outputs", isb::cal::to_string(caps.capabilities.hardware.display_outputs.state), "V100 has no display outputs"});
     std::cout << table.render(fmt) << "\n";
 }
 
 void print_telemetry(const Hub& hub, const Formatter& fmt) {
-    const auto t = hub.telemetry();
+    const auto telem = hub.telemetry();
     std::cout << Banner::compact(fmt) << fmt.section("Telemetry Snapshot");
-    std::cout << fmt.kv("Timestamp", format_timestamp(t.timestamp, fmt)) << "\n";
-    if (t.synthetic) std::cout << fmt.badge(BadgeType::Warning, "SYNTHETIC DATA") << "\n";
-    std::cout << "\n" << fmt.subsection("Thermal") << fmt.kv("Temperature", fmt.temperature(t.temperature_c)) << "\n";
-    std::cout << "\n" << fmt.subsection("Utilization");
-    std::cout << fmt.kv("GPU", fmt.percent(t.gpu_utilization_percent)) << "\n";
-    std::cout << fmt.kv("Memory", fmt.percent(t.memory_utilization_percent)) << "\n";
-    std::cout << "\n" << fmt.subsection("Power") << fmt.kv("Usage", fmt.power(t.power_w)) << "\n";
-    std::cout << fmt.kv("Limit", fmt.power(t.power_limit_w)) << "\n";
-    std::cout << "\n" << fmt.subsection("Clocks") << fmt.kv("GPU", fmt.frequency(t.gpu_clock_mhz)) << "\n";
-    std::cout << fmt.kv("Memory", fmt.frequency(t.memory_clock_mhz)) << "\n";
+    std::cout << fmt.kv("Timestamp", format_timestamp(telem.timestamp, fmt)) << "\n";
+    if (telem.synthetic) std::cout << fmt.badge(BadgeType::Warning, "SYNTHETIC DATA") << "\n";
+    std::cout << "\n" << fmt.subsection("Thermal") << fmt.kv("Temperature", fmt.temperature(telem.temperature_c)) << "\n";
+    std::cout << "\n" << fmt.subsection("Utilization") << fmt.kv("GPU", fmt.percent(telem.gpu_utilization_percent)) << "\n";
+    std::cout << fmt.kv("Memory", fmt.percent(telem.memory_utilization_percent)) << "\n";
+    std::cout << "\n" << fmt.subsection("Power") << fmt.kv("Usage", fmt.power(telem.power_w)) << "\n";
+    std::cout << fmt.kv("Limit", fmt.power(telem.power_limit_w)) << "\n";
+    std::cout << "\n" << fmt.subsection("Clocks") << fmt.kv("GPU", fmt.frequency(telem.gpu_clock_mhz)) << "\n";
+    std::cout << fmt.kv("Memory", fmt.frequency(telem.memory_clock_mhz)) << "\n";
     std::cout << "\n" << fmt.subsection("Memory");
-    if (t.vram_total_mib && t.vram_used_mib) {
-        std::cout << fmt.kv("Total", fmt.memory(*t.vram_total_mib)) << "\n";
-        std::cout << fmt.kv("Used", fmt.memory(*t.vram_used_mib)) << "\n";
-        std::cout << fmt.kv("Free", fmt.memory(*t.vram_total_mib - *t.vram_used_mib)) << "\n";
+    if (telem.vram_total_mib.has_value() && telem.vram_used_mib.has_value()) {
+        int total = telem.vram_total_mib.value();
+        int used = telem.vram_used_mib.value();
+        std::cout << fmt.kv("Total", fmt.memory(total)) << "\n" << fmt.kv("Used", fmt.memory(used)) << "\n";
+        std::cout << fmt.kv("Free", fmt.memory(total - used)) << "\n";
     }
     std::cout << "\n" << fmt.subsection("System");
-    std::cout << fmt.kv("Perf State", t.performance_state.empty() ? "Unknown" : t.performance_state) << "\n";
-    std::cout << fmt.kv("ECC", t.ecc.empty() ? "Unknown" : t.ecc) << "\n";
-    std::cout << fmt.kv("PCIe", t.pcie.empty() ? "Unknown" : t.pcie) << "\n";
-    std::cout << fmt.kv("NVLink", t.nvlink.empty() ? "Unknown" : t.nvlink) << "\n";
-    std::cout << fmt.kv("Processes", t.process_count ? std::to_string(*t.process_count) : "Unknown") << "\n";
-    std::cout << fmt.kv("Throttling", t.throttling_hint) << "\n\n";
+    std::cout << fmt.kv("Perf State", telem.performance_state.empty() ? "Unknown" : telem.performance_state) << "\n";
+    std::cout << fmt.kv("ECC", telem.ecc.empty() ? "Unknown" : telem.ecc) << "\n";
+    std::cout << fmt.kv("PCIe", telem.pcie.empty() ? "Unknown" : telem.pcie) << "\n";
+    std::cout << fmt.kv("NVLink", telem.nvlink.empty() ? "Unknown" : telem.nvlink) << "\n";
+    std::cout << fmt.kv("Processes", telem.process_count.has_value() ? std::to_string(telem.process_count.value()) : "Unknown") << "\n\n";
 }
 
 void run_monitor(const Hub& hub, const Formatter& fmt, int interval_seconds) {
-    g_monitoring_active.store(true);
+    std::cout << Banner::compact(fmt) << fmt.section("Live Monitoring");
+    std::cout << fmt.kv("Interval", std::to_string(interval_seconds) + "s") << "\n";
+    std::cout << fmt.dim() << "Press Ctrl+C to stop" << fmt.reset() << "\n\n";
     std::signal(SIGINT, signal_handler);
-    std::signal(SIGTERM, signal_handler);
+    g_monitoring_active.store(true);
     while (g_monitoring_active.load()) {
-        const auto t = hub.telemetry();
-        std::cout << "[" << format_timestamp(t.timestamp, fmt) << "] "
-                  << "Temp: " << fmt.temperature(t.temperature_c)
-                  << " | GPU: " << fmt.percent(t.gpu_utilization_percent)
-                  << " | Mem: " << fmt.percent(t.memory_utilization_percent)
-                  << " | Power: " << fmt.power(t.power_w) << "\n";
+        const auto telem = hub.telemetry();
+        std::cout << "\033[2K\r" << fmt.ansi_color(Color::Bold) << "[" << fmt.ansi_color(Color::Reset)
+                  << fmt.ansi_color(Color::BrightCyan) << "TEMP:" << fmt.ansi_color(Color::Reset);
+        if (telem.temperature_c.has_value()) {
+            int t = telem.temperature_c.value();
+            std::cout << t << "°C";
+            if (t < 40) std::cout << fmt.ansi_color(Color::BrightGreen);
+            else if (t < 70) std::cout << fmt.ansi_color(Color::BrightYellow);
+            else std::cout << fmt.ansi_color(Color::BrightRed);
+        } else std::cout << fmt.ansi_color(Color::BrightBlack) << "Unknown";
+        std::cout << fmt.ansi_color(Color::Reset) << " | " << fmt.ansi_color(Color::BrightCyan)
+                  << "GPU:" << fmt.ansi_color(Color::Reset);
+        if (telem.gpu_utilization_percent) std::cout << *telem.gpu_utilization_percent << "%";
+        else std::cout << fmt.ansi_color(Color::BrightBlack) << "Unknown";
+        std::cout << fmt.ansi_color(Color::Reset) << " | " << fmt.ansi_color(Color::BrightCyan)
+                  << "PWR:" << fmt.ansi_color(Color::Reset);
+        if (telem.power_w) std::cout << *telem.power_w << "W";
+        else std::cout << fmt.ansi_color(Color::BrightBlack) << "Unknown";
+        std::cout << fmt.ansi_color(Color::Reset) << " | " << fmt.ansi_color(Color::BrightCyan)
+                  << "CLK:" << fmt.ansi_color(Color::Reset);
+        if (telem.gpu_clock_mhz) std::cout << *telem.gpu_clock_mhz << "MHz";
+        else std::cout << fmt.ansi_color(Color::BrightBlack) << "Unknown";
+        std::cout << fmt.ansi_color(Color::Reset) << "]";
         std::cout.flush();
         for (int i = 0; i < interval_seconds * 10 && g_monitoring_active.load(); ++i)
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
-    std::cout << "\nMonitoring stopped.\n";
+    std::cout << "\n" << fmt.dim() << "Monitoring stopped." << fmt.reset() << "\n";
 }
 
-void print_profile_list(const Hub&, const Formatter& fmt) {
-    std::cout << Banner::compact(fmt) << fmt.section("Performance Profiles");
-    Table table({"Profile", "Description"});
-    table.add_row({"Balanced", "Normal performance / power balance"});
-    table.add_row({"Power Saving", "Reduced power target where supported"});
-    table.add_row({"Gaming", "Graphics-oriented policy template"});
-    table.add_row({"Maximum Performance", "Sustained performance policy template"});
-    table.add_row({"Compute", "Compute workload policy template"});
-    table.add_row({"AI / Tensor", "Tensor workload policy template"});
-    table.add_row({"Custom", "User-defined policy template"});
-    std::cout << table.render(fmt) << "\n";
+void print_profile_list(const Hub& hub, const Formatter& fmt) {
+    std::cout << Banner::compact(fmt) << fmt.section("Available Profiles");
+    auto profiles = hub.profiles();
+    for (std::size_t i = 0; i < profiles.size(); ++i) std::cout << "  " << (i + 1) << ". " << profiles[i] << "\n";
+    std::cout << "\n";
 }
 
-void print_profile_plan(const Hub& hub, const std::string& name, const Formatter& fmt) {
-    const auto plan = hub.profile_plan(name);
-    std::cout << Banner::compact(fmt) << fmt.section("Profile Plan: " + name);
-    std::cout << fmt.badge(BadgeType::Info, "DRY RUN") << "\n\n";
-    for (const auto& op : plan.operations)
-        std::cout << "  " << op.operation << " → " << op.value << "\n    " << op.rationale << "\n";
-    if (!plan.unknown.empty()) {
-        std::cout << fmt.subsection("Unknown");
-        for (const auto& item : plan.unknown) std::cout << "  ? " << item << "\n";
+void print_profile_plan(const Hub& hub, const std::string& profile, const Formatter& fmt) {
+    auto plan = hub.profile_plan(profile);
+    std::cout << Banner::compact(fmt) << fmt.section("Profile Plan: " + profile);
+    std::cout << fmt.kv("ID", plan.id) << "\n" << fmt.kv("Dry Run", plan.dry_run ? "Yes" : "No") << "\n";
+    if (!plan.operations.empty()) {
+        std::cout << fmt.subsection("Operations");
+        for (const auto& op : plan.operations) std::cout << fmt.badge(BadgeType::Info, op.id) << " " << op.description << "\n";
     }
     if (!plan.unsupported.empty()) {
         std::cout << fmt.subsection("Unsupported");
-        for (const auto& item : plan.unsupported) std::cout << "  - " << item << "\n";
+        for (const auto& item : plan.unsupported) std::cout << fmt.badge(BadgeType::Error, "SKIP") << " " << item << "\n";
     }
-    std::cout << fmt.subsection("Risks");
-    for (const auto& risk : plan.risks) std::cout << "  ! " << risk << "\n";
-    std::cout << "\n" << fmt.line("─") << "\n" << fmt.dim()
-              << "Read-only plan. No changes are applied without explicit approval and backend support.\n"
-              << fmt.reset() << "\n";
+    if (!plan.unknown.empty()) {
+        std::cout << fmt.subsection("Unknown State");
+        for (const auto& item : plan.unknown) std::cout << fmt.badge(BadgeType::Unknown, "?") << " " << item << "\n";
+    }
+    if (!plan.risks.empty()) {
+        std::cout << fmt.subsection("Risks");
+        for (const auto& risk : plan.risks) std::cout << fmt.badge(BadgeType::Warning, "!") << " " << risk << "\n";
+    }
+    if (!plan.verification_steps.empty()) {
+        std::cout << fmt.subsection("Verification Steps");
+        for (const auto& step : plan.verification_steps) std::cout << "  • " << step << "\n";
+    }
+    std::cout << "\n";
 }
 
 void print_optimize_plan(const Hub& hub, const Formatter& fmt) {
-    const auto plan = hub.optimize_plan();
-    std::cout << Banner::compact(fmt) << fmt.section("V100 Optimization Plan");
-    std::cout << fmt.kv("Target", plan.target) << "\n" << fmt.kv("Mode", "Dry run") << "\n\n";
-    for (const auto& op : plan.operations)
-        std::cout << "  " << op.operation << " → " << op.value << "\n    " << op.rationale << "\n";
-    std::cout << fmt.subsection("Unknown / Unsupported");
-    for (const auto& item : plan.unknown) std::cout << "  ? " << item << "\n";
-    for (const auto& item : plan.unsupported) std::cout << "  - " << item << "\n";
-    std::cout << fmt.subsection("Risks");
-    for (const auto& risk : plan.risks) std::cout << "  ! " << risk << "\n";
-    std::cout << "\n";
+    auto plan = hub.optimize_plan();
+    std::cout << Banner::small(fmt) << fmt.section("Optimize V100 Plan") << fmt.kv("ID", plan.id) << "\n";
+    Progress progress(plan.operations.size() + plan.verification_steps.size());
+    progress.set_message("Planning...");
+    std::cout << progress.render(fmt) << "\n\n";
+    if (plan.operations.empty() && plan.unsupported.empty() && plan.unknown.empty()) {
+        std::cout << fmt.badge(BadgeType::Info, "No operations available") << "\n";
+        std::cout << "The optimization backend may not be fully implemented yet.\n";
+    }
+    if (!plan.operations.empty()) {
+        std::cout << fmt.subsection("Proposed Changes");
+        for (std::size_t i = 0; i < plan.operations.size(); ++i)
+            std::cout << fmt.kv("[" + std::to_string(i+1) + "]", plan.operations[i].description) << "\n";
+    }
+    if (!plan.unsupported.empty()) {
+        std::cout << fmt.subsection("Skipped (Unsupported)");
+        for (const auto& item : plan.unsupported) std::cout << fmt.badge(BadgeType::Error, "SKIP") << " " << item << "\n";
+    }
+    if (!plan.unknown.empty()) {
+        std::cout << fmt.subsection("Skipped (Unknown)");
+        for (const auto& item : plan.unknown) std::cout << fmt.badge(BadgeType::Unknown, "?") << " " << item << "\n";
+    }
+    if (!plan.risks.empty()) {
+        std::cout << fmt.subsection("Risks & Warnings");
+        for (const auto& risk : plan.risks) std::cout << fmt.badge(BadgeType::Warning, "!") << " " << risk << "\n";
+    }
+    if (!plan.verification_steps.empty()) {
+        std::cout << fmt.subsection("Verification");
+        for (const auto& step : plan.verification_steps) std::cout << "  ✓ " << step << "\n";
+    }
+    std::cout << "\n" << fmt.line("─") << "\n" << fmt.dim()
+              << "Note: This is a read-only plan. No changes will be applied without explicit approval.\n"
+              << "Use 'profile apply <name>' to apply changes (when backend supports mutation).\n" << fmt.reset() << "\n";
 }
 
 void print_diagnostics(const Hub& hub, const Formatter& fmt) {
-    const auto errors = hub.diagnose();
+    auto errors = hub.diagnose();
     std::cout << Banner::compact(fmt) << fmt.section("System Diagnostics");
-    if (errors.empty()) {
-        std::cout << "\n" << fmt.badge(BadgeType::Success, "No issues detected") << "\n\n";
-        return;
-    }
-    std::cout << "\n";
-    for (const auto& error : errors) {
-        const auto badge = error.code.find("SYNTHETIC") != std::string::npos ? BadgeType::Info
-            : (error.code.find("UNAVAILABLE") != std::string::npos ? BadgeType::Error : BadgeType::Warning);
-        std::cout << fmt.badge(badge, error.code) << "\n  " << error.message << "\n\n";
+    if (errors.empty()) std::cout << "\n" << fmt.badge(BadgeType::Success, "No issues detected") << "\n\n";
+    else {
+        std::cout << "\n";
+        for (const auto& error : errors) {
+            if (error.code.find("SYNTHETIC") != std::string::npos) std::cout << fmt.badge(BadgeType::Info, error.code) << "\n";
+            else if (error.code.find("UNAVAILABLE") != std::string::npos) std::cout << fmt.badge(BadgeType::Error, error.code) << "\n";
+            else std::cout << fmt.badge(BadgeType::Warning, error.code) << "\n";
+            std::cout << "  " << error.message << "\n\n";
+        }
     }
 }
 
 void print_doctor(const Hub& hub, const Formatter& fmt) {
     const auto env = hub.environment();
-    const auto caps = hub.capabilities();
+    const auto caps = hub.capability_snapshot();
     const auto telem = hub.telemetry();
-    const auto errors = hub.diagnose();
+    auto errors = hub.diagnose();
     std::cout << Banner::small(fmt) << fmt.section("Driver Doctor - Comprehensive Health Check");
     int pass_count = 0, warn_count = 0, error_count = 0;
     std::cout << fmt.subsection("Hardware");
-    if (caps.identity.variant != isb::cal::GpuVariant::Unknown) {
-        std::cout << fmt.badge(BadgeType::Success, "PASS") << " GPU detected: " << caps.identity.model_name << "\n";
-        ++pass_count;
-    } else {
-        std::cout << fmt.badge(BadgeType::Warning, "WARN") << " GPU variant unknown\n";
-        ++warn_count;
-    }
+    if (caps.capabilities.identity.variant != isb::cal::GpuVariant::Unknown) {
+        std::cout << fmt.badge(BadgeType::Success, "PASS") << " GPU detected: " << caps.capabilities.identity.model_name << "\n";
+        pass_count++;
+    } else { std::cout << fmt.badge(BadgeType::Warning, "WARN") << " GPU variant unknown\n"; warn_count++; }
     std::cout << fmt.subsection("Driver Stack");
     if (env.mode != ProviderMode::Unavailable) {
         std::cout << fmt.badge(BadgeType::Success, "PASS") << " Provider available (" << to_string(env.mode) << ")\n";
-        ++pass_count;
-    } else {
-        std::cout << fmt.badge(BadgeType::Error, "FAIL") << " Provider unavailable\n";
-        ++error_count;
-    }
-    auto runtime_check = [&](const char* name, isb::cal::CapabilityState state) {
-        std::cout << fmt.subsection(name);
-        if (state == isb::cal::CapabilityState::Available) {
-            std::cout << fmt.badge(BadgeType::Success, "PASS") << " Available\n";
-            ++pass_count;
-        } else if (state == isb::cal::CapabilityState::Unknown) {
-            std::cout << fmt.badge(BadgeType::Warning, "WARN") << " State unknown\n";
-            ++warn_count;
-        } else {
-            std::cout << fmt.badge(BadgeType::Error, "FAIL") << " Unavailable\n";
-            ++error_count;
-        }
-    };
-    runtime_check("CUDA Runtime", caps.compute.cuda_state);
-    runtime_check("Vulkan Runtime", caps.graphics.vulkan_state);
+        pass_count++;
+    } else { std::cout << fmt.badge(BadgeType::Error, "FAIL") << " Provider unavailable\n"; error_count++; }
+    std::cout << fmt.subsection("CUDA Runtime");
+    if (caps.capabilities.compute.cuda_state == isb::cal::CapabilityState::Available) {
+        std::cout << fmt.badge(BadgeType::Success, "PASS") << " CUDA available\n"; pass_count++;
+    } else if (caps.capabilities.compute.cuda_state == isb::cal::CapabilityState::Unknown) {
+        std::cout << fmt.badge(BadgeType::Warning, "WARN") << " CUDA state unknown\n"; warn_count++;
+    } else { std::cout << fmt.badge(BadgeType::Error, "FAIL") << " CUDA unavailable\n"; error_count++; }
+    std::cout << fmt.subsection("Vulkan Runtime");
+    if (caps.capabilities.graphics.vulkan_state == isb::cal::CapabilityState::Available) {
+        std::cout << fmt.badge(BadgeType::Success, "PASS") << " Vulkan available\n"; pass_count++;
+    } else if (caps.capabilities.graphics.vulkan_state == isb::cal::CapabilityState::Unknown) {
+        std::cout << fmt.badge(BadgeType::Warning, "WARN") << " Vulkan state unknown\n"; warn_count++;
+    } else { std::cout << fmt.badge(BadgeType::Error, "FAIL") << " Vulkan unavailable\n"; error_count++; }
+    std::cout << fmt.subsection("Memory & ECC");
+    if (caps.capabilities.hardware.hbm2.state == isb::cal::CapabilityState::Available) {
+        std::cout << fmt.badge(BadgeType::Success, "PASS") << " HBM2 detected\n"; pass_count++;
+    } else { std::cout << fmt.badge(BadgeType::Warning, "WARN") << " HBM2 state unknown\n"; warn_count++; }
     std::cout << fmt.subsection("Telemetry");
-    if (telem.temperature_c) {
-        std::cout << fmt.badge(BadgeType::Success, "PASS") << " Temperature monitoring active\n";
-        ++pass_count;
-    } else {
-        std::cout << fmt.badge(BadgeType::Warning, "WARN") << " Temperature unavailable\n";
-        ++warn_count;
-    }
+    if (telem.temperature_c.has_value()) {
+        std::cout << fmt.badge(BadgeType::Success, "PASS") << " Temperature monitoring active\n"; pass_count++;
+    } else { std::cout << fmt.badge(BadgeType::Warning, "WARN") << " Temperature unavailable\n"; warn_count++; }
     std::cout << fmt.subsection("Detected Issues");
-    if (errors.empty()) {
-        std::cout << fmt.badge(BadgeType::Success, "PASS") << " No issues detected\n";
-        ++pass_count;
-    } else {
-        for (const auto& error : errors)
-            std::cout << fmt.badge(BadgeType::Warning, "ISSUE") << " " << error.message << "\n";
-    }
+    if (errors.empty()) { std::cout << fmt.badge(BadgeType::Success, "PASS") << " No issues detected\n"; pass_count++; }
+    else for (const auto& error : errors) std::cout << fmt.badge(BadgeType::Warning, "ISSUE") << " " << error.message << "\n";
     std::cout << fmt.section("Summary") << fmt.kv("Passed", std::to_string(pass_count)) << "\n";
-    std::cout << fmt.kv("Warnings", std::to_string(warn_count)) << "\n";
-    std::cout << fmt.kv("Errors", std::to_string(error_count)) << "\n\n";
+    std::cout << fmt.kv("Warnings", std::to_string(warn_count)) << "\n" << fmt.kv("Errors", std::to_string(error_count)) << "\n";
+    if (error_count > 0) std::cout << "\n" << fmt.badge(BadgeType::Error, "ACTION REQUIRED") << " Critical issues detected. Review above.\n";
+    else if (warn_count > 0) std::cout << "\n" << fmt.badge(BadgeType::Warning, "REVIEW ADVISED") << " Some features may be limited.\n";
+    else std::cout << "\n" << fmt.badge(BadgeType::Success, "HEALTHY") << " System appears healthy.\n";
+    std::cout << "\n";
 }
 
 void print_verify(const Hub& hub, const Formatter& fmt) {
-    const auto result = hub.verify();
+    auto result = hub.verify();
     std::cout << Banner::compact(fmt) << fmt.section("Verification Result");
-    std::cout << fmt.badge(result.verified ? BadgeType::Success : BadgeType::Warning,
-        result.verified ? "VERIFIED" : "NOT VERIFIED") << "\n";
+    std::cout << fmt.badge(result.verified ? BadgeType::Success : BadgeType::Warning, result.verified ? "VERIFIED" : "NOT VERIFIED") << "\n";
     std::cout << fmt.kv("Code", result.code) << "\n" << fmt.kv("Message", result.message) << "\n";
     std::cout << fmt.kv("Provider", result.provenance.provider) << "\n\n";
 }
 
 void print_benchmark(const Hub& hub, const Formatter& fmt) {
-    const auto result = hub.benchmark();
+    auto result = hub.benchmark();
     std::cout << Banner::compact(fmt) << fmt.section("Benchmark Result");
     std::cout << fmt.kv("Name", result.name) << "\n" << fmt.kv("Version", result.version) << "\n";
     std::cout << fmt.kv("Synthetic", result.synthetic ? "Yes" : "No") << "\n";
     std::cout << fmt.kv("Correctness Verified", result.correctness_verified ? "Yes" : "No") << "\n";
     std::cout << fmt.kv("Result", result.result) << "\n" << fmt.kv("Provenance", result.provenance.provider) << "\n";
-    if (result.synthetic)
-        std::cout << "\n" << fmt.badge(BadgeType::Warning, "FIXTURE ONLY - NO PERFORMANCE CLAIM") << "\n";
+    if (result.synthetic) std::cout << "\n" << fmt.badge(BadgeType::Warning, "FIXTURE ONLY - NO PERFORMANCE CLAIM") << "\n";
     std::cout << "\n";
 }
 
@@ -415,21 +454,16 @@ int main(int argc, char** argv) {
     bool mock = false;
     bool json_output = false;
     bool dry = false;
-    (void)dry;
     ColorPolicy color_policy = ColorPolicy::Auto;
     int monitor_interval = 2;
     std::vector<std::string> args;
-
     for (int i = 1; i < argc; ++i) {
         std::string x = argv[i];
         if (x == "--mock") mock = true;
         else if (x == "--json") json_output = true;
         else if (x == "--dry-run") dry = true;
-        else if (x == "--help") {
-            Formatter fmt(ColorPolicy::Auto);
-            print_help(fmt);
-            return 0;
-        } else if (x == "--color") {
+        else if (x == "--help") { Formatter fmt(ColorPolicy::Auto); print_help(fmt); return 0; }
+        else if (x == "--color") {
             if (i + 1 < argc) {
                 std::string val = argv[++i];
                 if (val == "auto") color_policy = ColorPolicy::Auto;
@@ -448,72 +482,53 @@ int main(int argc, char** argv) {
             monitor_interval = static_cast<int>(parsed);
         } else args.push_back(x);
     }
-
     Formatter fmt(color_policy);
     if (args.empty()) {
-        std::cerr << "usage: isb [--mock] [--json] [--color POLICY] [--help] <command>\n"
-                     "Run 'isb --help' for more information.\n";
+        std::cerr << "usage: isb [--mock] [--json] [--color POLICY] [--help] <command>\nRun 'isb --help' for more information.\n";
         return 2;
     }
-
     if (args[0] == "render") {
-        if (args.size() < 2) {
-            std::cerr << "usage: isb render <detect|plan|configure|verify> [--apply]\n";
-            return 2;
-        }
+        if (args.size() < 2) { std::cerr << "usage: isb render <detect|plan|configure|verify> [--apply]\n"; return 2; }
         auto render_manager = isb::graphics::create_render_path_manager(mock);
-        if (args[1] == "detect") {
-            print_render_detection(render_manager->detect_gpus(), fmt);
-            return 0;
-        }
+        if (args[1] == "detect") { print_render_detection(render_manager->detect_gpus(), fmt); return 0; }
         if (args[1] == "plan") {
-            const auto result = render_manager->plan_config();
-            std::cout << result.message << "\n";
+            const auto result = render_manager->plan_config(); std::cout << result.message << "\n";
             return result.status == isb::common::CapabilityState::Error ? 1 : 0;
         }
         if (args[1] == "configure") {
             const bool apply = std::find(args.begin() + 2, args.end(), "--apply") != args.end();
-            const auto result = render_manager->apply_config(apply);
-            std::cout << result.message << "\n";
+            const auto result = render_manager->apply_config(apply); std::cout << result.message << "\n";
             return result.status == isb::common::CapabilityState::Error ? 1 : 0;
         }
         if (args[1] == "verify") {
-            const auto result = render_manager->verify_config();
-            std::cout << result.message << "\n";
+            const auto result = render_manager->verify_config(); std::cout << result.message << "\n";
             return result.status == isb::common::CapabilityState::Error ? 1 : 0;
         }
-        std::cerr << "unknown render command: " << args[1] << "\n";
-        return 2;
+        std::cerr << "unknown render command: " << args[1] << "\n"; return 2;
     }
-
     if (args[0] == "graphics" || args[0] == "upscaler") {
-        if (args.size() < 2) {
-            std::cerr << "usage: isb " << args[0] << " <status|list>\n";
-            return 2;
-        }
+        if (args.size() < 2) { std::cerr << "usage: isb " << args[0] << " <status|list>\n"; return 2; }
         if (args[1] == "status" || args[1] == "list") {
             auto manager = isb::graphics::create_upscaler_manager(mock);
-            const auto backends = manager->list_backends();
+            auto backends = manager->list_backends();
             std::cout << Banner::compact(fmt) << fmt.section("Upscaler Backends");
             if (backends.empty()) std::cout << fmt.badge(BadgeType::Info, "No backends detected") << "\n";
             for (const auto& b : backends) {
                 std::cout << "\n" << fmt.bold() << isb::graphics::to_string(b.type) << ": " << b.name << fmt.reset() << "\n";
                 std::cout << fmt.kv("Version", b.version) << "\n";
-                std::cout << fmt.badge(b.available ? BadgeType::Success : (b.supported ? BadgeType::Warning : BadgeType::Error),
-                    b.available ? "Available" : (b.supported ? "Supported, not installed" : "Boundary/Unsupported")) << "\n";
+                if (b.available) std::cout << fmt.badge(BadgeType::Success, "Available") << "\n";
+                else if (b.supported) std::cout << fmt.badge(BadgeType::Warning, "Supported, not installed") << "\n";
+                else std::cout << fmt.badge(BadgeType::Error, "Boundary/Unsupported") << "\n";
                 if (b.requires_external) std::cout << fmt.kv("Requires", b.external_component) << "\n";
                 if (b.provenance.synthetic) std::cout << fmt.badge(BadgeType::Warning, "MOCK") << "\n";
             }
-            std::cout << "\n";
-            return 0;
+            std::cout << "\n"; return 0;
         }
-        std::cerr << "unknown graphics command: " << args[1] << "\n";
-        return 2;
+        std::cerr << "unknown graphics command: " << args[1] << "\n"; return 2;
     }
 
     auto provider = isb::cli::make_provider(mock);
     Hub hub(*provider);
-
     if (args[0] == "status") {
         if (json_output) std::cout << hub.status_json() << "\n"; else print_status(hub, fmt);
     } else if (args[0] == "info") {
@@ -522,50 +537,32 @@ int main(int argc, char** argv) {
         if (json_output) std::cout << isb::cal::to_json(hub.capabilities()) << "\n"; else print_capabilities(hub, fmt);
     } else if (args[0] == "telemetry") {
         if (json_output) std::cout << json(hub.telemetry()) << "\n"; else print_telemetry(hub, fmt);
-    } else if (args[0] == "monitor") {
-        run_monitor(hub, fmt, monitor_interval);
-        return 0;
-    } else if (args[0] == "profile" && args.size() > 1 && args[1] == "list") {
-        print_profile_list(hub, fmt);
-        return 0;
+    } else if (args[0] == "monitor") { run_monitor(hub, fmt, monitor_interval); return 0;
+    } else if (args[0] == "profile" && args.size() > 1 && args[1] == "list") { print_profile_list(hub, fmt); return 0;
     } else if (args[0] == "profile" && args.size() > 2 && args[1] == "plan") {
-        if (json_output) std::cout << json(hub.profile_plan(args[2])) << "\n"; else print_profile_plan(hub, args[2], fmt);
-        return 0;
+        if (json_output) std::cout << json(hub.profile_plan(args[2])) << "\n"; else print_profile_plan(hub, args[2], fmt); return 0;
     } else if (args[0] == "optimize") {
-        if (json_output) std::cout << json(hub.optimize_plan()) << "\n"; else print_optimize_plan(hub, fmt);
-        return 0;
-    } else if (args[0] == "diagnose") {
-        print_diagnostics(hub, fmt);
-        return 0;
-    } else if (args[0] == "doctor") {
-        print_doctor(hub, fmt);
-        return 0;
+        if (json_output) std::cout << json(hub.optimize_plan()) << "\n"; else print_optimize_plan(hub, fmt); return 0;
+    } else if (args[0] == "diagnose") { print_diagnostics(hub, fmt); return 0;
+    } else if (args[0] == "doctor") { print_doctor(hub, fmt); return 0;
     } else if (args[0] == "verify") {
-        if (json_output) std::cout << json(hub.verify()) << "\n"; else print_verify(hub, fmt);
-        return 0;
+        if (json_output) std::cout << json(hub.verify()) << "\n"; else print_verify(hub, fmt); return 0;
     } else if (args[0] == "benchmark") {
-        if (json_output) std::cout << json(hub.benchmark()) << "\n"; else print_benchmark(hub, fmt);
-        return 0;
+        if (json_output) std::cout << json(hub.benchmark()) << "\n"; else print_benchmark(hub, fmt); return 0;
     } else if (args[0] == "report") {
-        try {
-            print_report_result(hub.report(args.size() > 1 ? args[1] : "isb-report"), fmt);
-            return 0;
-        } catch (const std::exception& error) {
-            std::cerr << "report generation failed: " << error.what() << "\n";
-            return 1;
-        }
+        auto report = hub.report(args.size() > 1 ? args[1] : "isb-report");
+        if (report.manifest.empty()) { std::cerr << "report generation failed: " << report.directory << "\n"; return 1; }
+        print_report_result(report, fmt); return 0;
     } else if (args[0] == "about") {
         std::cout << Banner::small(fmt) << fmt.section("About ISB V100 Driver");
         std::cout << "Intelligent Systems Bureau Tesla V100 Control Layer\n\n";
         std::cout << fmt.kv("Version", "0.1.0") << "\n" << fmt.kv("Target", "Tesla V100 SXM2 16GB") << "\n";
         std::cout << fmt.kv("Architecture", "Volta GV100") << "\n";
         std::cout << fmt.kv("Repository", "github.com/AL3XZIG/Isb-tesla-v100-driver") << "\n";
-        std::cout << "\n" << fmt.dim() << "This is a user-space control plane, not a replacement NVIDIA driver.\n"
-                  << fmt.reset() << "\n";
+        std::cout << "\n" << fmt.dim() << "This is a user-space control plane, not a replacement NVIDIA driver.\n" << fmt.reset() << "\n";
         return 0;
     } else {
-        std::cerr << "unknown command: " << args[0] << "\nRun 'isb --help' for available commands.\n";
-        return 2;
+        std::cerr << "unknown command: " << args[0] << "\nRun 'isb --help' for available commands.\n"; return 2;
     }
     return 0;
 }
